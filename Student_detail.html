@@ -9,99 +9,345 @@
     <style>
       .detail-container {
         padding: 0;
+        animation: fadeIn 0.6s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .back-button {
-        background: #6c757d;
+        background: #1a5276;
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
+        padding: 12px 20px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 14px;
-        transition: background 0.3s;
-        margin-bottom: 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(26, 82, 118, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .back-button:hover {
-        background: #5a6268;
+        background: #154360;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(26, 82, 118, 0.4);
+      }
+
+      .back-button:active {
+        transform: translateY(0);
       }
 
       .student-header-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        margin-bottom: 30px;
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        margin-bottom: 35px;
         text-align: center;
-        border-left: 4px solid #007bff;
+        border: 1px solid rgba(26, 82, 118, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .student-header-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #007bff, #0056b3, #007bff);
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          background-position: 200% 0;
+        }
+        50% {
+          background-position: -200% 0;
+        }
       }
 
       .student-header-card h2 {
-        margin: 0 0 10px 0;
-        color: #333;
-        font-size: 2em;
-        font-weight: 600;
+        margin: 0 0 15px 0;
+        color: #2c3e50;
+        font-size: 2.2em;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        letter-spacing: -0.5px;
       }
 
       .student-header-card .student-info {
         color: #6c757d;
-        font-size: 1.1em;
+        font-size: 1.2em;
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .student-info-item {
+        background: rgba(26, 82, 118, 0.1);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #1a5276;
       }
 
       .detail-sections {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-        gap: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 25px;
+        animation: slideUp 0.8s ease-out 0.2s both;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
 
       .detail-section {
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
         overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .detail-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      }
+
+      .detail-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #007bff, #28a745, #ffc107, #dc3545);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .detail-section:hover::before {
+        opacity: 1;
       }
 
       .section-header {
-        background: #f8f9fa;
-        padding: 20px;
-        border-bottom: 1px solid #e9ecef;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 25px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        overflow: hidden;
+      }
+
+      .section-header:hover {
+        background: linear-gradient(135deg, #1a5276 0%, #154360 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(26, 82, 118, 0.3);
+      }
+
+      .section-header:hover .section-title {
+        color: white;
+      }
+
+      .section-header::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(244, 208, 63, 0.3),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .section-header:hover::after {
+        left: 100%;
       }
 
       .section-title {
         margin: 0;
-        color: #495057;
-        font-size: 1.3em;
-        font-weight: 600;
+        color: #2c3e50;
+        font-size: 1.4em;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title::before {
+        font-size: 1.2em;
+        margin-right: 5px;
+      }
+
+      .section-title[data-section="identitas"]::before {
+        content: "👤";
+      }
+
+      .section-title[data-section="alamat"]::before {
+        content: "🏠";
+      }
+
+      .section-title[data-section="kesehatan"]::before {
+        content: "🏥";
+      }
+
+      .section-title[data-section="pendidikan"]::before {
+        content: "🎓";
+      }
+
+      .section-title[data-section="ayah"]::before {
+        content: "👨";
+      }
+
+      .section-title[data-section="ibu"]::before {
+        content: "👩";
+      }
+
+      .section-title[data-section="wali"]::before {
+        content: "👥";
+      }
+
+      .section-title[data-section="hobi"]::before {
+        content: "🏆";
+      }
+
+      .section-title[data-section="default"]::before {
+        content: "📋";
       }
 
       .section-content {
-        padding: 20px;
+        padding: 25px;
+        background: rgba(255, 255, 255, 0.8);
       }
 
       .detail-row {
         display: flex;
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #f1f3f4;
+        margin-bottom: 18px;
+        padding: 15px;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.9),
+          rgba(248, 249, 250, 0.5)
+        );
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .detail-row:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 123, 255, 0.05),
+          rgba(248, 249, 250, 0.8)
+        );
+        border-color: rgba(0, 123, 255, 0.2);
+        transform: translateX(5px);
+        box-shadow: 0 3px 10px rgba(0, 123, 255, 0.1);
+      }
+
+      .detail-row::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: linear-gradient(180deg, #007bff, #0056b3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .detail-row:hover::before {
+        opacity: 1;
       }
 
       .detail-row:last-child {
-        border-bottom: none;
         margin-bottom: 0;
-        padding-bottom: 0;
       }
 
       .detail-label {
-        flex: 0 0 40%;
-        font-weight: 600;
-        color: #495057;
-        padding-right: 15px;
+        flex: 0 0 42%;
+        font-weight: 700;
+        color: #2c3e50;
+        padding-right: 20px;
+        font-size: 0.95em;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
       }
 
       .detail-value {
         flex: 1;
+        color: #495057;
+        font-weight: 500;
+        line-height: 1.5;
+        word-wrap: break-word;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .detail-value:empty::before {
+        content: "Memuat...";
         color: #6c757d;
+        font-style: italic;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .detail-row:hover .detail-value {
+        background: linear-gradient(
+          135deg,
+          rgba(26, 82, 118, 0.1),
+          rgba(255, 255, 255, 0.9)
+        );
+        border-color: rgba(26, 82, 118, 0.3);
+        color: #1a5276;
+        transform: scale(1.02);
+        box-shadow: 0 2px 8px rgba(26, 82, 118, 0.15);
       }
 
       .loading-container {
@@ -121,44 +367,144 @@
 
       .action-buttons {
         text-align: center;
-        margin-top: 30px;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-top: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        animation: slideUp 1s ease-out 0.4s both;
       }
 
       .action-buttons .btn {
-        margin: 8px 10px;
-        padding: 12px 30px;
-        font-size: 16px;
-        min-width: 140px;
-        border-radius: 6px;
+        margin: 10px 8px;
+        padding: 14px 28px;
+        font-size: 15px;
+        font-weight: 600;
+        min-width: 150px;
+        border-radius: 12px;
         text-decoration: none;
         display: inline-block;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-buttons .btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        transition: left 0.6s ease;
+      }
+
+      .action-buttons .btn:hover::before {
+        left: 100%;
       }
 
       .action-buttons .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        transform: translateY(-4px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
       }
 
       .action-buttons .btn:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
       }
 
       .btn-info {
-        background-color: #17a2b8;
+        background: linear-gradient(135deg, #17a2b8, #138496);
         color: white;
-        border: 1px solid #17a2b8;
+        border: 2px solid #17a2b8;
       }
 
       .btn-info:hover {
-        background-color: #138496;
+        background: linear-gradient(135deg, #138496, #117a8b);
         border-color: #117a8b;
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #f4d03f, #f1c40f);
+        color: #212529;
+        border: 2px solid #f4d03f;
+      }
+
+      .btn-warning:hover {
+        background: linear-gradient(135deg, #f1c40f, #d4ac0d);
+        border-color: #d4ac0d;
+        color: white;
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: 2px solid #28a745;
+      }
+
+      .btn-success:hover {
+        background: linear-gradient(135deg, #20c997, #17a2b8);
+        border-color: #17a2b8;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #1a5276, #154360);
+        color: white;
+        border: 2px solid #1a5276;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #154360, #0f2a44);
+        border-color: #0f2a44;
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #1a5276, #154360);
+        color: white;
+        border: 2px solid #1a5276;
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #154360, #0f2a44);
+        border-color: #0f2a44;
+      }
+
+      .alert {
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 1rem 0;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+
+      .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+
+      .btn-warning {
+        background-color: #f4d03f;
+        color: #212529;
+        border: 1px solid #f4d03f;
+      }
+
+      .btn-warning:hover {
+        background-color: #f1c40f;
+        border-color: #d4ac0d;
       }
 
       /* Icon styles for buttons */
@@ -182,12 +528,66 @@
 
       /* Loading animation for icons */
       @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
       }
 
       .btn-icon.loading {
         animation: spin 1s linear infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      @keyframes slideInUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .detail-section {
+        animation: slideInUp 0.6s ease-out;
+      }
+
+      .detail-section:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      .detail-section:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .detail-section:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      .detail-section:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      .detail-section:nth-child(5) {
+        animation-delay: 0.5s;
+      }
+      .detail-section:nth-child(6) {
+        animation-delay: 0.6s;
+      }
+      .detail-section:nth-child(7) {
+        animation-delay: 0.7s;
+      }
+      .detail-section:nth-child(8) {
+        animation-delay: 0.8s;
       }
 
       @media (max-width: 768px) {
@@ -243,41 +643,72 @@
       </div>
 
       <div class="detail-container">
-        <button class="back-button" onclick="goBack()">← Kembali ke Daftar Siswa</button>
-        
+        <button class="back-button" onclick="goBack()">
+          🔙 Kembali ke Daftar Siswa
+        </button>
+
         <div class="student-header-card">
           <h2 id="student-header-name">Memuat informasi siswa...</h2>
           <div class="student-info" id="student-header-info">
-            <span id="student-header-nis"></span> • <span id="student-header-class"></span>
+            <div class="student-info-item" id="student-header-nis"></div>
+            <div class="student-info-item" id="student-header-class"></div>
           </div>
         </div>
 
-      <div id="detail-content">
-        <div class="loading-container">
-          <div>Memuat detail siswa...</div>
+        <div id="detail-content">
+          <div class="loading-container">
+            <div>Memuat detail siswa...</div>
+          </div>
         </div>
-      </div>
 
-      <div class="action-buttons" id="action-buttons" style="display: none">
-        <button class="btn btn-warning" onclick="editStudent()" title="Edit data siswa">
-          <span class="btn-icon">✏️</span>
-          Edit Data
-        </button>
-        <button class="btn btn-info" onclick="generatePDF()" title="Cetak PDF siswa">
-          <span class="btn-icon">📄</span>
-          Cetak PDF
-        </button>
-        <button class="btn btn-secondary" onclick="goBack()" title="Kembali ke daftar siswa">
-          <span class="btn-icon">↩️</span>
-          Kembali ke Daftar
-        </button>
-      </div>
+        <div class="action-buttons" id="action-buttons" style="display: none">
+          <button
+            class="btn btn-warning"
+            onclick="editStudent()"
+            title="Edit data siswa"
+          >
+            <span class="btn-icon">✏️</span>
+            Edit Data
+          </button>
+          <button
+            class="btn btn-info"
+            onclick="generatePDF()"
+            title="Cetak PDF siswa"
+          >
+            <span class="btn-icon">📄</span>
+            Cetak PDF
+          </button>
+          <button
+            class="btn btn-success"
+            onclick="testSpreadsheet()"
+            title="Test koneksi spreadsheet"
+          >
+            <span class="btn-icon">🔧</span>
+            Test Koneksi
+          </button>
+          <button
+            class="btn btn-primary"
+            onclick="searchCurrentStudent()"
+            title="Debug data siswa saat ini"
+          >
+            <span class="btn-icon">🔍</span>
+            Debug Siswa
+          </button>
+          <button
+            class="btn btn-secondary"
+            onclick="goBack()"
+            title="Kembali ke daftar siswa"
+          >
+            <span class="btn-icon">↩️</span>
+            Kembali ke Daftar
+          </button>
+        </div>
       </div>
     </div>
 
     <script>
       let currentStudentId = null;
-      
+
       // Fungsi untuk toggle sidebar di tampilan mobile
       function toggleSidebar() {
         document.body.classList.toggle("sidebar-active");
@@ -303,7 +734,7 @@
         if (hiddenInput && hiddenInput.value) {
           return hiddenInput.value;
         }
-        
+
         // Fallback to URL parameter
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("sessionId");
@@ -312,101 +743,101 @@
       // Get student ID from URL parameters or server-side template
       function getStudentIdFromUrl() {
         // First try to get from server-side template parameter
-        const serverStudentId = '<?= typeof studentId !== "undefined" ? studentId : "" ?>';
-        if (serverStudentId && serverStudentId !== '') {
-          console.log('Student ID from server template:', serverStudentId);
+        const serverStudentId =
+          '<?= typeof studentId !== "undefined" ? studentId : "" ?>';
+        if (serverStudentId && serverStudentId !== "") {
           return serverStudentId;
         }
-        
+
         // Fallback to URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const urlStudentId = urlParams.get("id");
-        console.log('Student ID from URL parameters:', urlStudentId);
+
         return urlStudentId;
       }
 
       // Go back to students list
       function goBack() {
-        const urlParams = new URLSearchParams(window.location.search);
         const sessionId = getSessionId();
-        const baseUrl = window.location.origin + window.location.pathname;
-        window.location.href = `${baseUrl}?page=Students_manage&sessionId=${sessionId}`;
+        const url =
+          "<?= myURL() ?>?page=Students_manage&sessionId=" +
+          encodeURIComponent(sessionId);
+        window.location.href = url;
       }
 
       // Edit student
       function editStudent() {
         if (!currentStudentId) {
-          alert('ID siswa tidak tersedia');
+          alert("ID siswa tidak tersedia");
           return;
         }
-        
+
         try {
           const sessionId = getSessionId();
           if (!sessionId) {
-            alert('Session tidak valid. Silakan login kembali.');
+            alert("Session tidak valid. Silakan login kembali.");
             return;
           }
-          
-          const baseUrl = window.location.origin + window.location.pathname;
-          const editUrl = `${baseUrl}?page=Students_manage&sessionId=${encodeURIComponent(sessionId)}&edit=${encodeURIComponent(currentStudentId)}`;
-          
-          console.log('Navigating to edit page:', editUrl);
+
+          const editUrl =
+            "<?= myURL() ?>?page=Students_manage&sessionId=" +
+            encodeURIComponent(sessionId) +
+            "&edit=" +
+            encodeURIComponent(currentStudentId);
+
           window.location.href = editUrl;
         } catch (error) {
-          console.error('Error in editStudent:', error);
-          alert('Terjadi kesalahan saat membuka halaman edit');
+          console.error("Error in editStudent:", error);
+          alert("Terjadi kesalahan saat membuka halaman edit");
         }
       }
 
       // Generate PDF
       function generatePDF() {
         if (!currentStudentId) {
-          alert('ID siswa tidak tersedia');
+          alert("ID siswa tidak tersedia");
           return;
         }
-        
+
         try {
           const sessionId = getSessionId();
           if (!sessionId) {
-            alert('Session tidak valid. Silakan login kembali.');
+            alert("Session tidak valid. Silakan login kembali.");
             return;
           }
-          
-          console.log("Generating PDF for student:", currentStudentId);
-          
+
           // Show loading state
-          const pdfButton = document.querySelector('.btn-info');
+          const pdfButton = document.querySelector(".btn-info");
           const originalText = pdfButton.innerHTML;
           pdfButton.innerHTML = '<span class="btn-icon">⏳</span>Memproses...';
           pdfButton.disabled = true;
-          
+
           // Call server-side function to generate PDF
           google.script.run
-            .withSuccessHandler(function(pdfUrl) {
+            .withSuccessHandler(function (pdfUrl) {
               // Reset button
               pdfButton.innerHTML = originalText;
               pdfButton.disabled = false;
-              
+
               if (pdfUrl) {
                 // Open PDF in new tab
-                window.open(pdfUrl, '_blank');
+                window.open(pdfUrl, "_blank");
               } else {
-                alert('Gagal menghasilkan PDF');
+                alert("Gagal menghasilkan PDF");
               }
             })
-            .withFailureHandler(function(error) {
+            .withFailureHandler(function (error) {
               // Reset button
               pdfButton.innerHTML = originalText;
               pdfButton.disabled = false;
-              
-              console.error('Error generating PDF:', error);
-              alert('Fitur cetak PDF sedang dalam pengembangan');
+
+              console.error("Error generating PDF:", error);
+              alert("Fitur cetak PDF sedang dalam pengembangan");
             })
             .getStudentPDFUrl(currentStudentId, sessionId);
-            
         } catch (error) {
-          console.error('Error in generatePDF:', error);
-          alert('Terjadi kesalahan saat membuat PDF');
+          console.error("Error in generatePDF:", error);
+          alert("Terjadi kesalahan saat membuat PDF");
         }
       }
 
@@ -418,25 +849,112 @@
         }
 
         currentStudentId = studentId;
-        console.log("Loading student detail for ID:", studentId);
 
         const sessionId = getSessionId();
-        console.log("Session ID for request:", sessionId);
+
+        // Show loading indicator
+        document.getElementById("detail-content").innerHTML = `
+          <div class="loading-container" style="text-align: center; padding: 50px;">
+            <div style="font-size: 18px; color: #666;">Memuat data siswa...</div>
+            <div style="margin-top: 10px; font-size: 14px; color: #999;">NIS: ${studentId}</div>
+            <div style="margin-top: 5px; font-size: 12px; color: #999;">Mohon tunggu sebentar</div>
+          </div>
+        `;
+
+        // Tambahkan timeout untuk debugging
+        const startTime = new Date().getTime();
 
         google.script.run
           .withSuccessHandler(function (student) {
-            console.log("Received student data:", student);
+            const endTime = new Date().getTime();
+            const duration = endTime - startTime;
+
+            // Validasi lebih detail
+            if (student === null) {
+              console.error("Student data is null");
+              showError("Data siswa tidak ditemukan (null). NIS: " + studentId);
+              return;
+            }
+
+            if (student === undefined) {
+              console.error("Student data is undefined");
+              showError(
+                "Data siswa tidak ditemukan (undefined). NIS: " + studentId
+              );
+              return;
+            }
 
             if (!student) {
-              showError("Data siswa tidak ditemukan");
+              console.error("Student data is falsy:", student);
+              showError(
+                "Data siswa tidak ditemukan (falsy). NIS: " + studentId
+              );
+              return;
+            }
+
+            // Validate student object has required properties
+            if (typeof student !== "object") {
+              console.error("Invalid student data format:", typeof student);
+              showError(
+                "Format data siswa tidak valid. Type: " + typeof student
+              );
+              return;
+            }
+
+            // Cek apakah ada data minimal yang diperlukan
+            const hasNIS = student.nis || student.NIS;
+            const hasName = student.nama || student["Nama Siswa"];
+
+            if (!hasNIS && !hasName) {
+              console.error("Student object missing essential data");
+              console.error("Available keys:", Object.keys(student));
+              showError("Data siswa tidak lengkap. Missing NIS and Name.");
               return;
             }
 
             renderStudentDetail(student);
           })
           .withFailureHandler(function (error) {
+            const endTime = new Date().getTime();
+            const duration = endTime - startTime;
+
+            console.error("=== FAILURE HANDLER CALLED ===");
+            console.error("Request duration:", duration + "ms");
             console.error("Error loading student detail:", error);
-            showError("Gagal memuat detail siswa: " + error);
+            console.error("Error type:", typeof error);
+            console.error(
+              "Error constructor:",
+              error ? error.constructor.name : "No constructor"
+            );
+
+            let errorMessage = "Gagal memuat detail siswa";
+            let debugInfo = "";
+
+            if (error && error.message) {
+              errorMessage += ": " + error.message;
+              debugInfo += "Message: " + error.message + "\n";
+            } else if (typeof error === "string") {
+              errorMessage += ": " + error;
+              debugInfo += "String error: " + error + "\n";
+            } else {
+              debugInfo += "Unknown error type: " + typeof error + "\n";
+            }
+
+            debugInfo += "NIS: " + studentId + "\n";
+            debugInfo += "Session: " + sessionId + "\n";
+            debugInfo += "Duration: " + duration + "ms";
+
+            // Tampilkan error
+            document.getElementById("detail-content").innerHTML = `
+              <div class="error-container">
+                <h3>❌ Error Memuat Data Siswa</h3>
+                <p><strong>Pesan:</strong> ${errorMessage}</p>
+                <div style="margin-top: 15px;">
+                  <button class="btn btn-primary" onclick="loadStudentDetail('${studentId}')">🔄 Coba Lagi</button>
+                  <button class="btn btn-secondary" onclick="goBack()">📋 Kembali ke Daftar</button>
+                </div>
+              </div>
+            `;
           })
           .getStudentById(studentId, sessionId);
       }
@@ -456,14 +974,16 @@
       function renderStudentDetail(student) {
         try {
           // Update header card
-          document.getElementById("student-header-name").textContent = 
+          document.getElementById("student-header-name").textContent =
             student["Nama Siswa"] || student.nama || "Nama tidak tersedia";
-          
-          document.getElementById("student-header-nis").textContent = 
-            `NIS: ${student.NIS || student.nis || "-"}`;
-          
-          document.getElementById("student-header-class").textContent = 
-            `NISN: ${student.nisn || "-"}`;
+
+          document.getElementById("student-header-nis").textContent = `NIS: ${
+            student.NIS || student.nis || "-"
+          }`;
+
+          document.getElementById(
+            "student-header-class"
+          ).textContent = `NISN: ${student.NISN || student.nisn || "-"}`;
 
           // Render detail sections
           const detailContent = document.getElementById("detail-content");
@@ -472,7 +992,7 @@
               <!-- Data Identitas -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Data Identitas</h3>
+                  <h3 class="section-title" data-section="identitas">Data Identitas</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
@@ -483,7 +1003,9 @@
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">NISN</div>
-                    <div class="detail-value">${student.nisn || "-"}</div>
+                    <div class="detail-value">${
+                      student.NISN || student.nisn || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Nama Lengkap</div>
@@ -530,7 +1052,10 @@
                   <div class="detail-row">
                     <div class="detail-label">Anak Ke-</div>
                     <div class="detail-value">${
-                      student["Anak Ke"] || student.anakKe || "-"
+                      student["Anak Ke-Berapa"] ||
+                      student["Anak Ke"] ||
+                      student.anakKe ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
@@ -542,15 +1067,49 @@
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Status Orang Tua</div>
+                    <div class="detail-label">Jumlah Saudara Tiri</div>
                     <div class="detail-value">${
-                      student.statusOrangTua || "-"
+                      student["Jumlah Saudara Tiri"] || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Bahasa Sehari-hari</div>
+                    <div class="detail-label">Jumlah Saudara Angkat</div>
                     <div class="detail-value">${
-                      student.bahasaSehari || "-"
+                      student["Jumlah Saudara Angkat"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Status Orang Tua</div>
+                    <div class="detail-value">${
+                      student["Status Orang Tua"] ||
+                      student.statusOrangTua ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Bahasa Sehari-hari Dirumah</div>
+                    <div class="detail-value">${
+                      student["Bahasa Sehari-hari Dirumah"] ||
+                      student.bahasaSehari ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat Tinggal Bersama</div>
+                    <div class="detail-value">${
+                      student["Tempat Tinggal Bersama"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Modal Transportasi ke Sekolah</div>
+                    <div class="detail-value">${
+                      student["Modal Transportasi ke Sekolah"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Jarak ke Sekolah</div>
+                    <div class="detail-value">${
+                      student["Jarak ke Sekolah"] || "-"
                     }</div>
                   </div>
                 </div>
@@ -559,45 +1118,70 @@
               <!-- Data Alamat -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Alamat</h3>
+                  <h3 class="section-title" data-section="alamat">Alamat</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
                     <div class="detail-label">Alamat Lengkap</div>
-                    <div class="detail-value">${student.alamat || "-"}</div>
+                    <div class="detail-value">${
+                      student["Alamat Lengkap"] || student.alamat || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">RT/RW</div>
-                    <div class="detail-value">${student.rt || "-"}</div>
+                    <div class="detail-value">${
+                      student["RT/RW"] || student.rt || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Dusun</div>
-                    <div class="detail-value">${student.dusun || "-"}</div>
+                    <div class="detail-label">Nama Dusun</div>
+                    <div class="detail-value">${
+                      student["Nama Dusun"] ||
+                      student["Dusun"] ||
+                      student.dusun ||
+                      "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Desa/Kelurahan</div>
-                    <div class="detail-value">${student.desa || "-"}</div>
+                    <div class="detail-label">Nama Desa/Kelurahan</div>
+                    <div class="detail-value">${
+                      student["Nama Desa/Kelurahan"] ||
+                      student["Desa/Kelurahan"] ||
+                      student.desa ||
+                      "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Kecamatan</div>
-                    <div class="detail-value">${student.kecamatan || "-"}</div>
+                    <div class="detail-value">${
+                      student["Kecamatan"] || student.kecamatan || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Kabupaten/Kota</div>
-                    <div class="detail-value">${student.kabupaten || "-"}</div>
+                    <div class="detail-value">${
+                      student["Kabupaten/Kota"] || student.kabupaten || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Provinsi</div>
-                    <div class="detail-value">${student.provinsi || "-"}</div>
+                    <div class="detail-value">${
+                      student["Provinsi"] || student.provinsi || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Kode Pos</div>
-                    <div class="detail-value">${student.kodePos || "-"}</div>
+                    <div class="detail-value">${
+                      student["Kode Pos"] || student.kodePos || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">No. Telepon Rumah</div>
+                    <div class="detail-label">No. Telp Rumah</div>
                     <div class="detail-value">${
-                      student.teleponRumah || "-"
+                      student["No. Telp Rumah"] ||
+                      student["No. Telepon Rumah"] ||
+                      student.teleponRumah ||
+                      "-"
                     }</div>
                   </div>
                 </div>
@@ -606,36 +1190,49 @@
               <!-- Data Kesehatan -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Kesehatan</h3>
+                  <h3 class="section-title" data-section="kesehatan">Kesehatan</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
                     <div class="detail-label">Golongan Darah</div>
                     <div class="detail-value">${
-                      student.golonganDarah || "-"
+                      student["Golongan Darah"] || student.golonganDarah || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Penyakit Yang Pernah Diderita</div>
+                    <div class="detail-label">Penyakit Yang Pernah dI Derita</div>
                     <div class="detail-value">${
-                      student.penyakitPernah || "-"
+                      student["Penyakit Yang Pernah dI Derita"] ||
+                      student["Penyakit Yang Pernah Diderita"] ||
+                      student.penyakitPernah ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Penyakit Yang Lain</div>
+                    <div class="detail-value">${
+                      student["Penyakit Yang Lain"] || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Kelainan Jasmani</div>
                     <div class="detail-value">${
-                      student.kelainanJasmani || "-"
+                      student["Kelainan Jasmani"] ||
+                      student.kelainanJasmani ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Tinggi Badan</div>
                     <div class="detail-value">${
-                      student.tinggiBadan || "-"
+                      student["Tinggi Badan"] || student.tinggiBadan || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Berat Badan</div>
-                    <div class="detail-value">${student.beratBadan || "-"}</div>
+                    <div class="detail-value">${
+                      student["Berat Badan"] || student.beratBadan || "-"
+                    }</div>
                   </div>
                 </div>
               </div>
@@ -643,29 +1240,87 @@
               <!-- Data Pendidikan -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Pendidikan Sebelumnya</h3>
+                  <h3 class="section-title" data-section="pendidikan">Pendidikan Sebelumnya</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
                     <div class="detail-label">Asal Sekolah (SD/MI)</div>
                     <div class="detail-value">${
-                      student.asalSekolah || "-"
+                      student["Asal Sekolah (SD/MI)"] ||
+                      student.asalSekolah ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Tanggal Lulus SD/MI</div>
                     <div class="detail-value">${
-                      student.tanggalLulusSD || "-"
+                      student["Tanggal Lulus SD/MI"] ||
+                      student.tanggalLulusSD ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Nomor Ijazah SD/MI</div>
-                    <div class="detail-value">${student.noIjazahSD || "-"}</div>
+                    <div class="detail-value">${
+                      student["Nomor Ijazah SD/MI"] ||
+                      student.nomorIjazahSD ||
+                      "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Lama Belajar di SD/MI</div>
                     <div class="detail-value">${
-                      student.lamaBelajarSD || "-"
+                      student["Lama Belajar di SD/MI"] ||
+                      student.lamaBelajarSD ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Apakah Kamu Siswa Pindahan?</div>
+                    <div class="detail-value">${
+                      student["Apakah Kamu Siswa Pindahan?"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</div>
+                    <div class="detail-value">${
+                      student[
+                        "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan"
+                      ] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan</div>
+                    <div class="detail-value">${
+                      student[
+                        "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"
+                      ] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Asal Sekolah (SMP/MTS/Sederajat)</div>
+                    <div class="detail-value">${
+                      student["Asal Sekolah (SMP/MTS/Sederajat)"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Alasan Pindah Sekolah</div>
+                    <div class="detail-value">${
+                      student["Alasan Pindah Sekolah"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nomor Ijazah SD/MI</div>
+                    <div class="detail-value">${
+                      student["Nomor Ijazah SD/MI"] || student.noIjazahSD || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Lama Belajar di SD/MI</div>
+                    <div class="detail-value">${
+                      student["Lama Belajar di SD/MI"] ||
+                      student.lamaBelajarSD ||
+                      "-"
                     }</div>
                   </div>
                 </div>
@@ -674,45 +1329,91 @@
               <!-- Data Orang Tua -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Data Ayah</h3>
+                  <h3 class="section-title" data-section="ayah">Data Ayah</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
-                    <div class="detail-label">Nama Ayah</div>
-                    <div class="detail-value">${student.namaAyah || "-"}</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">NIK Ayah</div>
-                    <div class="detail-value">${student.nikAyah || "-"}</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tempat Lahir Ayah</div>
+                    <div class="detail-label">Nama Ayah Kandung</div>
                     <div class="detail-value">${
-                      student.tempatLahirAyah || "-"
+                      student["Nama Ayah  Kandung"] ||
+                      student["Nama Lengkap Ayah"] ||
+                      student.ayah ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Tanggal Lahir Ayah</div>
+                    <div class="detail-label">NIK Ayah</div>
                     <div class="detail-value">${
-                      student.tanggalLahirAyah || "-"
+                      student["NIK Ayah"] || student.nikAyah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat dan Tanggal Lahir Ayah</div>
+                    <div class="detail-value">${
+                      student["Tempat dan Tanggal Lahir Ayah"] ||
+                      student["Tempat, Tanggal Lahir Ayah"] ||
+                      student.ttlAyah ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Agama Ayah</div>
+                    <div class="detail-value">${
+                      student["Agama Ayah"] || student.agamaAyah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kewarganegaraan Ayah</div>
+                    <div class="detail-value">${
+                      student["Kewarganegaraan Ayah"] ||
+                      student.kewarganegaraanAyah ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Pendidikan Ayah</div>
                     <div class="detail-value">${
-                      student.pendidikanAyah || "-"
+                      student["Pendidikan Terakhir Ayah"] ||
+                      student.pendidikanAyah ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Pekerjaan Ayah</div>
                     <div class="detail-value">${
-                      student.pekerjaanAyah || "-"
+                      student["Pekerjaan Ayah"] || student.pekerjaanAyah || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Penghasilan Ayah</div>
+                    <div class="detail-label">Penghasilan Bulanan Ayah</div>
                     <div class="detail-value">${
-                      student.penghasilanAyah || "-"
+                      student["Penghasilan Bulanan Ayah"] ||
+                      student["Penghasilan per Bulan Ayah"] ||
+                      student.penghasilanAyah ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Alamat Ayah</div>
+                    <div class="detail-value">${
+                      student["Alamat Lengkap Ayah"] ||
+                      student.alamatAyah ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nomor Telepon Ayah</div>
+                    <div class="detail-value">${
+                      student["Nomor Telepon Ayah"] ||
+                      student["No. HP/Telp Ayah"] ||
+                      student.phoneAyah ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Status Ayah</div>
+                    <div class="detail-value">${
+                      student["Status Ayah"] || student.statusAyah || "-"
                     }</div>
                   </div>
                 </div>
@@ -721,45 +1422,89 @@
               <!-- Data Ibu -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Data Ibu</h3>
+                  <h3 class="section-title" data-section="ibu">Data Ibu</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
-                    <div class="detail-label">Nama Ibu</div>
-                    <div class="detail-value">${student.namaIbu || "-"}</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">NIK Ibu</div>
-                    <div class="detail-value">${student.nikIbu || "-"}</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tempat Lahir Ibu</div>
+                    <div class="detail-label">Nama Ibu Kandung</div>
                     <div class="detail-value">${
-                      student.tempatLahirIbu || "-"
+                      student["Nama Ibu Kandung"] ||
+                      student["Nama Lengkap Ibu"] ||
+                      student.ibu ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Tanggal Lahir Ibu</div>
+                    <div class="detail-label">NIK Ibu</div>
                     <div class="detail-value">${
-                      student.tanggalLahirIbu || "-"
+                      student["NIK Ibu"] || student.nikIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat dan Tanggal Lahir Ibu</div>
+                    <div class="detail-value">${
+                      student["Tempat dan Tanggal Lahir Ibu"] ||
+                      student["Tempat, Tanggal Lahir Ibu"] ||
+                      student.ttlIbu ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Agama Ibu</div>
+                    <div class="detail-value">${
+                      student["Agama Ibu"] || student.agamaIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kewarganegaraan Ibu</div>
+                    <div class="detail-value">${
+                      student["Kewarganegaraan Ibu"] ||
+                      student.kewarganegaraanIbu ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Pendidikan Ibu</div>
                     <div class="detail-value">${
-                      student.pendidikanIbu || "-"
+                      student["Pendidikan Terakhir Ibu"] ||
+                      student.pendidikanIbu ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Pekerjaan Ibu</div>
                     <div class="detail-value">${
-                      student.pekerjaanIbu || "-"
+                      student["Pekerjaan Ibu"] || student.pekerjaanIbu || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Penghasilan Ibu</div>
+                    <div class="detail-label">Penghasilan Bulanan Ibu</div>
                     <div class="detail-value">${
-                      student.penghasilanIbu || "-"
+                      student["Penghasilan Bulanan Ibu"] ||
+                      student["Penghasilan per Bulan Ibu"] ||
+                      student.penghasilanIbu ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Alamat Ibu</div>
+                    <div class="detail-value">${
+                      student["Alamat Lengkap Ibu"] || student.alamatIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nomor Telepon Ibu</div>
+                    <div class="detail-value">${
+                      student["Nomor Telepon Ibu"] ||
+                      student["No. HP/Telp Ibu"] ||
+                      student.phoneIbu ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Status Ibu</div>
+                    <div class="detail-value">${
+                      student["Status Ibu"] || student.statusIbu || "-"
                     }</div>
                   </div>
                 </div>
@@ -768,45 +1513,102 @@
               <!-- Data Wali (jika ada) -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Data Wali</h3>
+                  <h3 class="section-title" data-section="wali">Data Wali</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
                     <div class="detail-label">Nama Wali</div>
-                    <div class="detail-value">${student.namaWali || "-"}</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">NIK Wali</div>
-                    <div class="detail-value">${student.nikWali || "-"}</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tempat Lahir Wali</div>
                     <div class="detail-value">${
-                      student.tempatLahirWali || "-"
+                      student["Nama Wali"] ||
+                      student["Nama Lengkap Wali"] ||
+                      student.wali ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Tanggal Lahir Wali</div>
+                    <div class="detail-label">NIK Wali</div>
                     <div class="detail-value">${
-                      student.tanggalLahirWali || "-"
+                      student["NIK Wali"] || student.nikWali || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat dan Tanggal Lahir Wali</div>
+                    <div class="detail-value">${
+                      student["Tempat dan Tanggal Lahir Wali"] ||
+                      student["Tempat, Tanggal Lahir Wali"] ||
+                      student.ttlWali ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Agama Wali Murid</div>
+                    <div class="detail-value">${
+                      student["Agama Wali Murid"] ||
+                      student["Agama Wali"] ||
+                      student.agamaWali ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kewarganegaraan Wali</div>
+                    <div class="detail-value">${
+                      student["Kewarganegaraan Wali"] ||
+                      student.kewarganegaraanWali ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Pendidikan Wali</div>
                     <div class="detail-value">${
-                      student.pendidikanWali || "-"
+                      student["Pendidikan Terakhir Wali"] ||
+                      student.pendidikanWali ||
+                      "-"
                     }</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Pekerjaan Wali</div>
                     <div class="detail-value">${
-                      student.pekerjaanWali || "-"
+                      student["Pekerjaan Wali"] || student.pekerjaanWali || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Penghasilan Wali</div>
+                    <div class="detail-label">Penghasilan Bulanan Wali</div>
                     <div class="detail-value">${
-                      student.penghasilanWali || "-"
+                      student["Penghasilan Bulanan Wali"] ||
+                      student["Penghasilan per Bulan Wali"] ||
+                      student.penghasilanWali ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Alamat Wali</div>
+                    <div class="detail-value">${
+                      student["Alamat Lengkap Wali"] ||
+                      student.alamatWali ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nomor Telepon Wali</div>
+                    <div class="detail-value">${
+                      student["Nomor Telepon Wali"] ||
+                      student["No. HP/Telp Wali"] ||
+                      student.phoneWali ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Status Wali</div>
+                    <div class="detail-value">${
+                      student["Status Wali"] || student.statusWali || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Hubungan dengan Siswa</div>
+                    <div class="detail-value">${
+                      student["Hubungan dengan Siswa"] ||
+                      student.hubunganWali ||
+                      "-"
                     }</div>
                   </div>
                 </div>
@@ -815,20 +1617,105 @@
               <!-- Hobi dan Prestasi -->
               <div class="detail-section">
                 <div class="section-header">
-                  <h3 class="section-title">Hobi dan Prestasi</h3>
+                  <h3 class="section-title" data-section="hobi">Hobi dan Prestasi</h3>
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
-                    <div class="detail-label">Hobi</div>
-                    <div class="detail-value">${student.hobi || "-"}</div>
+                    <div class="detail-label">Bidang Seni</div>
+                    <div class="detail-value">${
+                      student["Bidang Seni"] || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Prestasi</div>
-                    <div class="detail-value">${student.prestasi || "-"}</div>
+                    <div class="detail-label">Bidang Olahraga</div>
+                    <div class="detail-value">${
+                      student["Bidang Olahraga"] || "-"
+                    }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Beasiswa</div>
-                    <div class="detail-value">${student.beasiswa || "-"}</div>
+                    <div class="detail-label">Bidang Lain-Lain</div>
+                    <div class="detail-value">${
+                      student["Bidang Lain-Lain"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Apakah Peserta Didik Pernah Meraih Prestasi?</div>
+                    <div class="detail-value">${
+                      student["Apakah Peserta Didik Pernah Meraih Prestasi?"] ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Jenis Prestasi</div>
+                    <div class="detail-value">${
+                      student["Jenis Prestasi"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tingkat Prestasi</div>
+                    <div class="detail-value">${
+                      student["Tingkat Prestasi"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nama Prestasi</div>
+                    <div class="detail-value">${
+                      student["Nama Prestasi"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tahun Prestasi</div>
+                    <div class="detail-value">${
+                      student["Tahun Prestasi"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Penyelenggara</div>
+                    <div class="detail-value">${
+                      student["Penyelenggara"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Peringkat</div>
+                    <div class="detail-value">${
+                      student["Peringkat"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Apakah Peserta Didik Memiliki Beasiswa</div>
+                    <div class="detail-value">${
+                      student["Apakah Peserta Didik Memiliki Beasiswa"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Jenis Beasiswa</div>
+                    <div class="detail-value">${
+                      student["Jenis Beasiswa"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Keterangan</div>
+                    <div class="detail-value">${
+                      student["Keterangan"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tahun Mulai</div>
+                    <div class="detail-value">${
+                      student["Tahun Mulai"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tahun Selesai</div>
+                    <div class="detail-value">${
+                      student["Tahun Selesai"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Status Akademik</div>
+                    <div class="detail-value">${
+                      student["Status Akademik"] || "-"
+                    }</div>
                   </div>
                 </div>
               </div>
@@ -844,13 +1731,13 @@
       }
 
       // Initialize page
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         updateDateTime();
         const studentId = getStudentIdFromUrl();
         if (studentId) {
           loadStudentDetail(studentId);
         } else {
-          showError('ID siswa tidak ditemukan dalam URL');
+          showError("ID siswa tidak ditemukan dalam URL");
         }
       });
     </script>

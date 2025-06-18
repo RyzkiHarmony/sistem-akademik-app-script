@@ -35,7 +35,10 @@
   function loadStudents() {
     // Tampilkan loading state
     document.getElementById("students-table-body").innerHTML =
-      "<tr><td colspan='8' style='text-align: center;'>Memuat data siswa...</td></tr>";
+      "<tr><td colspan='8' style='text-align: center;'><div style='padding: 20px;'><span style='color: #1a5276; font-weight: 600;'>⏳ Memuat data siswa...</span></div></td></tr>";
+
+    // Update pagination info dengan loading state
+    document.getElementById("pagination-info").textContent = "Memuat data...";
 
     // Siapkan opsi untuk pagination dan optimasi data
     const options = {
@@ -51,31 +54,67 @@
     // Panggil fungsi server untuk mendapatkan data siswa dengan pagination
     google.script.run
       .withSuccessHandler(function (result) {
-        // Simpan data siswa ke variabel global
-        allStudents = result.students;
-        filteredStudents = result.students; // Tidak perlu filter lagi karena sudah difilter di server
+        try {
+          // Validasi hasil dari server
+          if (!result || typeof result !== "object") {
+            throw new Error("Data tidak valid dari server");
+          }
 
-        // Update pagination info
-        currentPage = result.currentPage;
-        const totalPages = result.totalPages;
-        const totalCount = result.totalCount;
+          // Simpan data siswa ke variabel global
+          allStudents = result.students || [];
+          filteredStudents = result.students || []; // Tidak perlu filter lagi karena sudah difilter di server
 
-        // Render halaman
-        renderStudentsTable(
-          result.students,
-          result.currentPage,
-          totalPages,
-          totalCount
-        );
+          // Update pagination info
+          currentPage = result.currentPage || 1;
+          const totalPages = result.totalPages || 1;
+          const totalCount = result.totalCount || 0;
+
+          // Render halaman
+          renderStudentsTable(
+            result.students || [],
+            result.currentPage || 1,
+            totalPages,
+            totalCount
+          );
+
+          // Re-enable pagination controls
+          enablePaginationControls();
+        } catch (error) {
+          document.getElementById(
+            "students-table-body"
+          ).innerHTML = `<tr><td colspan='8' style='text-align: center; color: #e74c3c; padding: 20px;'>Error memproses data: ${error.message}</td></tr>`;
+          showNotification(
+            "Gagal memproses data siswa: " + error.message,
+            "error"
+          );
+          enablePaginationControls();
+        }
       })
       .withFailureHandler(function (error) {
-        console.error("Error loading students:", error);
         document.getElementById(
           "students-table-body"
-        ).innerHTML = `<tr><td colspan='8' style='text-align: center; color: #e74c3c;'>Error: ${error}</td></tr>`;
+        ).innerHTML = `<tr><td colspan='8' style='text-align: center; color: #e74c3c; padding: 20px;'>❌ Error: ${error}</td></tr>`;
+        document.getElementById("pagination-info").textContent =
+          "Error memuat data";
         showNotification("Gagal memuat data siswa: " + error, "error");
+        enablePaginationControls();
       })
       .getAllStudents(options);
+  }
+
+  // Function to re-enable pagination controls after loading
+  function enablePaginationControls() {
+    const paginationControls = document.getElementById("pagination-controls");
+    if (paginationControls) {
+      const buttons = paginationControls.querySelectorAll("button");
+      buttons.forEach((btn) => {
+        // Only enable if not supposed to be disabled
+        if (!btn.hasAttribute("data-should-be-disabled")) {
+          btn.disabled = false;
+          btn.style.opacity = "";
+        }
+      });
+    }
   }
 
   // Filter dan sort data siswa - sekarang dilakukan di server
@@ -159,11 +198,14 @@
   }
 
   // Render pagination controls untuk server-side pagination
-  function renderServerPaginationControls(currentPage, totalPages) {
+  function renderServerPaginationControls(currentPageParam, totalPages) {
     const paginationControls = document.getElementById("pagination-controls");
 
     // Clear current controls
     paginationControls.innerHTML = "";
+
+    // Update global currentPage variable
+    currentPage = currentPageParam;
 
     // No pagination needed if only one page
     if (totalPages <= 1) {
@@ -172,17 +214,21 @@
 
     // Previous button
     const prevButton = document.createElement("button");
-    prevButton.innerHTML = "&laquo;";
+    prevButton.innerHTML = "&laquo; Sebelumnya";
+    prevButton.className = "pagination-btn prev-btn";
     prevButton.disabled = currentPage === 1;
-    prevButton.addEventListener("click", () => {
+    if (currentPage === 1) {
+      prevButton.setAttribute("data-should-be-disabled", "true");
+    }
+    prevButton.addEventListener("click", (e) => {
+      e.preventDefault();
       if (currentPage > 1) {
-        currentPage--;
-        loadStudents(); // Muat ulang data dengan halaman baru
+        goToPage(currentPage - 1);
       }
     });
     paginationControls.appendChild(prevButton);
 
-    // Page numbers
+    // First page button (if not in visible range)
     const maxVisiblePages = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -192,32 +238,113 @@
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
+    // Add first page and ellipsis if needed
+    if (startPage > 1) {
+      const firstPageButton = document.createElement("button");
+      firstPageButton.textContent = "1";
+      firstPageButton.className = "pagination-btn page-btn";
+      firstPageButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        goToPage(1);
+      });
+      paginationControls.appendChild(firstPageButton);
+
+      if (startPage > 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.textContent = "...";
+        ellipsis.className = "pagination-ellipsis";
+        paginationControls.appendChild(ellipsis);
+      }
+    }
+
+    // Page numbers
     for (let i = startPage; i <= endPage; i++) {
       const pageButton = document.createElement("button");
       pageButton.textContent = i;
+      pageButton.className = "pagination-btn page-btn";
+
       if (i === currentPage) {
         pageButton.classList.add("active");
+        pageButton.setAttribute("aria-current", "page");
       }
 
-      pageButton.addEventListener("click", () => {
-        currentPage = i;
-        loadStudents(); // Muat ulang data dengan halaman baru
+      pageButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (i !== currentPage) {
+          goToPage(i);
+        }
       });
 
       paginationControls.appendChild(pageButton);
     }
 
+    // Add last page and ellipsis if needed
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement("span");
+        ellipsis.textContent = "...";
+        ellipsis.className = "pagination-ellipsis";
+        paginationControls.appendChild(ellipsis);
+      }
+
+      const lastPageButton = document.createElement("button");
+      lastPageButton.textContent = totalPages;
+      lastPageButton.className = "pagination-btn page-btn";
+      lastPageButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        goToPage(totalPages);
+      });
+      paginationControls.appendChild(lastPageButton);
+    }
+
     // Next button
     const nextButton = document.createElement("button");
-    nextButton.innerHTML = "&raquo;";
+    nextButton.innerHTML = "Selanjutnya &raquo;";
+    nextButton.className = "pagination-btn next-btn";
     nextButton.disabled = currentPage === totalPages;
-    nextButton.addEventListener("click", () => {
+    if (currentPage === totalPages) {
+      nextButton.setAttribute("data-should-be-disabled", "true");
+    }
+    nextButton.addEventListener("click", (e) => {
+      e.preventDefault();
       if (currentPage < totalPages) {
-        currentPage++;
-        loadStudents(); // Muat ulang data dengan halaman baru
+        goToPage(currentPage + 1);
       }
     });
     paginationControls.appendChild(nextButton);
+  }
+
+  // Function to navigate to specific page
+  function goToPage(pageNumber) {
+    if (pageNumber < 1) {
+      pageNumber = 1;
+    }
+
+    // Validate page number
+    if (pageNumber !== currentPage && pageNumber >= 1) {
+      currentPage = pageNumber;
+
+      // Show loading state for pagination controls
+      const paginationControls = document.getElementById("pagination-controls");
+      if (paginationControls) {
+        const buttons = paginationControls.querySelectorAll("button");
+        buttons.forEach((btn) => {
+          // Store original disabled state
+          if (btn.disabled) {
+            btn.setAttribute("data-should-be-disabled", "true");
+          } else {
+            btn.removeAttribute("data-should-be-disabled");
+          }
+
+          // Disable all buttons during loading
+          btn.disabled = true;
+          btn.style.opacity = "0.6";
+        });
+      }
+
+      // Load new page data
+      loadStudents();
+    }
   }
 
   // Helper function untuk mendapatkan badge status
@@ -240,7 +367,7 @@
     document.querySelectorAll(".btn-view").forEach(function (button) {
       button.addEventListener("click", function () {
         const studentId = this.getAttribute("data-id");
-        console.log("View button clicked, data-id:", studentId); // Debug log
+
         openViewModal(studentId);
       });
     });
@@ -265,7 +392,7 @@
     document.querySelectorAll(".btn-pdf").forEach(function (button) {
       button.addEventListener("click", function () {
         const studentId = this.getAttribute("data-id");
-        console.log("PDF button clicked for student ID:", studentId); // Debugging
+
         accessStudentPDF(studentId);
       });
     });
@@ -273,12 +400,7 @@
 
   // Open student detail page
   function openViewModal(studentId) {
-    console.log("=== openViewModal called ===");
-    console.log("Student ID:", studentId);
-    console.log("Current location:", window.location);
-
     if (!studentId) {
-      console.error("Student ID is required");
       showNotification("ID siswa tidak valid", "error");
       return;
     }
@@ -288,10 +410,6 @@
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = getSessionId();
 
-      console.log("Current URL:", window.location.href);
-      console.log("Session ID:", sessionId);
-      console.log("URL Params:", Object.fromEntries(urlParams));
-
       // Navigate to student detail page with proper Google Apps Script URL format
       const detailUrl =
         "<?= myURL() ?>?page=Student_detail&sessionId=" +
@@ -299,15 +417,11 @@
         "&id=" +
         encodeURIComponent(studentId);
 
-      console.log("Detail URL:", detailUrl);
-
       // Add a small delay to ensure console logs are visible
       setTimeout(() => {
-        console.log("Navigating now...");
         window.location.href = detailUrl;
       }, 100);
     } catch (error) {
-      console.error("Error in openViewModal:", error);
       showNotification("Terjadi kesalahan saat membuka detail siswa", "error");
     }
   }
@@ -315,15 +429,8 @@
   // Function to render student detail content
   function renderStudentDetail(student, studentId) {
     try {
-      console.log("Starting renderStudentDetail with data:", {
-        hasStudent: !!student,
-        studentKeys: student ? Object.keys(student).slice(0, 10) : [],
-        studentId: studentId,
-      });
-
       const detailContent = document.getElementById("student-detail-content");
       if (!detailContent) {
-        console.error("Element 'student-detail-content' not found");
         showNotification(
           "Error: Element tampilan detail tidak ditemukan",
           "error"
@@ -333,16 +440,10 @@
 
       // Validasi data siswa
       if (!student || typeof student !== "object") {
-        console.error("Invalid student data for rendering:", student);
         detailContent.innerHTML =
           '<div style="text-align: center; padding: 20px; color: red;">Data siswa tidak valid</div>';
         return;
       }
-
-      console.log(
-        "Rendering student detail for:",
-        student.nama || student.Nama || student.nis || student.NIS
-      );
 
       // Format detail content
       detailContent.innerHTML = `
@@ -891,12 +992,7 @@
       document
         .getElementById("edit-from-view-btn")
         .setAttribute("data-id", studentId);
-
-      console.log("Successfully rendered student detail");
     } catch (error) {
-      console.error("Error in renderStudentDetail:", error);
-      console.error("Error stack:", error.stack);
-
       const detailContent = document.getElementById("student-detail-content");
       if (detailContent) {
         detailContent.innerHTML = `
@@ -1502,7 +1598,6 @@
           }
         })
         .withFailureHandler(function (error) {
-          console.error("Error updating student:", error);
           showNotification("Terjadi kesalahan: " + error, "error");
           toggleFormEnabled(true);
         })
@@ -1524,7 +1619,6 @@
           }
         })
         .withFailureHandler(function (error) {
-          console.error("Error adding student:", error);
           showNotification("Terjadi kesalahan: " + error, "error");
           toggleFormEnabled(true);
         })
@@ -1561,7 +1655,6 @@
         }
       })
       .withFailureHandler(function (error) {
-        console.error("Error deleting student:", error);
         showNotification("Terjadi kesalahan: " + error, "error");
         document.getElementById("confirm-delete-btn").disabled = false;
         document.getElementById("confirm-delete-btn").textContent =
@@ -1589,7 +1682,6 @@
         }
       })
       .withFailureHandler(function (error) {
-        console.error("Error accessing PDF:", error);
         showNotification("Terjadi kesalahan: " + error, "error");
       })
       .getStudentPDFUrl(studentId);
@@ -1707,7 +1799,6 @@
     const editId = urlParams.get("edit");
 
     if (editId) {
-      console.log("Opening edit modal for student ID:", editId);
       // Small delay to ensure page is loaded
       setTimeout(() => {
         openEditModal(editId);

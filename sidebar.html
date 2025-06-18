@@ -7,7 +7,7 @@
   <div class="admin-info">
     <div>
       <img
-        src="https://drive.google.com/thumbnail?id=1-MM4wrdooAS62UBDEWYl86BBX7PZ8h_W&sz=w170-h170"
+        src="https://drive.google.com/thumbnail?id=1d4wAQhtduKFntXiD6k1b6tRnvybTJPh_&sz=w170-h170"
         alt="Logo"
       />
     </div>
@@ -67,9 +67,7 @@
             adminNameElement.textContent = username;
           }
         })
-        .withFailureHandler(function (error) {
-          console.error("Error getting username:", error);
-        })
+        .withFailureHandler(function (error) {})
         .getCurrentUserUsername(sessionId);
     }
   });

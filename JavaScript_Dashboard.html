@@ -30,19 +30,21 @@
     const sessionId = getSessionId();
 
     // Tampilkan loading state
-    document.getElementById("total-siswa").textContent = "...";
+    document.getElementById("total-siswa-aktif").textContent = "...";
+    document.getElementById("total-siswa-lulus").textContent = "...";
 
     // Panggil fungsi di server untuk mendapatkan data dashboard
     google.script.run
       .withSuccessHandler(function (data) {
         // Update statistik dengan data dari server
-        document.getElementById("total-siswa").textContent =
-          data.totalSiswa || 0;
+        document.getElementById("total-siswa-aktif").textContent =
+          data.totalSiswaAktif || 0;
+        document.getElementById("total-siswa-lulus").textContent =
+          data.totalSiswaLulus || 0;
 
         // Admin name is now handled by getCurrentUserUsername in sidebar
       })
       .withFailureHandler(function (error) {
-        console.error("Error loading dashboard data:", error);
         showNotification(
           "Terjadi kesalahan saat memuat data dashboard: " + error,
           "error"
@@ -99,8 +101,6 @@
     // Panggil fungsi di server untuk mendapatkan data siswa terbaru
     google.script.run
       .withSuccessHandler(function (students) {
-        console.log("Received students data:", students); // Debugging
-
         // Simpan data siswa ke variabel global
         allStudents = students;
 
@@ -108,19 +108,8 @@
           // Bersihkan container
           recentStudentsContainer.innerHTML = "";
 
-          // Sort students by registration date (newest first)
-          students.sort(function (a, b) {
-            // Convert dates to comparable format
-            const dateA = a.tanggalDaftar
-              ? new Date(convertIndonesianDateToISO(a.tanggalDaftar))
-              : new Date(0);
-            const dateB = b.tanggalDaftar
-              ? new Date(convertIndonesianDateToISO(b.tanggalDaftar))
-              : new Date(0);
-
-            // Sort descending (newest first)
-            return dateB - dateA;
-          });
+          // Data sudah diurutkan berdasarkan NIS terbesar dari server
+          // Tidak perlu sorting ulang di client-side
 
           // Tambahkan baris untuk setiap siswa
           students.forEach(function (student) {
@@ -149,7 +138,6 @@
         }
       })
       .withFailureHandler(function (error) {
-        console.error("Error loading recent students:", error);
         recentStudentsContainer.innerHTML = `<tr><td colspan='6' style='text-align: center; color: #e74c3c;'>Error: ${error}</td></tr>`;
         showNotification("Gagal memuat data siswa: " + error, "error");
       })
@@ -174,11 +162,7 @@
 
   // Fungsi untuk membuka modal detail siswa
   function openViewModal(studentId) {
-    console.log("Opening view modal for student ID:", studentId); // Debugging
-    console.log("All students data available:", allStudents); // Debugging
-
     const student = allStudents.find((s) => s.nis == studentId);
-    console.log("Found student data:", student); // Debugging
 
     if (!student) {
       showNotification("Data siswa tidak ditemukan", "error");
@@ -186,7 +170,6 @@
     }
 
     const detailContent = document.getElementById("student-detail-content");
-    console.log("Detail content element:", detailContent); // Debugging
 
     // Format detail content
     detailContent.innerHTML = `
@@ -255,21 +238,16 @@
 
     // Get the modal element
     const viewModal = document.getElementById("view-modal");
-    console.log("View modal element:", viewModal); // Debugging
 
     // Show modal
     if (viewModal) {
       viewModal.style.display = "flex";
-      console.log("Modal display style set to flex"); // Debugging
     } else {
-      console.error("Modal element not found!"); // Debugging
     }
   }
 
   // Fungsi untuk menampilkan notifikasi
   function showNotification(message, type) {
-    console.log("Showing notification:", message, type); // Debugging
-
     // Create notification element if it doesn't exist
     let notification = document.querySelector(".notification");
 
@@ -322,14 +300,11 @@
         }
       });
     } else {
-      console.error("Logout link not found!");
     }
   }
 
   // Inisialisasi saat halaman dimuat
   document.addEventListener("DOMContentLoaded", function () {
-    console.log("DOM fully loaded"); // Debugging
-
     const sessionId = getSessionId();
     const viewAllStudents = document.getElementById("view-all-students");
     viewAllStudents.href =
@@ -358,7 +333,5 @@
         this.style.transform = "translateY(0)";
       });
     });
-
-    console.log("Initialization complete"); // Debugging
   });
 </script>

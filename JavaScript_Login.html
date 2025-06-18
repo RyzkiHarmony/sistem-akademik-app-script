@@ -46,15 +46,11 @@
     status.style.display = "none";
     status.className = "";
 
-    console.log("Attempting login with username: " + username);
-
     // Call the server-side function to verify login
     google.script.run
       .withSuccessHandler(function (result) {
         // Hide loading indicator
         loadingIcon.style.display = "none";
-
-        console.log("Login result: ", result);
 
         if (result.success) {
           // Login successful
@@ -62,17 +58,13 @@
           status.className = "success";
           status.style.display = "block";
 
-          console.log("Login successful, creating session...");
-
           // Create session and redirect to dashboard
           setTimeout(function () {
             google.script.run
               .withSuccessHandler(function (dashboardUrl) {
-                console.log("Redirecting to dashboard URL: " + dashboardUrl);
                 window.location.href = dashboardUrl;
               })
               .withFailureHandler(function (error) {
-                console.error("Error creating session: ", error);
                 status.innerText = "Error: " + error.message;
                 status.className = "error";
                 status.style.display = "block";
@@ -81,15 +73,13 @@
           }, 1000);
         } else {
           // Login failed
-          console.log("Login failed: " + result.message);
+
           status.innerText = result.message || "Username atau password salah";
           status.className = "error";
           status.style.display = "block";
         }
       })
       .withFailureHandler(function (error) {
-        // Server error
-        console.error("Server error: ", error);
         loadingIcon.style.display = "none";
         status.innerText = "Terjadi kesalahan pada server: " + error.message;
         status.className = "error";

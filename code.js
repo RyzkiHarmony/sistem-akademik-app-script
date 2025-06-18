@@ -51,12 +51,12 @@ function doGet(e) {
   if (sessionId) {
     output.sessionId = sessionId;
   }
-  
+
   // Add student ID to the template if available
   if (studentId) {
     output.studentId = studentId;
   }
-  
+
   // Add edit ID to the template if available
   if (editId) {
     output.editId = editId;
@@ -295,7 +295,6 @@ function verifyLogin(username, password) {
     // Username tidak ditemukan
     return { success: false, message: "Username tidak ditemukan" };
   } catch (error) {
-    console.error("Error verifying Login: " + error.message);
     return { success: false, message: "Error: " + error.message };
   }
 }
@@ -315,17 +314,55 @@ function getDashboardData() {
 
     // Data yang akan dikembalikan
     const dashboardData = {
-      totalSiswa: 0,
+      totalSiswaAktif: 0,
+      totalSiswaLulus: 0,
       totalGuru: 0,
       adminName: getCurrentUserUsername(),
     };
 
-    // Hitung jumlah siswa
+    // Hitung jumlah siswa berdasarkan status
     let studentsSheet = bukuIndukSS.getSheetByName(STUDENTS_SHEET_NAME);
     if (studentsSheet) {
-      // Jumlah baris data (dikurangi baris header)
-      const numRows = studentsSheet.getLastRow() - 1;
-      dashboardData.totalSiswa = numRows > 0 ? numRows : 0;
+      // Dapatkan semua data dari sheet
+      const dataRange = studentsSheet.getDataRange();
+      const values = dataRange.getValues();
+
+      if (values.length > 1) {
+        // Dapatkan header (baris pertama)
+        const headers = values[0];
+
+        // Cari indeks kolom status
+        const statusIndex = findColumnIndex(headers, [
+          "Status Akademik",
+          "Status",
+          "status",
+        ]);
+
+        Logger.log("Headers: " + JSON.stringify(headers));
+        Logger.log("Status Index: " + statusIndex);
+
+        if (statusIndex !== -1) {
+          // Hitung siswa berdasarkan status
+          for (let i = 1; i < values.length; i++) {
+            const status = values[i][statusIndex];
+            Logger.log("Row " + i + " status: " + status);
+            if (status && status.toString().toLowerCase() === "aktif") {
+              dashboardData.totalSiswaAktif++;
+            } else if (status && status.toString().toLowerCase() === "lulus") {
+              dashboardData.totalSiswaLulus++;
+            }
+          }
+        } else {
+          Logger.log("Status column not found in headers");
+        }
+
+        Logger.log(
+          "Final counts - Aktif: " +
+            dashboardData.totalSiswaAktif +
+            ", Lulus: " +
+            dashboardData.totalSiswaLulus
+        );
+      }
     } else {
       // Jika sheet belum ada, buat sheet baru
       createStudentsSheet(bukuIndukSS);
@@ -390,9 +427,9 @@ function getRecentStudents() {
     // Buat array untuk menampung data siswa
     const students = [];
 
-    // Ambil 5 siswa terbaru (asumsikan data diurutkan berdasarkan tanggal daftar terbaru)
+    // Ambil semua data siswa terlebih dahulu
     // Mulai dari baris kedua (indeks 1) karena baris pertama adalah header
-    for (let i = 1; i < values.length && i <= 5; i++) {
+    for (let i = 1; i < values.length; i++) {
       const row = values[i];
 
       // Format tanggal untuk tampilan
@@ -414,7 +451,17 @@ function getRecentStudents() {
       students.push(student);
     }
 
-    return students;
+    // Urutkan siswa berdasarkan NIS terbesar terlebih dahulu
+    students.sort(function (a, b) {
+      const nisA = parseInt(a.nis) || 0;
+      const nisB = parseInt(b.nis) || 0;
+      return nisB - nisA; // Descending order (NIS terbesar dulu)
+    });
+
+    // Ambil 5 siswa dengan NIS terbesar
+    const recentStudents = students.slice(0, 5);
+
+    return recentStudents;
   } catch (error) {
     Logger.log("Error getting recent students: " + error.message);
     throw new Error("Gagal mendapatkan data siswa terbaru: " + error.message);
@@ -642,28 +689,58 @@ function getAllStudents(options = {}) {
       const query = options.searchQuery.toLowerCase();
       Logger.log("Applying search filter with query: '" + query + "'");
       Logger.log("Total students before filter: " + students.length);
-      
-      // Debug: Log beberapa NIS untuk perbandingan
+
       for (let i = 0; i < Math.min(5, students.length); i++) {
-        Logger.log("Student " + i + " - NIS: '" + students[i].nis + "', Nama: '" + students[i].nama + "'");
+        Logger.log(
+          "Student " +
+            i +
+            " - NIS: '" +
+            students[i].nis +
+            "', Nama: '" +
+            students[i].nama +
+            "'"
+        );
       }
-      
-      students = students.filter(
-        (student) => {
-          const nisMatch = student.nis && student.nis.toString().toLowerCase().includes(query);
-          const namaMatch = student.nama && student.nama.toLowerCase().includes(query);
-          const nisnMatch = student.nisn && student.nisn.toString().toLowerCase().includes(query);
-          
-          const isMatch = nisMatch || namaMatch || nisnMatch;
-          
-          if (isMatch) {
-            Logger.log("Match found - NIS: '" + student.nis + "', Nama: '" + student.nama + "'");
+
+      students = students.filter((student) => {
+        // For NIS search, use exact match when query is numeric
+        const isNumericQuery = /^\d+$/.test(query);
+
+        let nisMatch = false;
+        if (student.nis) {
+          if (isNumericQuery) {
+            // Exact match for numeric NIS
+            nisMatch = student.nis.toString() === query;
+          } else {
+            // Partial match for non-numeric search
+            nisMatch = student.nis.toString().toLowerCase().includes(query);
           }
-          
-          return isMatch;
         }
-      );
-      
+
+        const namaMatch =
+          student.nama && student.nama.toLowerCase().includes(query);
+        const nisnMatch =
+          student.nisn && student.nisn.toString().toLowerCase().includes(query);
+
+        const isMatch = nisMatch || namaMatch || nisnMatch;
+
+        if (isMatch) {
+          Logger.log(
+            "Match found - NIS: '" +
+              student.nis +
+              "', Nama: '" +
+              student.nama +
+              "' (Query: '" +
+              query +
+              "', Numeric: " +
+              isNumericQuery +
+              ")"
+          );
+        }
+
+        return isMatch;
+      });
+
       Logger.log("Total students after filter: " + students.length);
     }
 
@@ -735,33 +812,34 @@ function getStudentDetail(nisId) {
 
     Logger.log("Search options: " + JSON.stringify(options));
     const result = getAllStudents(options);
-    Logger.log("getAllStudents result: " + JSON.stringify({
-      hasResult: !!result,
-      hasStudents: !!(result && result.students),
-      studentsLength: result && result.students ? result.students.length : 0,
-      totalCount: result ? result.totalCount : 'undefined'
-    }));
+    Logger.log(
+      "getAllStudents result: " +
+        JSON.stringify({
+          hasResult: !!result,
+          hasStudents: !!(result && result.students),
+          studentsLength:
+            result && result.students ? result.students.length : 0,
+          totalCount: result ? result.totalCount : "undefined",
+        })
+    );
 
     if (!result || !result.students || result.students.length === 0) {
       Logger.log("Student not found for NIS: " + nisId);
-      
-      // Debug: Cek data mentah dari spreadsheet
+
       const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
       const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
       const dataRange = studentsSheet.getDataRange();
       const values = dataRange.getValues();
       const headers = values[0];
       const nisIndex = headers.indexOf("NIS");
-      
-      Logger.log("Debug - NIS column index: " + nisIndex);
-      Logger.log("Debug - Total rows in sheet: " + values.length);
-      
-      // Cek beberapa baris pertama untuk debug
+
       for (let i = 1; i < Math.min(6, values.length); i++) {
         const rowNis = values[i][nisIndex];
-        Logger.log("Debug - Row " + i + " NIS: '" + rowNis + "' (type: " + typeof rowNis + ")");
+        Logger.log(
+          "Row " + i + " NIS: '" + rowNis + "' (type: " + typeof rowNis + ")"
+        );
       }
-      
+
       throw new Error("Siswa dengan NIS " + nisId + " tidak ditemukan");
     }
 
@@ -811,8 +889,325 @@ function getStudentDetail(nisId) {
 }
 
 // Mendapatkan detail siswa berdasarkan NIS (alias untuk kompatibilitas)
-function getStudentById(nisId) {
-  return getStudentDetail(nisId);
+
+function findStudentByNIS(nisId) {
+  try {
+    Logger.log("=== FINDING STUDENT BY NIS ===");
+    Logger.log('Looking for NIS: "' + nisId + '"');
+
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+
+    if (!studentsSheet) {
+      throw new Error('Sheet "' + STUDENTS_SHEET_NAME + '" tidak ditemukan');
+    }
+
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length === 0) {
+      throw new Error("Sheet kosong");
+    }
+
+    const headers = values[0];
+    const nisIndex = headers.indexOf("NIS");
+
+    if (nisIndex === -1) {
+      throw new Error("Kolom NIS tidak ditemukan");
+    }
+
+    Logger.log("Searching in " + (values.length - 1) + " student records...");
+
+    // Cari siswa
+    for (let i = 1; i < values.length; i++) {
+      const rowNIS = String(values[i][nisIndex]).trim();
+      const searchNIS = String(nisId).trim();
+
+      Logger.log(
+        "Row " + i + ': comparing "' + rowNIS + '" with "' + searchNIS + '"'
+      );
+
+      if (rowNIS === searchNIS) {
+        Logger.log("✓ Student found at row " + i);
+
+        // Buat object siswa dengan semua data
+        const student = {};
+        for (let j = 0; j < headers.length; j++) {
+          let value = values[i][j];
+
+          // Format tanggal jika diperlukan
+          if (value instanceof Date) {
+            const options = { year: "numeric", month: "long", day: "numeric" };
+            value = value.toLocaleDateString("id-ID", options);
+          }
+
+          student[headers[j]] = value;
+        }
+
+        // Tambahkan mapping untuk kompatibilitas dengan frontend
+        student.nis = student.NIS || student.nis;
+        student.nama = student["Nama Siswa"] || student.nama;
+        student.nisn = student.NISN || student.nisn;
+        student.gender = student["Jenis Kelamin"] || student.gender;
+        student.birthplace = student["Tempat Lahir"] || student.birthplace;
+        student.birthdate = student["Tanggal Lahir"] || student.birthdate;
+        student.agama = student.Agama || student.agama;
+        student.kewarganegaraan =
+          student.Kewarganegaraan || student.kewarganegaraan;
+        student.anakKe = student["Anak Ke"] || student.anakKe;
+        student.jumlahSaudaraKandung =
+          student["Jumlah Saudara Kandung"] || student.jumlahSaudaraKandung;
+        student.statusOrangTua =
+          student["Status Orang Tua"] || student.statusOrangTua;
+        student.bahasaSehari =
+          student["Bahasa Sehari-hari"] || student.bahasaSehari;
+        student.alamat = student.Alamat || student.alamat;
+        student.rt = student.RT || student.rt;
+        student.dusun = student.Dusun || student.dusun;
+        student.desa = student["Desa/Kelurahan"] || student.desa;
+        student.kecamatan = student.Kecamatan || student.kecamatan;
+        student.kabupaten = student["Kabupaten/Kota"] || student.kabupaten;
+        student.provinsi = student.Provinsi || student.provinsi;
+        student.kodePos = student["Kode Pos"] || student.kodePos;
+        student.teleponRumah =
+          student["No. Telepon Rumah"] || student.teleponRumah;
+        student.golonganDarah =
+          student["Golongan Darah"] || student.golonganDarah;
+        student.penyakitPernah =
+          student["Penyakit Yang Pernah Diderita"] || student.penyakitPernah;
+        student.kelainanJasmani =
+          student["Kelainan Jasmani"] || student.kelainanJasmani;
+        student.tinggiBadan = student["Tinggi Badan"] || student.tinggiBadan;
+        student.beratBadan = student["Berat Badan"] || student.beratBadan;
+        student.asalSekolah =
+          student["Asal Sekolah (SD/MI)"] || student.asalSekolah;
+        student.tanggalLulusSD =
+          student["Tanggal Lulus SD/MI"] || student.tanggalLulusSD;
+        student.noIjazahSD =
+          student["Nomor Ijazah SD/MI"] || student.noIjazahSD;
+        student.lamaBelajarSD =
+          student["Lama Belajar di SD/MI"] || student.lamaBelajarSD;
+
+        // Data orang tua
+        student.namaAyah = student["Nama Ayah"] || student.namaAyah;
+        student.nikAyah = student["NIK Ayah"] || student.nikAyah;
+        student.pendidikanAyah =
+          student["Pendidikan Ayah"] || student.pendidikanAyah;
+        student.pekerjaanAyah =
+          student["Pekerjaan Ayah"] || student.pekerjaanAyah;
+        student.penghasilanAyah =
+          student["Penghasilan Ayah"] || student.penghasilanAyah;
+
+        student.namaIbu = student["Nama Ibu"] || student.namaIbu;
+        student.nikIbu = student["NIK Ibu"] || student.nikIbu;
+        student.pendidikanIbu =
+          student["Pendidikan Ibu"] || student.pendidikanIbu;
+        student.pekerjaanIbu = student["Pekerjaan Ibu"] || student.pekerjaanIbu;
+        student.penghasilanIbu =
+          student["Penghasilan Ibu"] || student.penghasilanIbu;
+
+        student.namaWali = student["Nama Wali"] || student.namaWali;
+        student.nikWali = student["NIK Wali"] || student.nikWali;
+        student.pendidikanWali =
+          student["Pendidikan Wali"] || student.pendidikanWali;
+        student.pekerjaanWali =
+          student["Pekerjaan Wali"] || student.pekerjaanWali;
+        student.penghasilanWali =
+          student["Penghasilan Wali"] || student.penghasilanWali;
+
+        // Data tambahan
+        student.hobi = student.Hobi || student.hobi;
+        student.prestasi = student.Prestasi || student.prestasi;
+        student.beasiswa = student.Beasiswa || student.beasiswa;
+
+        return {
+          success: true,
+          student: student,
+          foundAtRow: i,
+        };
+      }
+    }
+
+    Logger.log("✗ Student not found");
+    return {
+      success: false,
+      error: 'Siswa dengan NIS "' + nisId + '" tidak ditemukan',
+      searchedRows: values.length - 1,
+    };
+  } catch (error) {
+    Logger.log("✗ Error in findStudentByNIS: " + error.toString());
+    return {
+      success: false,
+      error: error.toString(),
+    };
+  }
+}
+
+function getStudentById(nisId, sessionId) {
+  try {
+    Logger.log("=== getStudentById called ===");
+    Logger.log('- nisId: "' + nisId + '" (type: ' + typeof nisId + ")");
+    Logger.log('- sessionId: "' + sessionId + '"');
+
+    // Validasi parameter
+    if (!nisId) {
+      Logger.log("ERROR: nisId is null or undefined");
+      throw new Error("NIS siswa tidak boleh kosong");
+    }
+
+    // Konversi nisId ke string jika diperlukan
+    const nisString = String(nisId).trim();
+    if (nisString === "") {
+      Logger.log("ERROR: nisId is empty string after trim");
+      throw new Error("NIS siswa tidak valid");
+    }
+
+    Logger.log('Processed NIS: "' + nisString + '"');
+
+    // Implementasi pencarian langsung dengan logika dari test_spreadsheet.js
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+
+    if (!studentsSheet) {
+      throw new Error('Sheet "' + STUDENTS_SHEET_NAME + '" tidak ditemukan');
+    }
+
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length === 0) {
+      throw new Error("Sheet kosong");
+    }
+
+    const headers = values[0];
+    const nisIndex = headers.indexOf("NIS");
+
+    if (nisIndex === -1) {
+      throw new Error("Kolom NIS tidak ditemukan");
+    }
+
+    Logger.log("Searching in " + (values.length - 1) + " student records...");
+
+    // Cari siswa
+    for (let i = 1; i < values.length; i++) {
+      const rowNIS = String(values[i][nisIndex]).trim();
+      const searchNIS = String(nisString).trim();
+
+      Logger.log(
+        "Row " + i + ': comparing "' + rowNIS + '" with "' + searchNIS + '"'
+      );
+
+      if (rowNIS === searchNIS) {
+        Logger.log("✓ Student found at row " + i);
+
+        // Buat object siswa dengan semua data
+        const student = {};
+        for (let j = 0; j < headers.length; j++) {
+          let value = values[i][j];
+
+          // Format tanggal jika diperlukan
+          if (value instanceof Date) {
+            const options = { year: "numeric", month: "long", day: "numeric" };
+            value = value.toLocaleDateString("id-ID", options);
+          }
+
+          student[headers[j]] = value;
+        }
+
+        // Tambahkan mapping untuk kompatibilitas dengan frontend
+        student.nis = student.NIS || student.nis;
+        student.nama = student["Nama Siswa"] || student.nama;
+        student.nisn = student.NISN || student.nisn;
+        student.gender = student["Jenis Kelamin"] || student.gender;
+        student.birthplace = student["Tempat Lahir"] || student.birthplace;
+        student.birthdate = student["Tanggal Lahir"] || student.birthdate;
+        student.agama = student.Agama || student.agama;
+        student.kewarganegaraan =
+          student.Kewarganegaraan || student.kewarganegaraan;
+
+        Logger.log("Successfully retrieved student data for NIS: " + nisString);
+        Logger.log(
+          "Student name: " +
+            (student.nama || student["Nama Siswa"] || "Unknown")
+        );
+
+        return student;
+      }
+    }
+
+    Logger.log("✗ Student not found");
+    throw new Error('Siswa dengan NIS "' + nisString + '" tidak ditemukan');
+  } catch (error) {
+    Logger.log("ERROR in getStudentById: " + error.toString());
+    Logger.log("Error stack: " + error.stack);
+    throw error; // Re-throw untuk ditangani oleh client-side failure handler
+  }
+}
+
+// Function untuk testing dari client-side
+function testSpreadsheetFromClient() {
+  try {
+    Logger.log("=== CLIENT-SIDE SPREADSHEET TEST ===");
+
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+
+    if (!studentsSheet) {
+      return {
+        success: false,
+        error: 'Sheet "' + STUDENTS_SHEET_NAME + '" tidak ditemukan',
+        availableSheets: ss.getSheets().map((s) => s.getName()),
+      };
+    }
+
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length === 0) {
+      return {
+        success: false,
+        error: "Sheet kosong, tidak ada data siswa",
+      };
+    }
+
+    const headers = values[0];
+    const nisIndex = headers.indexOf("NIS");
+
+    if (nisIndex === -1) {
+      return {
+        success: false,
+        error: "Kolom NIS tidak ditemukan",
+        headers: headers,
+      };
+    }
+
+    // Ambil sample NIS
+    const sampleNIS = [];
+    for (let i = 1; i < Math.min(6, values.length); i++) {
+      const nis = values[i][nisIndex];
+      if (nis) {
+        sampleNIS.push(String(nis).trim());
+      }
+    }
+
+    return {
+      success: true,
+      spreadsheetName: ss.getName(),
+      sheetName: studentsSheet.getName(),
+      totalRows: values.length,
+      dataRows: values.length - 1,
+      headers: headers,
+      nisColumnIndex: nisIndex,
+      sampleNIS: sampleNIS,
+    };
+  } catch (error) {
+    Logger.log("Error in testSpreadsheetFromClient: " + error.toString());
+    return {
+      success: false,
+      error: error.toString(),
+      stack: error.stack,
+    };
+  }
 }
 
 // Menghapus siswa dan data terkaitnya
@@ -1532,6 +1927,7 @@ function previewStudentsByEntryDate(params) {
       "nama",
       "Nama Lengkap",
       "nama_lengkap",
+      "Nama Siswa",
     ]);
     const genderIndex = findColumnIndex(headers, [
       "gender",
@@ -1546,6 +1942,8 @@ function previewStudentsByEntryDate(params) {
     const entryDateIndex = findColumnIndex(headers, [
       "tanggalDaftar",
       "Tanggal Diterima",
+      "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan",
+      "Tanggal Diterima di SMPN 03 Pekalongan",
     ]);
 
     if (nisIndex === -1 || entryDateIndex === -1) {
@@ -1985,7 +2383,6 @@ function addStudent(studentData) {
 
     return { success: true, message: "Data siswa berhasil ditambahkan" };
   } catch (error) {
-    console.error("Error in addStudent:", error);
     return {
       success: false,
       message: "Terjadi kesalahan: " + error.toString(),
