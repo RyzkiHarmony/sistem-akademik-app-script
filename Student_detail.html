@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Siswa - Buku Induk</title>
+    <base target="_top" />
+    <?!= include('CSS_Students_manage') ?>
+    <style>
+      .detail-container {
+        padding: 0;
+      }
+
+      .back-button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+        margin-bottom: 20px;
+      }
+
+      .back-button:hover {
+        background: #5a6268;
+      }
+
+      .student-header-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-bottom: 30px;
+        text-align: center;
+        border-left: 4px solid #007bff;
+      }
+
+      .student-header-card h2 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 2em;
+        font-weight: 600;
+      }
+
+      .student-header-card .student-info {
+        color: #6c757d;
+        font-size: 1.1em;
+      }
+
+      .detail-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+      }
+
+      .detail-section {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .section-header {
+        background: #f8f9fa;
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .section-title {
+        margin: 0;
+        color: #495057;
+        font-size: 1.3em;
+        font-weight: 600;
+      }
+
+      .section-content {
+        padding: 20px;
+      }
+
+      .detail-row {
+        display: flex;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #f1f3f4;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .detail-label {
+        flex: 0 0 40%;
+        font-weight: 600;
+        color: #495057;
+        padding-right: 15px;
+      }
+
+      .detail-value {
+        flex: 1;
+        color: #6c757d;
+      }
+
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 400px;
+        font-size: 1.2em;
+        color: #6c757d;
+      }
+
+      .error-container {
+        text-align: center;
+        padding: 50px;
+        color: #dc3545;
+      }
+
+      .action-buttons {
+        text-align: center;
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .action-buttons .btn {
+        margin: 8px 10px;
+        padding: 12px 30px;
+        font-size: 16px;
+        min-width: 140px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .action-buttons .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-info {
+        background-color: #17a2b8;
+        color: white;
+        border: 1px solid #17a2b8;
+      }
+
+      .btn-info:hover {
+        background-color: #138496;
+        border-color: #117a8b;
+      }
+
+      /* Icon styles for buttons */
+      .btn-icon {
+        margin-right: 8px;
+        font-size: 14px;
+      }
+
+      /* Disabled button state */
+      .action-buttons .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .action-buttons .btn:disabled:hover {
+        transform: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Loading animation for icons */
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .btn-icon.loading {
+        animation: spin 1s linear infinite;
+      }
+
+      @media (max-width: 768px) {
+        .detail-sections {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-row {
+          flex-direction: column;
+        }
+
+        .detail-label {
+          margin-bottom: 5px;
+          padding-right: 0;
+        }
+
+        .detail-header h1 {
+          font-size: 2em;
+        }
+
+        .action-buttons {
+          padding: 15px;
+        }
+
+        .action-buttons .btn {
+          margin: 5px;
+          padding: 10px 20px;
+          font-size: 14px;
+          min-width: 120px;
+          display: block;
+          width: 100%;
+          max-width: 280px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .action-buttons .btn + .btn {
+          margin-top: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <?!= includeNavbar() ?>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Detail Siswa</h1>
+        <input type="hidden" id="sessionId" value="<?= sessionId ?>" />
+        <div class="page-date" id="current-date">Memuat tanggal...</div>
+      </div>
+
+      <div class="detail-container">
+        <button class="back-button" onclick="goBack()">← Kembali ke Daftar Siswa</button>
+        
+        <div class="student-header-card">
+          <h2 id="student-header-name">Memuat informasi siswa...</h2>
+          <div class="student-info" id="student-header-info">
+            <span id="student-header-nis"></span> • <span id="student-header-class"></span>
+          </div>
+        </div>
+
+      <div id="detail-content">
+        <div class="loading-container">
+          <div>Memuat detail siswa...</div>
+        </div>
+      </div>
+
+      <div class="action-buttons" id="action-buttons" style="display: none">
+        <button class="btn btn-warning" onclick="editStudent()" title="Edit data siswa">
+          <span class="btn-icon">✏️</span>
+          Edit Data
+        </button>
+        <button class="btn btn-info" onclick="generatePDF()" title="Cetak PDF siswa">
+          <span class="btn-icon">📄</span>
+          Cetak PDF
+        </button>
+        <button class="btn btn-secondary" onclick="goBack()" title="Kembali ke daftar siswa">
+          <span class="btn-icon">↩️</span>
+          Kembali ke Daftar
+        </button>
+      </div>
+      </div>
+    </div>
+
+    <script>
+      let currentStudentId = null;
+      
+      // Fungsi untuk toggle sidebar di tampilan mobile
+      function toggleSidebar() {
+        document.body.classList.toggle("sidebar-active");
+      }
+
+      // Fungsi untuk mengupdate tanggal
+      function updateDateTime() {
+        const now = new Date();
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        document.getElementById("current-date").textContent =
+          now.toLocaleDateString("id-ID", options);
+      }
+
+      // Get session ID
+      function getSessionId() {
+        // First try to get from hidden input
+        const hiddenInput = document.getElementById("sessionId");
+        if (hiddenInput && hiddenInput.value) {
+          return hiddenInput.value;
+        }
+        
+        // Fallback to URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("sessionId");
+      }
+
+      // Get student ID from URL parameters or server-side template
+      function getStudentIdFromUrl() {
+        // First try to get from server-side template parameter
+        const serverStudentId = '<?= typeof studentId !== "undefined" ? studentId : "" ?>';
+        if (serverStudentId && serverStudentId !== '') {
+          console.log('Student ID from server template:', serverStudentId);
+          return serverStudentId;
+        }
+        
+        // Fallback to URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlStudentId = urlParams.get("id");
+        console.log('Student ID from URL parameters:', urlStudentId);
+        return urlStudentId;
+      }
+
+      // Go back to students list
+      function goBack() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = getSessionId();
+        const baseUrl = window.location.origin + window.location.pathname;
+        window.location.href = `${baseUrl}?page=Students_manage&sessionId=${sessionId}`;
+      }
+
+      // Edit student
+      function editStudent() {
+        if (!currentStudentId) {
+          alert('ID siswa tidak tersedia');
+          return;
+        }
+        
+        try {
+          const sessionId = getSessionId();
+          if (!sessionId) {
+            alert('Session tidak valid. Silakan login kembali.');
+            return;
+          }
+          
+          const baseUrl = window.location.origin + window.location.pathname;
+          const editUrl = `${baseUrl}?page=Students_manage&sessionId=${encodeURIComponent(sessionId)}&edit=${encodeURIComponent(currentStudentId)}`;
+          
+          console.log('Navigating to edit page:', editUrl);
+          window.location.href = editUrl;
+        } catch (error) {
+          console.error('Error in editStudent:', error);
+          alert('Terjadi kesalahan saat membuka halaman edit');
+        }
+      }
+
+      // Generate PDF
+      function generatePDF() {
+        if (!currentStudentId) {
+          alert('ID siswa tidak tersedia');
+          return;
+        }
+        
+        try {
+          const sessionId = getSessionId();
+          if (!sessionId) {
+            alert('Session tidak valid. Silakan login kembali.');
+            return;
+          }
+          
+          console.log("Generating PDF for student:", currentStudentId);
+          
+          // Show loading state
+          const pdfButton = document.querySelector('.btn-info');
+          const originalText = pdfButton.innerHTML;
+          pdfButton.innerHTML = '<span class="btn-icon">⏳</span>Memproses...';
+          pdfButton.disabled = true;
+          
+          // Call server-side function to generate PDF
+          google.script.run
+            .withSuccessHandler(function(pdfUrl) {
+              // Reset button
+              pdfButton.innerHTML = originalText;
+              pdfButton.disabled = false;
+              
+              if (pdfUrl) {
+                // Open PDF in new tab
+                window.open(pdfUrl, '_blank');
+              } else {
+                alert('Gagal menghasilkan PDF');
+              }
+            })
+            .withFailureHandler(function(error) {
+              // Reset button
+              pdfButton.innerHTML = originalText;
+              pdfButton.disabled = false;
+              
+              console.error('Error generating PDF:', error);
+              alert('Fitur cetak PDF sedang dalam pengembangan');
+            })
+            .getStudentPDFUrl(currentStudentId, sessionId);
+            
+        } catch (error) {
+          console.error('Error in generatePDF:', error);
+          alert('Terjadi kesalahan saat membuat PDF');
+        }
+      }
+
+      // Load student detail
+      function loadStudentDetail(studentId) {
+        if (!studentId) {
+          showError("ID siswa tidak ditemukan");
+          return;
+        }
+
+        currentStudentId = studentId;
+        console.log("Loading student detail for ID:", studentId);
+
+        const sessionId = getSessionId();
+        console.log("Session ID for request:", sessionId);
+
+        google.script.run
+          .withSuccessHandler(function (student) {
+            console.log("Received student data:", student);
+
+            if (!student) {
+              showError("Data siswa tidak ditemukan");
+              return;
+            }
+
+            renderStudentDetail(student);
+          })
+          .withFailureHandler(function (error) {
+            console.error("Error loading student detail:", error);
+            showError("Gagal memuat detail siswa: " + error);
+          })
+          .getStudentById(studentId, sessionId);
+      }
+
+      // Show error message
+      function showError(message) {
+        document.getElementById("detail-content").innerHTML = `
+          <div class="error-container">
+            <h3>Error</h3>
+            <p>${message}</p>
+            <button class="btn btn-primary" onclick="goBack()">Kembali ke Daftar</button>
+          </div>
+        `;
+      }
+
+      // Render student detail
+      function renderStudentDetail(student) {
+        try {
+          // Update header card
+          document.getElementById("student-header-name").textContent = 
+            student["Nama Siswa"] || student.nama || "Nama tidak tersedia";
+          
+          document.getElementById("student-header-nis").textContent = 
+            `NIS: ${student.NIS || student.nis || "-"}`;
+          
+          document.getElementById("student-header-class").textContent = 
+            `NISN: ${student.nisn || "-"}`;
+
+          // Render detail sections
+          const detailContent = document.getElementById("detail-content");
+          detailContent.innerHTML = `
+            <div class="detail-sections">
+              <!-- Data Identitas -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Data Identitas</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">NIS</div>
+                    <div class="detail-value">${
+                      student.NIS || student.nis || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">NISN</div>
+                    <div class="detail-value">${student.nisn || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nama Lengkap</div>
+                    <div class="detail-value">${
+                      student["Nama Siswa"] || student.nama || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Jenis Kelamin</div>
+                    <div class="detail-value">${
+                      student["Jenis Kelamin"] || student.gender || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">NIK</div>
+                    <div class="detail-value">${
+                      student.NIK || student.nik || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat Lahir</div>
+                    <div class="detail-value">${
+                      student["Tempat Lahir"] || student.birthplace || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tanggal Lahir</div>
+                    <div class="detail-value">${
+                      student["Tanggal Lahir"] || student.birthdate || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Agama</div>
+                    <div class="detail-value">${
+                      student.Agama || student.agama || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kewarganegaraan</div>
+                    <div class="detail-value">${
+                      student.Kewarganegaraan || student.kewarganegaraan || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Anak Ke-</div>
+                    <div class="detail-value">${
+                      student["Anak Ke"] || student.anakKe || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Jumlah Saudara Kandung</div>
+                    <div class="detail-value">${
+                      student["Jumlah Saudara Kandung"] ||
+                      student.jumlahSaudaraKandung ||
+                      "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Status Orang Tua</div>
+                    <div class="detail-value">${
+                      student.statusOrangTua || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Bahasa Sehari-hari</div>
+                    <div class="detail-value">${
+                      student.bahasaSehari || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Data Alamat -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Alamat</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Alamat Lengkap</div>
+                    <div class="detail-value">${student.alamat || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">RT/RW</div>
+                    <div class="detail-value">${student.rt || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Dusun</div>
+                    <div class="detail-value">${student.dusun || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Desa/Kelurahan</div>
+                    <div class="detail-value">${student.desa || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kecamatan</div>
+                    <div class="detail-value">${student.kecamatan || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kabupaten/Kota</div>
+                    <div class="detail-value">${student.kabupaten || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Provinsi</div>
+                    <div class="detail-value">${student.provinsi || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kode Pos</div>
+                    <div class="detail-value">${student.kodePos || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">No. Telepon Rumah</div>
+                    <div class="detail-value">${
+                      student.teleponRumah || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Data Kesehatan -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Kesehatan</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Golongan Darah</div>
+                    <div class="detail-value">${
+                      student.golonganDarah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Penyakit Yang Pernah Diderita</div>
+                    <div class="detail-value">${
+                      student.penyakitPernah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Kelainan Jasmani</div>
+                    <div class="detail-value">${
+                      student.kelainanJasmani || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tinggi Badan</div>
+                    <div class="detail-value">${
+                      student.tinggiBadan || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Berat Badan</div>
+                    <div class="detail-value">${student.beratBadan || "-"}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Data Pendidikan -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Pendidikan Sebelumnya</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Asal Sekolah (SD/MI)</div>
+                    <div class="detail-value">${
+                      student.asalSekolah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tanggal Lulus SD/MI</div>
+                    <div class="detail-value">${
+                      student.tanggalLulusSD || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Nomor Ijazah SD/MI</div>
+                    <div class="detail-value">${student.noIjazahSD || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Lama Belajar di SD/MI</div>
+                    <div class="detail-value">${
+                      student.lamaBelajarSD || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Data Orang Tua -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Data Ayah</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Nama Ayah</div>
+                    <div class="detail-value">${student.namaAyah || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">NIK Ayah</div>
+                    <div class="detail-value">${student.nikAyah || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat Lahir Ayah</div>
+                    <div class="detail-value">${
+                      student.tempatLahirAyah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tanggal Lahir Ayah</div>
+                    <div class="detail-value">${
+                      student.tanggalLahirAyah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Pendidikan Ayah</div>
+                    <div class="detail-value">${
+                      student.pendidikanAyah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Pekerjaan Ayah</div>
+                    <div class="detail-value">${
+                      student.pekerjaanAyah || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Penghasilan Ayah</div>
+                    <div class="detail-value">${
+                      student.penghasilanAyah || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Data Ibu -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Data Ibu</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Nama Ibu</div>
+                    <div class="detail-value">${student.namaIbu || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">NIK Ibu</div>
+                    <div class="detail-value">${student.nikIbu || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat Lahir Ibu</div>
+                    <div class="detail-value">${
+                      student.tempatLahirIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tanggal Lahir Ibu</div>
+                    <div class="detail-value">${
+                      student.tanggalLahirIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Pendidikan Ibu</div>
+                    <div class="detail-value">${
+                      student.pendidikanIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Pekerjaan Ibu</div>
+                    <div class="detail-value">${
+                      student.pekerjaanIbu || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Penghasilan Ibu</div>
+                    <div class="detail-value">${
+                      student.penghasilanIbu || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Data Wali (jika ada) -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Data Wali</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Nama Wali</div>
+                    <div class="detail-value">${student.namaWali || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">NIK Wali</div>
+                    <div class="detail-value">${student.nikWali || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tempat Lahir Wali</div>
+                    <div class="detail-value">${
+                      student.tempatLahirWali || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tanggal Lahir Wali</div>
+                    <div class="detail-value">${
+                      student.tanggalLahirWali || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Pendidikan Wali</div>
+                    <div class="detail-value">${
+                      student.pendidikanWali || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Pekerjaan Wali</div>
+                    <div class="detail-value">${
+                      student.pekerjaanWali || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Penghasilan Wali</div>
+                    <div class="detail-value">${
+                      student.penghasilanWali || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Hobi dan Prestasi -->
+              <div class="detail-section">
+                <div class="section-header">
+                  <h3 class="section-title">Hobi dan Prestasi</h3>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row">
+                    <div class="detail-label">Hobi</div>
+                    <div class="detail-value">${student.hobi || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Prestasi</div>
+                    <div class="detail-value">${student.prestasi || "-"}</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Beasiswa</div>
+                    <div class="detail-value">${student.beasiswa || "-"}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Show action buttons
+          document.getElementById("action-buttons").style.display = "block";
+        } catch (error) {
+          console.error("Error rendering student detail:", error);
+          showError("Gagal menampilkan detail siswa");
+        }
+      }
+
+      // Initialize page
+      document.addEventListener('DOMContentLoaded', function() {
+        updateDateTime();
+        const studentId = getStudentIdFromUrl();
+        if (studentId) {
+          loadStudentDetail(studentId);
+        } else {
+          showError('ID siswa tidak ditemukan dalam URL');
+        }
+      });
+    </script>
+  </body>
+</html>

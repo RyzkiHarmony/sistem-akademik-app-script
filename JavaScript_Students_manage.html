@@ -45,8 +45,7 @@
       statusFilter: document.getElementById("filter-status").value,
       sortField: currentSortField,
       sortDirection: currentSortDirection,
-      // Hanya ambil kolom yang diperlukan untuk tampilan tabel
-      fieldsToReturn: ["nis", "nama", "gender", "tanggalDaftar", "status"],
+      fieldsToReturn: ["nis", "nama", "gender", "tanggalDaftar", "status"], // Terbatas
     };
 
     // Panggil fungsi server untuk mendapatkan data siswa dengan pagination
@@ -272,18 +271,81 @@
     });
   }
 
-  // Open modal to view student details
+  // Open student detail page
   function openViewModal(studentId) {
-    const student = allStudents.find((s) => s.nis == studentId);
+    console.log("=== openViewModal called ===");
+    console.log("Student ID:", studentId);
+    console.log("Current location:", window.location);
 
-    if (!student) {
-      showNotification("Data siswa tidak ditemukan", "error");
+    if (!studentId) {
+      console.error("Student ID is required");
+      showNotification("ID siswa tidak valid", "error");
       return;
     }
 
-    const detailContent = document.getElementById("student-detail-content");
-    // Format detail content
-    detailContent.innerHTML = `
+    try {
+      // Get current session ID from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = getSessionId();
+
+      console.log("Current URL:", window.location.href);
+      console.log("Session ID:", sessionId);
+      console.log("URL Params:", Object.fromEntries(urlParams));
+
+      // Navigate to student detail page with proper Google Apps Script URL format
+      const detailUrl =
+        "<?= myURL() ?>?page=Student_detail&sessionId=" +
+        encodeURIComponent(sessionId) +
+        "&id=" +
+        encodeURIComponent(studentId);
+
+      console.log("Detail URL:", detailUrl);
+
+      // Add a small delay to ensure console logs are visible
+      setTimeout(() => {
+        console.log("Navigating now...");
+        window.location.href = detailUrl;
+      }, 100);
+    } catch (error) {
+      console.error("Error in openViewModal:", error);
+      showNotification("Terjadi kesalahan saat membuka detail siswa", "error");
+    }
+  }
+
+  // Function to render student detail content
+  function renderStudentDetail(student, studentId) {
+    try {
+      console.log("Starting renderStudentDetail with data:", {
+        hasStudent: !!student,
+        studentKeys: student ? Object.keys(student).slice(0, 10) : [],
+        studentId: studentId,
+      });
+
+      const detailContent = document.getElementById("student-detail-content");
+      if (!detailContent) {
+        console.error("Element 'student-detail-content' not found");
+        showNotification(
+          "Error: Element tampilan detail tidak ditemukan",
+          "error"
+        );
+        return;
+      }
+
+      // Validasi data siswa
+      if (!student || typeof student !== "object") {
+        console.error("Invalid student data for rendering:", student);
+        detailContent.innerHTML =
+          '<div style="text-align: center; padding: 20px; color: red;">Data siswa tidak valid</div>';
+        return;
+      }
+
+      console.log(
+        "Rendering student detail for:",
+        student.nama || student.Nama || student.nis || student.NIS
+      );
+
+      // Format detail content
+      detailContent.innerHTML = `
       <!-- Data Identitas Siswa -->
       <div class="student-detail-section">
         <h3 class="student-detail-heading">Informasi Siswa</h3>
@@ -825,13 +887,32 @@
       </div>
     `;
 
-    // Store student ID for edit button
-    document
-      .getElementById("edit-from-view-btn")
-      .setAttribute("data-id", studentId);
+      // Store student ID for edit button
+      document
+        .getElementById("edit-from-view-btn")
+        .setAttribute("data-id", studentId);
 
-    // Show modal
-    document.getElementById("view-modal").style.display = "flex";
+      console.log("Successfully rendered student detail");
+    } catch (error) {
+      console.error("Error in renderStudentDetail:", error);
+      console.error("Error stack:", error.stack);
+
+      const detailContent = document.getElementById("student-detail-content");
+      if (detailContent) {
+        detailContent.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: red;">
+          <h4>Error saat menampilkan detail siswa</h4>
+          <p>Terjadi kesalahan: ${error.message || error}</p>
+          <p>Silakan coba lagi atau hubungi administrator.</p>
+        </div>
+      `;
+      }
+
+      showNotification(
+        "Error saat menampilkan detail siswa: " + (error.message || error),
+        "error"
+      );
+    }
   }
 
   // Open modal to edit student
@@ -1620,6 +1701,20 @@
       });
   }
 
+  // Check URL parameters for edit mode
+  function checkUrlParameters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get("edit");
+
+    if (editId) {
+      console.log("Opening edit modal for student ID:", editId);
+      // Small delay to ensure page is loaded
+      setTimeout(() => {
+        openEditModal(editId);
+      }, 500);
+    }
+  }
+
   // Document ready
   document.addEventListener("DOMContentLoaded", function () {
     // Update tanggal
@@ -1627,6 +1722,9 @@
 
     // Load data siswa
     loadStudents();
+
+    // Check for URL parameters (like edit mode)
+    checkUrlParameters();
 
     // Setup event listeners for search and filter
     document
