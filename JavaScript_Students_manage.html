@@ -1,0 +1,1943 @@
+<script>
+  // JavaScript_Students.html
+  // Get session ID from hidden input
+  function getSessionId() {
+    return document.getElementById("sessionId").value;
+  }
+  // Variabel global
+  let allStudents = [];
+  let filteredStudents = [];
+  let currentPage = 1;
+  let itemsPerPage = 10;
+  let currentSortField = "nis";
+  let currentSortDirection = "asc";
+  let studentToDelete = null;
+
+  // Fungsi untuk toggle sidebar di tampilan mobile
+  function toggleSidebar() {
+    document.body.classList.toggle("sidebar-active");
+  }
+
+  // Fungsi untuk mengupdate tanggal
+  function updateDateTime() {
+    const now = new Date();
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    document.getElementById("current-date").textContent =
+      now.toLocaleDateString("id-ID", options);
+  }
+
+  // Fungsi untuk memuat data siswa dari server dengan pagination server-side
+  function loadStudents() {
+    // Tampilkan loading state
+    document.getElementById("students-table-body").innerHTML =
+      "<tr><td colspan='8' style='text-align: center;'>Memuat data siswa...</td></tr>";
+
+    // Siapkan opsi untuk pagination dan optimasi data
+    const options = {
+      page: currentPage,
+      limit: itemsPerPage,
+      searchQuery: document.getElementById("search-input").value.toLowerCase(),
+      statusFilter: document.getElementById("filter-status").value,
+      sortField: currentSortField,
+      sortDirection: currentSortDirection,
+      // Hanya ambil kolom yang diperlukan untuk tampilan tabel
+      fieldsToReturn: ["nis", "nama", "gender", "tanggalDaftar", "status"],
+    };
+
+    // Panggil fungsi server untuk mendapatkan data siswa dengan pagination
+    google.script.run
+      .withSuccessHandler(function (result) {
+        // Simpan data siswa ke variabel global
+        allStudents = result.students;
+        filteredStudents = result.students; // Tidak perlu filter lagi karena sudah difilter di server
+
+        // Update pagination info
+        currentPage = result.currentPage;
+        const totalPages = result.totalPages;
+        const totalCount = result.totalCount;
+
+        // Render halaman
+        renderStudentsTable(
+          result.students,
+          result.currentPage,
+          totalPages,
+          totalCount
+        );
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error loading students:", error);
+        document.getElementById(
+          "students-table-body"
+        ).innerHTML = `<tr><td colspan='8' style='text-align: center; color: #e74c3c;'>Error: ${error}</td></tr>`;
+        showNotification("Gagal memuat data siswa: " + error, "error");
+      })
+      .getAllStudents(options);
+  }
+
+  // Filter dan sort data siswa - sekarang dilakukan di server
+  function applyFiltersAndSort() {
+    // Reset ke halaman pertama saat filter berubah
+    currentPage = 1;
+
+    // Muat ulang data dengan filter baru
+    loadStudents();
+  }
+
+  // Fungsi untuk menampilkan data siswa dengan pagination server-side
+  function renderStudentsTable(students, currentPage, totalPages, totalCount) {
+    const tableBody = document.getElementById("students-table-body");
+
+    // Check if no data
+    if (students.length === 0) {
+      tableBody.innerHTML =
+        "<tr><td colspan='8' style='text-align: center;'>Tidak ada data siswa</td></tr>";
+      document.getElementById("pagination-info").textContent = "Tidak ada data";
+      document.getElementById("pagination-controls").innerHTML = "";
+      return;
+    }
+
+    // Clear table
+    tableBody.innerHTML = "";
+
+    // Calculate start index for numbering
+    const startIndex = (currentPage - 1) * itemsPerPage;
+
+    // Add rows
+    students.forEach((student, index) => {
+      const row = document.createElement("tr");
+
+      // Create status badge
+      const statusBadge = getStatusBadge(student.status);
+
+      row.innerHTML = `
+        <td>${startIndex + index + 1}</td>
+        <td>${student.nis || "-"}</td>
+        <td class="student-name">${student.nama || "-"}</td>
+        <td>${student.gender || "-"}</td>
+        <td>${student.tanggalDaftar || "-"}</td>
+        <td>${statusBadge}</td>
+        <td class="action-buttons">
+          <button class="btn btn-sm btn-primary btn-view" data-id="${
+            student.nis
+          }">Lihat</button>
+          <button class="btn btn-sm btn-warning btn-edit" data-id="${
+            student.nis
+          }">Edit</button>
+          <button class="btn btn-sm btn-warning btn-pdf" data-id="${
+            student.nis
+          }">PDF</button>
+          <button class="btn btn-sm btn-danger btn-delete" data-id="${
+            student.nis
+          }">Hapus</button>
+        </td>
+      `;
+
+      tableBody.appendChild(row);
+    });
+
+    // Update pagination info
+    document.getElementById("pagination-info").textContent = `Menampilkan ${
+      startIndex + 1
+    }-${startIndex + students.length} dari ${totalCount} siswa`;
+
+    // Update pagination controls
+    renderServerPaginationControls(currentPage, totalPages);
+
+    // Setup action buttons
+    setupActionButtons();
+  }
+
+  // Fungsi untuk mengubah jumlah item per halaman
+  function changeItemsPerPage(newItemsPerPage) {
+    itemsPerPage = newItemsPerPage;
+    currentPage = 1; // Reset ke halaman pertama
+    loadStudents();
+  }
+
+  // Render pagination controls untuk server-side pagination
+  function renderServerPaginationControls(currentPage, totalPages) {
+    const paginationControls = document.getElementById("pagination-controls");
+
+    // Clear current controls
+    paginationControls.innerHTML = "";
+
+    // No pagination needed if only one page
+    if (totalPages <= 1) {
+      return;
+    }
+
+    // Previous button
+    const prevButton = document.createElement("button");
+    prevButton.innerHTML = "&laquo;";
+    prevButton.disabled = currentPage === 1;
+    prevButton.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        loadStudents(); // Muat ulang data dengan halaman baru
+      }
+    });
+    paginationControls.appendChild(prevButton);
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Adjust if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages && startPage > 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const pageButton = document.createElement("button");
+      pageButton.textContent = i;
+      if (i === currentPage) {
+        pageButton.classList.add("active");
+      }
+
+      pageButton.addEventListener("click", () => {
+        currentPage = i;
+        loadStudents(); // Muat ulang data dengan halaman baru
+      });
+
+      paginationControls.appendChild(pageButton);
+    }
+
+    // Next button
+    const nextButton = document.createElement("button");
+    nextButton.innerHTML = "&raquo;";
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.addEventListener("click", () => {
+      if (currentPage < totalPages) {
+        currentPage++;
+        loadStudents(); // Muat ulang data dengan halaman baru
+      }
+    });
+    paginationControls.appendChild(nextButton);
+  }
+
+  // Helper function untuk mendapatkan badge status
+  function getStatusBadge(status) {
+    switch (status?.toLowerCase()) {
+      case "aktif":
+        return '<span class="badge badge-success">Aktif</span>';
+      case "lulus":
+        return '<span class="badge badge-primary">Lulus</span>';
+      case "mutasi":
+        return '<span class="badge badge-warning">Mutasi</span>';
+      case "keluar":
+        return '<span class="badge badge-danger">Keluar</span>';
+    }
+  }
+
+  // Setup action buttons
+  function setupActionButtons() {
+    // View student button
+    document.querySelectorAll(".btn-view").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const studentId = this.getAttribute("data-id");
+        console.log("View button clicked, data-id:", studentId); // Debug log
+        openViewModal(studentId);
+      });
+    });
+
+    // Edit student button
+    document.querySelectorAll(".btn-edit").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const studentId = this.getAttribute("data-id");
+        openEditModal(studentId);
+      });
+    });
+
+    // Delete student button
+    document.querySelectorAll(".btn-delete").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const studentId = this.getAttribute("data-id");
+        openDeleteModal(studentId);
+      });
+    });
+
+    // PDF button - mengakses file PDF dari Google Drive
+    document.querySelectorAll(".btn-pdf").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const studentId = this.getAttribute("data-id");
+        console.log("PDF button clicked for student ID:", studentId); // Debugging
+        accessStudentPDF(studentId);
+      });
+    });
+  }
+
+  // Open modal to view student details
+  function openViewModal(studentId) {
+    const student = allStudents.find((s) => s.nis == studentId);
+
+    if (!student) {
+      showNotification("Data siswa tidak ditemukan", "error");
+      return;
+    }
+
+    const detailContent = document.getElementById("student-detail-content");
+    // Format detail content
+    detailContent.innerHTML = `
+      <!-- Data Identitas Siswa -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Informasi Siswa</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">NIS</div>
+          <div class="detail-value">${student.NIS || student.nis || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">NISN</div>
+          <div class="detail-value">${student.nisn || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nama Lengkap</div>
+          <div class="detail-value">${
+            student["Nama Siswa"] || student.nama || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Jenis Kelamin</div>
+          <div class="detail-value">${
+            student["Jenis Kelamin"] || student.gender || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">NIK</div>
+          <div class="detail-value">${student.NIK || student.nik || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tempat Lahir</div>
+          <div class="detail-value">${
+            student["Tempat Lahir"] || student.birthplace || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tanggal Lahir</div>
+          <div class="detail-value">${
+            student["Tanggal Lahir"] || student.birthdate || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Agama</div>
+          <div class="detail-value">${
+            student.Agama || student.agama || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kewarganegaraan</div>
+          <div class="detail-value">${
+            student.Kewarganegaraan || student.kewarganegaraan || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Anak Ke-</div>
+          <div class="detail-value">${
+            student["Anak Ke"] || student.anakKe || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Jumlah Saudara Kandung</div>
+          <div class="detail-value">${
+            student["Jumlah Saudara Kandung"] ||
+            student.jumlahSaudaraKandung ||
+            "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Jumlah Saudara Tiri</div>
+          <div class="detail-value">${student.jumlahSaudaraTiri || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Jumlah Saudara Angkat</div>
+          <div class="detail-value">${student.jumlahSaudaraAngkat || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Status Orang Tua</div>
+          <div class="detail-value">${student.statusOrangTua || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Bahasa Sehari-hari</div>
+          <div class="detail-value">${student.bahasaSehari || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tinggal Bersama</div>
+          <div class="detail-value">${student.tinggalBersama || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Transportasi ke Sekolah</div>
+          <div class="detail-value">${student.transportasi || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Jarak ke Sekolah</div>
+          <div class="detail-value">${student.jarakKeSekolah || "-"}</div>
+        </div>
+      </div>
+      
+      <!-- Data Alamat -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Alamat</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Alamat Lengkap</div>
+          <div class="detail-value">${student.alamat || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">RT/RW</div>
+          <div class="detail-value">${student.rt || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Dusun</div>
+          <div class="detail-value">${student.dusun || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Desa/Kelurahan</div>
+          <div class="detail-value">${student.desa || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kecamatan</div>
+          <div class="detail-value">${student.kecamatan || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kabupaten/Kota</div>
+          <div class="detail-value">${student.kabupaten || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Provinsi</div>
+          <div class="detail-value">${student.provinsi || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kode Pos</div>
+          <div class="detail-value">${student.kodePos || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">No. Telepon Rumah</div>
+          <div class="detail-value">${student.teleponRumah || "-"}</div>
+        </div>
+      </div>
+      
+      <!-- Data Kesehatan -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Kesehatan</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Golongan Darah</div>
+          <div class="detail-value">${student.golonganDarah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Penyakit Yang Pernah diderita</div>
+          <div class="detail-value">${student.penyakitPernah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Penyakit Lain</div>
+          <div class="detail-value">${student.penyakitLain || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kelainan Jasmani</div>
+          <div class="detail-value">${student.kelainanJasmani || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tinggi Badan</div>
+          <div class="detail-value">${student.tinggiBadan || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Berat Badan</div>
+          <div class="detail-value">${student.beratBadan || "-"}</div>
+        </div>
+      </div>
+      
+      <!-- Data Pendidikan -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Pendidikan</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Asal Sekolah (SD/MI)</div>
+          <div class="detail-value">${student.asalSekolah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tanggal Lulus SD/MI</div>
+          <div class="detail-value">${student.tanggalLulusSD || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nomor Ijazah SD/MI</div>
+          <div class="detail-value">${student.noIjazahSD || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Lama Belajar di SD/MI</div>
+          <div class="detail-value">${student.lamaBelajarSD || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Siswa Pindahan?</div>
+          <div class="detail-value">${student.siswaPindahan || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Mulai Kelas Berapa Diterima</div>
+          <div class="detail-value">${student.kelasAwal || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tanggal Diterima</div>
+          <div class="detail-value">${student.tanggalDaftar || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Asal Sekolah (SMP/MTS)</div>
+          <div class="detail-value">${student.asalSekolahSMP || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Alasan Pindah Sekolah</div>
+          <div class="detail-value">${student.alasanPindah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">${student.status || "Aktif"}</div>
+        </div>
+      </div>
+      
+      <!-- Data Orang Tua dan Wali -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Data Ayah</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nama Ayah</div>
+          <div class="detail-value">${student.ayah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">NIK Ayah</div>
+          <div class="detail-value">${student.nikAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tempat dan Tanggal Lahir</div>
+          <div class="detail-value">${student.ttlAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Agama</div>
+          <div class="detail-value">${student.agamaAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kewarganegaraan</div>
+          <div class="detail-value">${student.kewarganegaraanAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pendidikan Terakhir</div>
+          <div class="detail-value">${student.pendidikanAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pekerjaan</div>
+          <div class="detail-value">${student.pekerjaanAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Penghasilan Bulanan</div>
+          <div class="detail-value">${student.penghasilanAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Alamat Lengkap</div>
+          <div class="detail-value">${student.alamatAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">No. Telepon</div>
+          <div class="detail-value">${student.phoneAyah || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">${student.statusAyah || "-"}</div>
+        </div>
+      </div>
+      
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Data Ibu</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nama Ibu</div>
+          <div class="detail-value">${student.ibu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">NIK Ibu</div>
+          <div class="detail-value">${student.nikIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tempat dan Tanggal Lahir</div>
+          <div class="detail-value">${student.ttlIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Agama</div>
+          <div class="detail-value">${student.agamaIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kewarganegaraan</div>
+          <div class="detail-value">${student.kewarganegaraanIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pendidikan Terakhir</div>
+          <div class="detail-value">${student.pendidikanIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pekerjaan</div>
+          <div class="detail-value">${student.pekerjaanIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Penghasilan Bulanan</div>
+          <div class="detail-value">${student.penghasilanIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Alamat Lengkap</div>
+          <div class="detail-value">${student.alamatIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">No. Telepon</div>
+          <div class="detail-value">${student.phoneIbu || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">${student.statusIbu || "-"}</div>
+        </div>
+      </div>
+      
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Data Wali</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nama Wali</div>
+          <div class="detail-value">${student.wali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">NIK Wali</div>
+          <div class="detail-value">${student.nikWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tempat dan Tanggal Lahir</div>
+          <div class="detail-value">${student.ttlWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Agama</div>
+          <div class="detail-value">${student.agamaWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Kewarganegaraan</div>
+          <div class="detail-value">${student.kewarganegaraanWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pendidikan Terakhir</div>
+          <div class="detail-value">${student.pendidikanWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pekerjaan</div>
+          <div class="detail-value">${student.pekerjaanWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Penghasilan Bulanan</div>
+          <div class="detail-value">${student.penghasilanWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Alamat Lengkap</div>
+          <div class="detail-value">${student.alamatWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">No. Telepon</div>
+          <div class="detail-value">${student.phoneWali || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">${student.statusWali || "-"}</div>
+        </div>
+      </div>
+      
+      <!-- Data Hobi -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Hobi</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Bidang Seni</div>
+          <div class="detail-value">${student.bidangSeni || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Bidang Olahraga</div>
+          <div class="detail-value">${student.bidangOlahraga || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Bidang Lain-Lain</div>
+          <div class="detail-value">${student.bidangLain || "-"}</div>
+        </div>
+      </div>
+      
+      <!-- Data Prestasi -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Prestasi</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Pernah Meraih Prestasi?</div>
+          <div class="detail-value">${student.pernahPrestasi || "-"}</div>
+        </div>
+        
+        ${
+          student.pernahPrestasi === "Ya"
+            ? `
+        <div class="detail-row">
+          <div class="detail-label">Jenis Prestasi</div>
+          <div class="detail-value">${student.jenisPrestasi1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tingkat Prestasi</div>
+          <div class="detail-value">${student.tingkatPrestasi1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nama Prestasi</div>
+          <div class="detail-value">${student.namaPrestasi1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tahun Prestasi</div>
+          <div class="detail-value">${student.tahunPrestasi1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Penyelenggara</div>
+          <div class="detail-value">${student.penyelenggara1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Peringkat</div>
+          <div class="detail-value">${student.peringkat1 || "-"}</div>
+        </div>
+        `
+            : ""
+        }
+      </div>
+      
+      <!-- Data Beasiswa -->
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Beasiswa</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Memiliki Beasiswa?</div>
+          <div class="detail-value">${student.pernahBeasiswa || "-"}</div>
+        </div>
+        
+        ${
+          student.pernahBeasiswa === "Ya"
+            ? `
+        <div class="detail-row">
+          <div class="detail-label">Jenis Beasiswa</div>
+          <div class="detail-value">${student.jenisBeasiswa1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Keterangan</div>
+          <div class="detail-value">${student.keteranganBeasiswa1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tahun Mulai</div>
+          <div class="detail-value">${student.tahunMulaiBeasiswa1 || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tahun Selesai</div>
+          <div class="detail-value">${
+            student.tahunSelesaiBeasiswa1 || "-"
+          }</div>
+        </div>
+        `
+            : ""
+        }
+      </div>
+      
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Keterangan</h3>
+        <div class="detail-value">${student.notes || "-"}</div>
+      </div>
+    `;
+
+    // Store student ID for edit button
+    document
+      .getElementById("edit-from-view-btn")
+      .setAttribute("data-id", studentId);
+
+    // Show modal
+    document.getElementById("view-modal").style.display = "flex";
+  }
+
+  // Open modal to edit student
+  function openEditModal(studentId) {
+    // Set form mode to edit
+    document.getElementById("form-mode").value = "edit";
+    document.getElementById("modal-title").textContent = "Edit Data Siswa";
+
+    // Show loading state
+    showNotification("Memuat data siswa...", "info");
+
+    // Get complete student data from server
+    google.script.run
+      .withSuccessHandler(function (student) {
+        if (!student) {
+          showNotification("Data siswa tidak ditemukan", "error");
+          return;
+        }
+
+        populateEditForm(student);
+        $("#studentFormModal").modal("show");
+      })
+      .withFailureHandler(function (error) {
+        showNotification("Gagal memuat data siswa: " + error, "error");
+      })
+      .getStudentDetail(studentId);
+  }
+
+  // Populate edit form with student data
+  function populateEditForm(student) {
+    // Set form mode to edit
+    document.getElementById("form-mode").value = "edit";
+    document.getElementById("modal-title").textContent = "Edit Data Siswa";
+
+    // Helper function untuk mengisi nilai form
+    function setFormValue(elementId, value) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.value = value || "";
+      }
+    }
+
+    // Data Identitas Siswa
+    setFormValue("student-nis", student.NIS || student.nis);
+    document.getElementById("student-nis").readOnly = true; // NIS tidak bisa diedit
+    setFormValue("student-nisn", student.NISN || student.nisn);
+    setFormValue("student-name", student["Nama Siswa"] || student.nama);
+    setFormValue("student-gender", student["Jenis Kelamin"] || student.gender);
+    setFormValue("student-nik", student.NIK || student.nik);
+    setFormValue(
+      "student-birthplace",
+      student["Tempat Lahir"] || student.birthplace
+    );
+    // Format tanggal lahir untuk input date (YYYY-MM-DD)
+    const birthdate = student["Tanggal Lahir"] || student.birthdate;
+    if (birthdate) {
+      const parts = birthdate.split("/");
+      if (parts.length === 3) {
+        const formattedDate = `${parts[2]}-${parts[1].padStart(
+          2,
+          "0"
+        )}-${parts[0].padStart(2, "0")}`;
+        setFormValue("student-birthdate", formattedDate);
+      }
+    }
+    setFormValue("student-agama", student.Agama || student.agama);
+    setFormValue(
+      "student-kewarganegaraan",
+      student.Kewarganegaraan || student.kewarganegaraan
+    );
+    setFormValue("student-anak-ke", student["Anak Ke"] || student.anakKe);
+    setFormValue(
+      "student-jml-saudara-kandung",
+      student["Jumlah Saudara Kandung"] || student.jumlahSaudaraKandung
+    );
+    setFormValue(
+      "student-jml-saudara-tiri",
+      student["Jumlah Saudara Tiri"] || student.jumlahSaudaraTiri
+    );
+    setFormValue(
+      "student-jml-saudara-angkat",
+      student["Jumlah Saudara Angkat"] || student.jumlahSaudaraAngkat
+    );
+    setFormValue(
+      "student-status-ortu",
+      student["Status Orang Tua"] || student.statusOrangTua
+    );
+    setFormValue(
+      "student-bahasa-sehari",
+      student["Bahasa Sehari-hari"] || student.bahasaSehari
+    );
+    setFormValue(
+      "student-tinggal-bersama",
+      student["Tinggal Bersama"] || student.tinggalBersama
+    );
+    setFormValue(
+      "student-transportasi",
+      student["Transportasi ke Sekolah"] || student.transportasi
+    );
+    setFormValue(
+      "student-jarak",
+      student["Jarak ke Sekolah"] || student.jarakKeSekolah
+    );
+
+    // Data Alamat
+    setFormValue(
+      "student-address",
+      student["Alamat Lengkap"] || student.alamat
+    );
+    setFormValue("student-rt", student["RT/RW"] || student.rt);
+    setFormValue("student-dusun", student["Nama Dusun"] || student.dusun);
+    setFormValue(
+      "student-desa",
+      student["Nama Desa/Kelurahan"] || student.desa
+    );
+    setFormValue("student-kecamatan", student.Kecamatan || student.kecamatan);
+    setFormValue("student-kode-pos", student["Kode Pos"] || student.kodePos);
+    setFormValue(
+      "student-telepon-rumah",
+      student["No. Telp Rumah"] || student.teleponRumah
+    );
+    setFormValue(
+      "student-kabupaten",
+      student["Kabupaten/Kota"] || student.kabupaten
+    );
+    setFormValue("student-provinsi", student.Provinsi || student.provinsi);
+
+    // Data Kesehatan
+    setFormValue(
+      "student-golongan-darah",
+      student["Golongan Darah"] || student.golonganDarah
+    );
+    setFormValue(
+      "student-penyakit-pernah",
+      student["Penyakit yang Pernah Diderita"] || student.penyakitPernah
+    );
+    setFormValue(
+      "student-penyakit-lain",
+      student["Penyakit Lain"] || student.penyakitLain
+    );
+    setFormValue(
+      "student-kelainan-jasmani",
+      student["Kelainan Jasmani"] || student.kelainanJasmani
+    );
+    setFormValue(
+      "student-tinggi-badan",
+      student["Tinggi Badan"] || student.tinggiBadan
+    );
+    setFormValue(
+      "student-berat-badan",
+      student["Berat Badan"] || student.beratBadan
+    );
+
+    // Data Pendidikan
+    setFormValue(
+      "student-asal-sekolah",
+      student["Asal Sekolah"] || student.asalSekolah
+    );
+    setFormValue(
+      "student-tanggal-lulus-sd",
+      student["Tanggal Lulus SD"] || student.tanggalLulusSD
+    );
+    setFormValue(
+      "student-no-ijazah-sd",
+      student["No. Ijazah SD"] || student.noIjazahSD
+    );
+    setFormValue(
+      "student-lama-belajar-sd",
+      student["Lama Belajar SD"] || student.lamaBelajarSD
+    );
+    setFormValue(
+      "student-siswa-pindahan",
+      student["Siswa Pindahan"] || student.siswaPindahan
+    );
+    setFormValue(
+      "student-kelas-awal",
+      student["Kelas Awal"] || student.kelasAwal
+    );
+    setFormValue(
+      "student-entry-date",
+      student["Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"] ||
+        student.entryDate
+    );
+    setFormValue(
+      "student-asal-sekolah-smp",
+      student["Asal Sekolah SMP"] || student.asalSekolahSMP
+    );
+    setFormValue(
+      "student-alasan-pindah",
+      student["Alasan Pindah"] || student.alasanPindah
+    );
+
+    // Data Orang Tua - Ayah
+    setFormValue("student-ayah", student["Nama Lengkap Ayah"] || student.ayah);
+    setFormValue("student-nik-ayah", student["NIK Ayah"] || student.nikAyah);
+    setFormValue(
+      "student-ttl-ayah",
+      student["Tempat, Tanggal Lahir Ayah"] || student.ttlAyah
+    );
+    setFormValue(
+      "student-agama-ayah",
+      student["Agama Ayah"] || student.agamaAyah
+    );
+    setFormValue(
+      "student-kewarganegaraan-ayah",
+      student["Kewarganegaraan Ayah"] || student.kewarganegaraanAyah
+    );
+    setFormValue(
+      "student-pendidikan-ayah",
+      student["Pendidikan Terakhir Ayah"] || student.pendidikanAyah
+    );
+    setFormValue(
+      "student-pekerjaan-ayah",
+      student["Pekerjaan Ayah"] || student.pekerjaanAyah
+    );
+    setFormValue(
+      "student-penghasilan-ayah",
+      student["Penghasilan per Bulan Ayah"] || student.penghasilanAyah
+    );
+    setFormValue(
+      "student-alamat-ayah",
+      student["Alamat Lengkap Ayah"] || student.alamatAyah
+    );
+    setFormValue(
+      "student-phone-ayah",
+      student["No. HP/Telp Ayah"] || student.phoneAyah
+    );
+    setFormValue(
+      "student-status-ayah",
+      student["Status Ayah"] || student.statusAyah
+    );
+
+    // Data Orang Tua - Ibu
+    setFormValue("student-ibu", student["Nama Lengkap Ibu"] || student.ibu);
+    setFormValue("student-nik-ibu", student["NIK Ibu"] || student.nikIbu);
+    setFormValue(
+      "student-ttl-ibu",
+      student["Tempat, Tanggal Lahir Ibu"] || student.ttlIbu
+    );
+    setFormValue("student-agama-ibu", student["Agama Ibu"] || student.agamaIbu);
+    setFormValue(
+      "student-kewarganegaraan-ibu",
+      student["Kewarganegaraan Ibu"] || student.kewarganegaraanIbu
+    );
+    setFormValue(
+      "student-pendidikan-ibu",
+      student["Pendidikan Terakhir Ibu"] || student.pendidikanIbu
+    );
+    setFormValue(
+      "student-pekerjaan-ibu",
+      student["Pekerjaan Ibu"] || student.pekerjaanIbu
+    );
+    setFormValue(
+      "student-penghasilan-ibu",
+      student["Penghasilan per Bulan Ibu"] || student.penghasilanIbu
+    );
+    setFormValue(
+      "student-alamat-ibu",
+      student["Alamat Lengkap Ibu"] || student.alamatIbu
+    );
+    setFormValue(
+      "student-phone-ibu",
+      student["No. HP/Telp Ibu"] || student.phoneIbu
+    );
+    setFormValue(
+      "student-status-ibu",
+      student["Status Ibu"] || student.statusIbu
+    );
+
+    // Data Wali
+    setFormValue("student-wali", student["Nama Lengkap Wali"] || student.wali);
+    setFormValue("student-nik-wali", student["NIK Wali"] || student.nikWali);
+    setFormValue(
+      "student-ttl-wali",
+      student["Tempat, Tanggal Lahir Wali"] || student.ttlWali
+    );
+    setFormValue(
+      "student-agama-wali",
+      student["Agama Wali"] || student.agamaWali
+    );
+    setFormValue(
+      "student-kewarganegaraan-wali",
+      student["Kewarganegaraan Wali"] || student.kewarganegaraanWali
+    );
+    setFormValue(
+      "student-pendidikan-wali",
+      student["Pendidikan Terakhir Wali"] || student.pendidikanWali
+    );
+    setFormValue(
+      "student-pekerjaan-wali",
+      student["Pekerjaan Wali"] || student.pekerjaanWali
+    );
+    setFormValue(
+      "student-penghasilan-wali",
+      student["Penghasilan per Bulan Wali"] || student.penghasilanWali
+    );
+    setFormValue(
+      "student-alamat-wali",
+      student["Alamat Lengkap Wali"] || student.alamatWali
+    );
+    setFormValue(
+      "student-phone-wali",
+      student["No. HP/Telp Wali"] || student.phoneWali
+    );
+    setFormValue(
+      "student-status-wali",
+      student["Status Wali"] || student.statusWali
+    );
+
+    // Data Hobi
+    setFormValue(
+      "student-bidang-seni",
+      student["Bidang Seni"] || student.bidangSeni
+    );
+    setFormValue(
+      "student-bidang-olahraga",
+      student["Bidang Olahraga"] || student.bidangOlahraga
+    );
+    setFormValue(
+      "student-bidang-lain",
+      student["Bidang Lain-Lain"] || student.bidangLain
+    );
+
+    // Data Prestasi
+    setFormValue(
+      "student-pernah-prestasi",
+      student["Pernah Prestasi"] || student.pernahPrestasi
+    );
+    setFormValue(
+      "student-jenis-prestasi1",
+      student["Jenis Prestasi 1"] || student.jenisPrestasi1
+    );
+    setFormValue(
+      "student-tingkat-prestasi1",
+      student["Tingkat Prestasi 1"] || student.tingkatPrestasi1
+    );
+    setFormValue(
+      "student-nama-prestasi1",
+      student["Nama Prestasi 1"] || student.namaPrestasi1
+    );
+    setFormValue(
+      "student-tahun-prestasi1",
+      student["Tahun Prestasi 1"] || student.tahunPrestasi1
+    );
+    setFormValue(
+      "student-penyelenggara1",
+      student["Penyelenggara 1"] || student.penyelenggara1
+    );
+    setFormValue(
+      "student-peringkat1",
+      student["Peringkat 1"] || student.peringkat1
+    );
+
+    // Data Beasiswa
+    setFormValue(
+      "student-pernah-beasiswa",
+      student["Pernah Beasiswa"] || student.pernahBeasiswa
+    );
+    setFormValue(
+      "student-jenis-beasiswa1",
+      student["Jenis Beasiswa 1"] || student.jenisBeasiswa1
+    );
+    setFormValue(
+      "student-keterangan-beasiswa1",
+      student["Keterangan Beasiswa 1"] || student.keteranganBeasiswa1
+    );
+    setFormValue(
+      "student-tahun-mulai-beasiswa1",
+      student["Tahun Mulai Beasiswa 1"] || student.tahunMulaiBeasiswa1
+    );
+    setFormValue(
+      "student-tahun-selesai-beasiswa1",
+      student["Tahun Selesai Beasiswa 1"] || student.tahunSelesaiBeasiswa1
+    );
+
+    // Status Akademik
+    setFormValue("student-status", student.status || "Aktif");
+    setFormValue("student-notes", student.notes);
+
+    // Show modal
+    document.getElementById("student-modal").style.display = "flex";
+  }
+
+  // Open modal to add new student
+  function openAddModal() {
+    // Set form mode to add
+    document.getElementById("form-mode").value = "add";
+    document.getElementById("modal-title").textContent = "Tambah Siswa Baru";
+
+    // Reset form
+    document.getElementById("student-form").reset();
+    document.getElementById("student-nis").readOnly = false;
+
+    // Show modal
+    document.getElementById("student-modal").style.display = "flex";
+  }
+
+  // Open delete confirmation modal
+  function openDeleteModal(studentId) {
+    const student = allStudents.find((s) => s.nis == studentId);
+
+    if (!student) {
+      showNotification("Data siswa tidak ditemukan", "error");
+      return;
+    }
+
+    // Store student to delete
+    studentToDelete = student;
+
+    // Show student info
+    document.getElementById("student-to-delete-info").innerHTML = `
+      <div><strong>NIS:</strong> ${student.nis}</div>
+      <div><strong>Nama:</strong> ${student.nama}</div>
+    `;
+
+    // Show modal
+    document.getElementById("delete-modal").style.display = "flex";
+  }
+
+  // Save student data (add/edit)
+  function saveStudentData() {
+    // Get form values
+    const formMode = document.getElementById("form-mode").value;
+    const studentData = {
+      // Data Identitas Siswa
+      nis: document.getElementById("student-nis").value,
+      nisn: document.getElementById("student-nisn").value,
+      nama: document.getElementById("student-name").value,
+      gender: document.getElementById("student-gender").value,
+      nik: document.getElementById("student-nik").value,
+      birthplace: document.getElementById("student-birthplace").value,
+      birthdate: document.getElementById("student-birthdate").value,
+      agama: document.getElementById("student-agama").value,
+      kewarganegaraan: document.getElementById("student-kewarganegaraan").value,
+      anakKe: document.getElementById("student-anak-ke").value,
+      jumlahSaudaraKandung: document.getElementById(
+        "student-jml-saudara-kandung"
+      ).value,
+      jumlahSaudaraTiri: document.getElementById("student-jml-saudara-tiri")
+        .value,
+      jumlahSaudaraAngkat: document.getElementById("student-jml-saudara-angkat")
+        .value,
+      statusOrangTua: document.getElementById("student-status-ortu").value,
+      bahasaSehari: document.getElementById("student-bahasa-sehari").value,
+      tinggalBersama: document.getElementById("student-tinggal-bersama").value,
+      transportasi: document.getElementById("student-transportasi").value,
+      jarakKeSekolah: document.getElementById("student-jarak").value,
+
+      // Data Alamat
+      alamat: document.getElementById("student-address").value,
+      rt: document.getElementById("student-rt").value,
+      dusun: document.getElementById("student-dusun").value,
+      desa: document.getElementById("student-desa").value,
+      kecamatan: document.getElementById("student-kecamatan").value,
+      kabupaten: document.getElementById("student-kabupaten").value,
+      provinsi: document.getElementById("student-provinsi").value,
+      kodePos: document.getElementById("student-kode-pos").value,
+      teleponRumah: document.getElementById("student-telepon-rumah").value,
+
+      // Data Kesehatan
+      golonganDarah: document.getElementById("student-golongan-darah").value,
+      penyakitPernah: document.getElementById("student-penyakit-pernah").value,
+      penyakitLain: document.getElementById("student-penyakit-lain").value,
+      kelainanJasmani: document.getElementById("student-kelainan-jasmani")
+        .value,
+      tinggiBadan: document.getElementById("student-tinggi-badan").value,
+      beratBadan: document.getElementById("student-berat-badan").value,
+
+      // Data Pendidikan
+      asalSekolah: document.getElementById("student-asal-sekolah").value,
+      tanggalLulusSD: document.getElementById("student-tanggal-lulus-sd").value,
+      noIjazahSD: document.getElementById("student-no-ijazah-sd").value,
+      lamaBelajarSD: document.getElementById("student-lama-belajar-sd").value,
+      siswaPindahan: document.getElementById("student-siswa-pindahan").value,
+      kelasAwal: document.getElementById("student-kelas-awal").value,
+      entryDate: document.getElementById("student-entry-date").value,
+      asalSekolahSMP: document.getElementById("student-asal-sekolah-smp").value,
+      alasanPindah: document.getElementById("student-alasan-pindah").value,
+
+      // Data Orang Tua - Ayah
+      ayah: document.getElementById("student-ayah").value,
+      nikAyah: document.getElementById("student-nik-ayah").value,
+      ttlAyah: document.getElementById("student-ttl-ayah").value,
+      agamaAyah: document.getElementById("student-agama-ayah").value,
+      kewarganegaraanAyah: document.getElementById(
+        "student-kewarganegaraan-ayah"
+      ).value,
+      pendidikanAyah: document.getElementById("student-pendidikan-ayah").value,
+      pekerjaanAyah: document.getElementById("student-pekerjaan-ayah").value,
+      penghasilanAyah: document.getElementById("student-penghasilan-ayah")
+        .value,
+      alamatAyah: document.getElementById("student-alamat-ayah").value,
+      phoneAyah: document.getElementById("student-phone-ayah").value,
+      statusAyah: document.getElementById("student-status-ayah").value,
+
+      // Data Orang Tua - Ibu
+      ibu: document.getElementById("student-ibu").value,
+      nikIbu: document.getElementById("student-nik-ibu").value,
+      ttlIbu: document.getElementById("student-ttl-ibu").value,
+      agamaIbu: document.getElementById("student-agama-ibu").value,
+      kewarganegaraanIbu: document.getElementById("student-kewarganegaraan-ibu")
+        .value,
+      pendidikanIbu: document.getElementById("student-pendidikan-ibu").value,
+      pekerjaanIbu: document.getElementById("student-pekerjaan-ibu").value,
+      penghasilanIbu: document.getElementById("student-penghasilan-ibu").value,
+      alamatIbu: document.getElementById("student-alamat-ibu").value,
+      phoneIbu: document.getElementById("student-phone-ibu").value,
+      statusIbu: document.getElementById("student-status-ibu").value,
+
+      // Data Wali
+      wali: document.getElementById("student-wali").value,
+      nikWali: document.getElementById("student-nik-wali").value,
+      ttlWali: document.getElementById("student-ttl-wali").value,
+      agamaWali: document.getElementById("student-agama-wali").value,
+      kewarganegaraanWali: document.getElementById(
+        "student-kewarganegaraan-wali"
+      ).value,
+      pendidikanWali: document.getElementById("student-pendidikan-wali").value,
+      pekerjaanWali: document.getElementById("student-pekerjaan-wali").value,
+      penghasilanWali: document.getElementById("student-penghasilan-wali")
+        .value,
+      alamatWali: document.getElementById("student-alamat-wali").value,
+      phoneWali: document.getElementById("student-phone-wali").value,
+      statusWali: document.getElementById("student-status-wali").value,
+
+      // Data Hobi
+      bidangSeni: document.getElementById("student-bidang-seni").value,
+      bidangOlahraga: document.getElementById("student-bidang-olahraga").value,
+      bidangLain: document.getElementById("student-bidang-lain").value,
+
+      // Data Prestasi
+      pernahPrestasi: document.getElementById("student-pernah-prestasi").value,
+      jenisPrestasi1: document.getElementById("student-jenis-prestasi1").value,
+      tingkatPrestasi1: document.getElementById("student-tingkat-prestasi1")
+        .value,
+      namaPrestasi1: document.getElementById("student-nama-prestasi1").value,
+      tahunPrestasi1: document.getElementById("student-tahun-prestasi1").value,
+      penyelenggara1: document.getElementById("student-penyelenggara1").value,
+      peringkat1: document.getElementById("student-peringkat1").value,
+
+      // Data Beasiswa
+      pernahBeasiswa: document.getElementById("student-pernah-beasiswa").value,
+      jenisBeasiswa1: document.getElementById("student-jenis-beasiswa1").value,
+      keteranganBeasiswa1: document.getElementById(
+        "student-keterangan-beasiswa1"
+      ).value,
+      tahunMulaiBeasiswa1: document.getElementById(
+        "student-tahun-mulai-beasiswa1"
+      ).value,
+      tahunSelesaiBeasiswa1: document.getElementById(
+        "student-tahun-selesai-beasiswa1"
+      ).value,
+
+      // Status Akademik
+      status: document.getElementById("student-status").value,
+      notes: document.getElementById("student-notes").value,
+    };
+
+    // Validate required fields
+    if (!studentData.nis || !studentData.nama) {
+      showNotification("NIS dan Nama Lengkap wajib diisi", "error");
+      return;
+    }
+    if (!studentData.birthdate) {
+      showNotification("Tanggal Lahir wajib diisi", "error");
+      return;
+    }
+
+    // Disable form while submitting
+    toggleFormEnabled(false);
+
+    // Add or Update based on mode
+    if (formMode === "edit") {
+      // Call server function to update student
+      google.script.run
+        .withSuccessHandler(function (result) {
+          if (result.success) {
+            showNotification("Data siswa berhasil diperbarui", "success");
+            closeStudentModal();
+            loadStudents(); // Reload data
+          } else {
+            showNotification(
+              result.message || "Gagal memperbarui data siswa",
+              "error"
+            );
+            toggleFormEnabled(true);
+          }
+        })
+        .withFailureHandler(function (error) {
+          console.error("Error updating student:", error);
+          showNotification("Terjadi kesalahan: " + error, "error");
+          toggleFormEnabled(true);
+        })
+        .updateStudent(studentData);
+    } else if (formMode === "add") {
+      // Call server function to add new student
+      google.script.run
+        .withSuccessHandler(function (result) {
+          if (result.success) {
+            showNotification("Data siswa baru berhasil ditambahkan", "success");
+            closeStudentModal();
+            loadStudents(); // Reload data
+          } else {
+            showNotification(
+              result.message || "Gagal menambahkan data siswa baru",
+              "error"
+            );
+            toggleFormEnabled(true);
+          }
+        })
+        .withFailureHandler(function (error) {
+          console.error("Error adding student:", error);
+          showNotification("Terjadi kesalahan: " + error, "error");
+          toggleFormEnabled(true);
+        })
+        .addStudent(studentData);
+    }
+  }
+
+  // Delete student data
+  function deleteStudent() {
+    if (!studentToDelete || !studentToDelete.nis) {
+      showNotification("Tidak ada data siswa yang dipilih", "error");
+      return;
+    }
+
+    // Disable delete button
+    document.getElementById("confirm-delete-btn").disabled = true;
+    document.getElementById("confirm-delete-btn").textContent = "Menghapus...";
+
+    // Call server function to delete student
+    google.script.run
+      .withSuccessHandler(function (result) {
+        if (result.success) {
+          showNotification("Data siswa berhasil dihapus", "success");
+          closeDeleteModal();
+          loadStudents(); // Reload data
+        } else {
+          showNotification(
+            result.message || "Gagal menghapus data siswa",
+            "error"
+          );
+          document.getElementById("confirm-delete-btn").disabled = false;
+          document.getElementById("confirm-delete-btn").textContent =
+            "Hapus Data";
+        }
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error deleting student:", error);
+        showNotification("Terjadi kesalahan: " + error, "error");
+        document.getElementById("confirm-delete-btn").disabled = false;
+        document.getElementById("confirm-delete-btn").textContent =
+          "Hapus Data";
+      })
+      .deleteStudent(studentToDelete.nis);
+  }
+
+  // Fungsi untuk mengakses file PDF siswa di Google Drive
+  function accessStudentPDF(studentId) {
+    // Tampilkan loading state
+    showNotification("Mengakses file PDF siswa...", "info");
+
+    // Panggil fungsi di server untuk mendapatkan URL PDF
+    google.script.run
+      .withSuccessHandler(function (result) {
+        if (result.success) {
+          // Buka link PDF di tab baru
+          window.open(result.url, "_blank");
+        } else {
+          showNotification(
+            result.message || "Gagal mengakses file PDF",
+            "error"
+          );
+        }
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error accessing PDF:", error);
+        showNotification("Terjadi kesalahan: " + error, "error");
+      })
+      .getStudentPDFUrl(studentId);
+  }
+
+  // Toggle form fields enabled/disabled
+  function toggleFormEnabled(enabled) {
+    const form = document.getElementById("student-form");
+    const formElements = form.elements;
+
+    for (let i = 0; i < formElements.length; i++) {
+      formElements[i].disabled = !enabled;
+    }
+
+    document.getElementById("save-btn").disabled = !enabled;
+
+    if (!enabled) {
+      document.getElementById("save-btn").textContent = "Menyimpan...";
+    } else {
+      document.getElementById("save-btn").textContent = "Simpan Data";
+    }
+  }
+
+  // Reset search and filters
+  function resetFilters() {
+    document.getElementById("search-input").value = "";
+    document.getElementById("filter-status").value = "";
+
+    // Apply filters
+    applyFiltersAndSort();
+  }
+
+  // Sort table by column
+  function sortTable(field) {
+    if (field === currentSortField) {
+      // Toggle direction if same field
+      currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+    } else {
+      // New field, default to ascending
+      currentSortField = field;
+      currentSortDirection = "asc";
+    }
+
+    // Apply sort
+    applyFiltersAndSort();
+  }
+
+  // Show notification
+  function showNotification(message, type) {
+    // Create notification element if it doesn't exist
+    let notification = document.querySelector(".notification");
+
+    if (!notification) {
+      notification = document.createElement("div");
+      notification.className = "notification";
+      document.body.appendChild(notification);
+    }
+
+    // Set content and type
+    notification.textContent = message;
+    notification.className = `notification notification-${type}`;
+
+    // Show notification
+    setTimeout(() => {
+      notification.classList.add("show");
+    }, 10);
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove("show");
+    }, 4000);
+  }
+
+  // Close modals
+  function closeStudentModal() {
+    document.getElementById("student-modal").style.display = "none";
+    toggleFormEnabled(true);
+  }
+
+  function closeGraduationBatchModal() {
+    document.getElementById("graduation-batch-modal").style.display = "none";
+  }
+
+  function closeViewModal() {
+    document.getElementById("view-modal").style.display = "none";
+  }
+
+  function closeDeleteModal() {
+    document.getElementById("delete-modal").style.display = "none";
+    studentToDelete = null;
+    document.getElementById("confirm-delete-btn").disabled = false;
+    document.getElementById("confirm-delete-btn").textContent = "Hapus Data";
+  }
+
+  // Setup logout button
+  function setupLogout() {
+    document
+      .getElementById("logout-link")
+      .addEventListener("click", function (e) {
+        e.preventDefault();
+
+        if (confirm("Apakah Anda yakin ingin logout?")) {
+          google.script.run
+            .withSuccessHandler(function (url) {
+              window.location.href = url;
+            })
+            .logout();
+        }
+      });
+  }
+
+  // Document ready
+  document.addEventListener("DOMContentLoaded", function () {
+    // Update tanggal
+    updateDateTime();
+
+    // Load data siswa
+    loadStudents();
+
+    // Setup event listeners for search and filter
+    document
+      .getElementById("search-btn")
+      .addEventListener("click", function () {
+        applyFiltersAndSort();
+      });
+
+    document
+      .getElementById("search-input")
+      .addEventListener("keyup", function (event) {
+        if (event.key === "Enter") {
+          applyFiltersAndSort();
+        }
+      });
+
+    document
+      .getElementById("filter-status")
+      .addEventListener("change", function () {
+        applyFiltersAndSort();
+      });
+
+    document.getElementById("reset-btn").addEventListener("click", function () {
+      resetFilters();
+    });
+
+    // Setup buttons for graduate
+    document
+      .getElementById("graduate-batch-btn")
+      .addEventListener("click", function () {
+        document.getElementById("graduation-batch-modal").style.display =
+          "flex";
+      });
+
+    // Setup student modal events
+    document
+      .getElementById("close-modal")
+      .addEventListener("click", function () {
+        closeStudentModal();
+      });
+
+    document
+      .getElementById("cancel-btn")
+      .addEventListener("click", function () {
+        closeStudentModal();
+      });
+
+    document
+      .getElementById("close-graduate-modal")
+      .addEventListener("click", function () {
+        closeGraduationBatchModal();
+      });
+
+    document
+      .getElementById("cancel-graduate-btn")
+      .addEventListener("click", function () {
+        closeGraduationBatchModal();
+      });
+
+    document.getElementById("save-btn").addEventListener("click", function () {
+      saveStudentData();
+    });
+
+    // Setup view modal events
+    document
+      .getElementById("close-view-modal")
+      .addEventListener("click", function () {
+        closeViewModal();
+      });
+
+    document
+      .getElementById("close-detail-btn")
+      .addEventListener("click", function () {
+        closeViewModal();
+      });
+
+    document
+      .getElementById("edit-from-view-btn")
+      .addEventListener("click", function () {
+        const studentId = this.getAttribute("data-id");
+        closeViewModal();
+        openEditModal(studentId);
+      });
+
+    // Setup delete modal events
+    document
+      .getElementById("close-delete-modal")
+      .addEventListener("click", function () {
+        closeDeleteModal();
+      });
+
+    document
+      .getElementById("cancel-delete-btn")
+      .addEventListener("click", function () {
+        closeDeleteModal();
+      });
+
+    document
+      .getElementById("confirm-delete-btn")
+      .addEventListener("click", function () {
+        deleteStudent();
+      });
+
+    // Setup table header sorting
+    document
+      .querySelectorAll(".student-table th")
+      .forEach(function (th, index) {
+        if (index > 0 && index < 7) {
+          // Skip index column and actions column
+          th.addEventListener("click", function () {
+            const fieldMap = {
+              1: "nis",
+              2: "nama",
+              3: "gender",
+              4: "tanggalDaftar",
+              5: "status",
+            };
+
+            sortTable(fieldMap[index]);
+          });
+        }
+      });
+
+    // Setup logout
+    setupLogout();
+
+    // Tampilkan opsi filter yang sesuai berdasarkan pilihan
+    document
+      .getElementById("filter-type")
+      .addEventListener("change", function () {
+        // Sembunyikan semua opsi filter
+        document.querySelectorAll(".filter-option").forEach((el) => {
+          el.style.display = "none";
+        });
+
+        // Tampilkan opsi filter yang dipilih
+        const selectedFilter = this.value;
+        document.getElementById(selectedFilter + "-filter").style.display =
+          "block";
+
+        // Reset preview
+        document.getElementById("preview-container").style.display = "none";
+        document.getElementById("process-btn").disabled = true;
+      });
+
+    // Isi opsi tahun (5 tahun terakhir)
+    const yearSelect = document.getElementById("entry-year");
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear; year >= currentYear - 10; year--) {
+      const option = document.createElement("option");
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    }
+
+    // Preview button handler
+    document
+      .getElementById("preview-btn")
+      .addEventListener("click", function () {
+        const filterType = document.getElementById("filter-type").value;
+        let filterParams = {};
+
+        if (filterType === "specific-date") {
+          filterParams.date = document.getElementById(
+            "entry-specific-date"
+          ).value;
+          if (!filterParams.date) {
+            alert("Harap pilih tanggal tertentu");
+            return;
+          }
+        } else if (filterType === "date-range") {
+          filterParams.startDate =
+            document.getElementById("entry-start-date").value;
+          filterParams.endDate =
+            document.getElementById("entry-end-date").value;
+          if (!filterParams.startDate || !filterParams.endDate) {
+            alert("Harap pilih tanggal mulai dan akhir");
+            return;
+          }
+        } else if (filterType === "year") {
+          filterParams.year = document.getElementById("entry-year").value;
+          if (!filterParams.year) {
+            alert("Harap pilih tahun");
+            return;
+          }
+        }
+
+        // Panggil fungsi server untuk mendapatkan siswa yang sesuai
+        google.script.run
+          .withSuccessHandler(function (students) {
+            const previewContainer =
+              document.getElementById("preview-container");
+            const studentsPreview = document.getElementById("students-preview");
+            const previewSummary = document.getElementById("preview-summary");
+
+            previewContainer.style.display = "block";
+
+            if (students.length === 0) {
+              studentsPreview.innerHTML =
+                '<p class="text-center">Tidak ada siswa yang sesuai dengan kriteria</p>';
+              previewSummary.textContent = "Total: 0 siswa";
+              document.getElementById("process-btn").disabled = true;
+            } else {
+              let html = "";
+              students.forEach((student) => {
+                html += `<div class="preview-item">
+                  <strong>${student.nis}</strong> - ${student.name} 
+                  (${student.gender}})
+                </div>`;
+              });
+
+              studentsPreview.innerHTML = html;
+              previewSummary.textContent = `Total: ${students.length} siswa akan diperbarui`;
+              document.getElementById("process-btn").disabled = false;
+            }
+          })
+          .withFailureHandler(function (error) {
+            alert("Error: " + error);
+          })
+          .previewStudentsByEntryDate(filterParams);
+      });
+
+    // Process button handler
+    document
+      .getElementById("process-btn")
+      .addEventListener("click", function () {
+        if (
+          !confirm("Apakah Anda yakin akan mengubah status siswa secara batch?")
+        ) {
+          return;
+        }
+
+        const filterType = document.getElementById("filter-type").value;
+        let filterParams = {};
+
+        if (filterType === "specific-date") {
+          filterParams.date = document.getElementById(
+            "entry-specific-date"
+          ).value;
+        } else if (filterType === "date-range") {
+          filterParams.startDate =
+            document.getElementById("entry-start-date").value;
+          filterParams.endDate =
+            document.getElementById("entry-end-date").value;
+        } else if (filterType === "year") {
+          filterParams.year = document.getElementById("entry-year").value;
+        }
+
+        const updateData = {
+          newStatus: document.getElementById("new-status").value,
+          graduationDate: document.getElementById("graduation-date").value,
+          notes: document.getElementById("batch-notes").value,
+        };
+
+        // Gabungkan parameter filter dan data update
+        const batchUpdateParams = {
+          filter: filterParams,
+          update: updateData,
+        };
+
+        // Panggil fungsi server untuk memproses perubahan batch
+        google.script.run
+          .withSuccessHandler(function (result) {
+            if (result.success) {
+              alert(
+                `Berhasil! ${result.count} siswa telah diperbarui statusnya menjadi "${updateData.newStatus}"`
+              );
+              closeGraduationBatchModal(); // Menggunakan fungsi yang benar
+              loadStudents(); // Fungsi yang sudah benar
+            } else {
+              alert("Error: " + result.message);
+            }
+          })
+          .withFailureHandler(function (error) {
+            alert("Error: " + error);
+          })
+          .updateStudentsStatusBatch(batchUpdateParams);
+      });
+
+    // Cancel button handler
+    document
+      .getElementById("cancel-btn")
+      .addEventListener("click", function () {
+        document.getElementById("close-modal").click();
+      });
+
+    // Close modal handler
+    document
+      .getElementById("close-modal")
+      .addEventListener("click", function () {
+        document.getElementById("student-modal").style.display = "none";
+      });
+
+    // Close modals when clicking outside
+    window.onclick = function (event) {
+      const studentModal = document.getElementById("student-modal");
+      const viewModal = document.getElementById("view-modal");
+      const deleteModal = document.getElementById("delete-modal");
+      const graduationBatchModal = document.getElementById(
+        "graduation-batch-modal"
+      );
+
+      if (event.target === studentModal) {
+        closeStudentModal();
+      } else if (event.target === viewModal) {
+        closeViewModal();
+      } else if (event.target === deleteModal) {
+        closeDeleteModal();
+      } else if (event.target === graduationBatchModal) {
+        closeGraduationBatchModal();
+      }
+    };
+  });
+</script>

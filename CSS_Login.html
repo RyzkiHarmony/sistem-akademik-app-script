@@ -1,0 +1,346 @@
+<!-- CSS.html: tambahan CSS khusus jika diperlukan -->
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Quicksand", "Segoe UI", sans-serif;
+  }
+
+  body {
+    background-color: #f8f9fa;
+    background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23deeaee' fill-opacity='0.4'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #1a5276;
+    padding: 15px 20px;
+    color: white;
+    font-size: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+  }
+
+  .navbar span {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+  }
+
+  .navbar span:before {
+    content: "📚";
+    margin-right: 10px;
+    font-size: 24px;
+  }
+
+  .back-btn {
+    background: rgba(244, 208, 63, 0.9);
+    color: #1a5276;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    width: fit-content;
+  }
+
+  .back-btn:before {
+    content: "↩️";
+    font-size: 16px;
+    margin-right: 5px;
+  }
+
+  .back-btn:hover {
+    background: #f1c40f;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+
+  .login-container {
+    width: 400px;
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-top: 5px solid #1a5276;
+    position: relative;
+    margin-top: 70px;
+  }
+
+  .login-container:before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    width: 30px;
+    height: 30px;
+    background: #f4d03f;
+    transform: rotate(45deg);
+    z-index: -1;
+  }
+
+  .login-container:after {
+    content: "";
+    position: absolute;
+    top: -15px;
+    right: 20px;
+    width: 30px;
+    height: 30px;
+    background: #1a5276;
+    transform: rotate(45deg);
+    z-index: -1;
+  }
+
+  .login-avatar {
+    width: 100px;
+    height: 100px;
+    background: #3498db;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 40px;
+    border: 5px solid #f8f9fa;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  h2 {
+    margin-bottom: 20px;
+    color: #1a5276;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 10px;
+    text-align: center;
+  }
+
+  h2:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    width: 100px;
+    margin: 0 auto;
+    background: linear-gradient(90deg, #1a5276, #3498db);
+    border-radius: 3px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 500;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 15px 15px 15px 45px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+  }
+
+  .form-group input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    outline: none;
+    background-color: white;
+  }
+
+  .form-group i {
+    position: absolute;
+    left: 15px;
+    top: 44px;
+    color: #7f8c8d;
+    font-size: 20px;
+  }
+
+  .form-group.username i:before {
+    content: "👤";
+  }
+
+  .form-group.password i:before {
+    content: "🔑";
+  }
+
+  button {
+    width: 100%;
+    padding: 15px;
+    background: #1a5276;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  button:hover {
+    background: #154360;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  }
+
+  .loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+    display: none;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  #status {
+    margin-top: 15px;
+    font-size: 16px;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+  }
+
+  #status.error {
+    color: #e74c3c;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid #e74c3c;
+    display: block;
+  }
+
+  #status.success {
+    color: #27ae60;
+    background-color: rgba(39, 174, 96, 0.1);
+    border-left: 4px solid #27ae60;
+    display: block;
+  }
+
+  .education-icons {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .education-icon {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.1;
+  }
+
+  .book-icon {
+    top: 20%;
+    left: 10%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231a5276'%3E%3Cpath d='M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z'/%3E%3C/svg%3E");
+  }
+
+  .pencil-icon {
+    top: 30%;
+    right: 15%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231a5276'%3E%3Cpath d='M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z'/%3E%3C/svg%3E");
+  }
+
+  .cap-icon {
+    bottom: 20%;
+    left: 15%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231a5276'%3E%3Cpath d='M12 3L1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z'/%3E%3C/svg%3E");
+  }
+
+  .calculator-icon {
+    bottom: 30%;
+    right: 10%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231a5276'%3E%3Cpath d='M7,2H17A2,2 0 0,1 19,4V20A2,2 0 0,1 17,22H7A2,2 0 0,1 5,20V4A2,2 0 0,1 7,2M7,4V8H17V4H7M7,10V12H9V10H7M11,10V12H13V10H11M15,10V12H17V10H15M7,14V16H9V14H7M11,14V16H13V14H11M15,14V16H17V14H15M7,18V20H9V18H7M11,18V20H13V18H11M15,18V20H17V18H15Z'/%3E%3C/svg%3E");
+  }
+
+  @media (max-width: 600px) {
+    .navbar {
+      font-size: 16px;
+      padding: 12px 15px;
+    }
+
+    .navbar span:before {
+      font-size: 20px;
+    }
+
+    .back-btn {
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .back-btn:before {
+      font-size: 14px;
+    }
+
+    .login-container {
+      width: 90%;
+      padding: 20px;
+    }
+
+    .login-container:before,
+    .login-container:after {
+      display: none;
+    }
+
+    .login-avatar {
+      width: 80px;
+      height: 80px;
+      font-size: 30px;
+    }
+
+    .form-group input,
+    button {
+      font-size: 16px;
+      padding: 12px;
+    }
+
+    .form-group input {
+      padding-left: 40px;
+    }
+  }
+</style>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login Admin - Buku Induk</title>
+    
+    <?!= include('CSS_Login') ?>
+  </head>
+  <body>
+    <div class="navbar">
+      <span>Buku Induk Siswa</span>
+      <button class="back-btn" onclick="goBack()">Kembali</button>
+    </div>
+
+    <div class="education-icons">
+      <div class="education-icon book-icon"></div>
+      <div class="education-icon pencil-icon"></div>
+      <div class="education-icon cap-icon"></div>
+      <div class="education-icon calculator-icon"></div>
+    </div>
+
+    <div class="login-container">
+      <div>
+      <img src="https://drive.google.com/thumbnail?id=1-MM4wrdooAS62UBDEWYl86BBX7PZ8h_W&sz=w170-h170" alt="Logo">
+      </br>
+    </div>
+    
+      <h2>Login Admin</h2>
+
+      <div class="form-group username">
+        <label for="username">Username</label>
+        <i></i>
+        <input
+          type="text"
+          id="username"
+          placeholder="Masukkan username"
+          required
+        />
+      </div>
+
+      <div class="form-group password">
+        <label for="password">Password</label>
+        <i></i>
+        <input
+          type="password"
+          id="password"
+          placeholder="Masukkan password"
+          required
+        />
+      </div>
+
+      <button id="loginBtn">
+        <span class="loading" id="loadingIcon"></span>Login
+      </button>
+      <p id="status"></p>
+    </div>
+    
+    <?!= include('JavaScript_Login') ?>
+    
+  </body>
+</html>

@@ -1,0 +1,103 @@
+<!-- Sidebar.html -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <a href="#" id="dashboard-link" class="sidebar-logo">Buku Induk</a>
+  </div>
+
+  <div class="admin-info">
+    <div>
+      <img
+        src="https://drive.google.com/thumbnail?id=1-MM4wrdooAS62UBDEWYl86BBX7PZ8h_W&sz=w170-h170"
+        alt="Logo"
+      />
+    </div>
+    <div style="margin-left: 5px">
+      <div class="admin-name">SMP Negeri 03 Pekalongan</div>
+      <div class="admin-role" id="admin-name">Admin</div>
+    </div>
+  </div>
+
+  <ul class="sidebar-menu">
+    <li>
+      <a href="#" id="menu-dashboard" class="menu-dashboard">Dashboard</a>
+    </li>
+    <li>
+      <a href="#" id="menu-students" class="menu-data">Kelola Data Siswa</a>
+    </li>
+    <li>
+      <a href="#" id="logout-link" class="menu-logout">Logout</a>
+    </li>
+  </ul>
+</div>
+
+<script>
+  // Get session ID from URL
+  function getSessionId() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("sessionId");
+  }
+
+  // Set up dynamic links with session ID
+  document.addEventListener("DOMContentLoaded", function () {
+    const sessionId = getSessionId();
+
+    // Set up dashboard link
+    const dashboardLink = document.getElementById("dashboard-link");
+    dashboardLink.href =
+      "<?= myURL() ?>?page=Dashboard&sessionId=" +
+      encodeURIComponent(sessionId);
+
+    // Set up menu links
+    const menuDashboard = document.getElementById("menu-dashboard");
+    menuDashboard.href =
+      "<?= myURL() ?>?page=Dashboard&sessionId=" +
+      encodeURIComponent(sessionId);
+
+    const menuStudents = document.getElementById("menu-students");
+    menuStudents.href =
+      "<?= myURL() ?>?page=Students_manage&sessionId=" +
+      encodeURIComponent(sessionId);
+
+    // Get and display admin name
+    if (sessionId) {
+      google.script.run
+        .withSuccessHandler(function (username) {
+          const adminNameElement = document.getElementById("admin-name");
+          if (adminNameElement) {
+            adminNameElement.textContent = username;
+          }
+        })
+        .withFailureHandler(function (error) {
+          console.error("Error getting username:", error);
+        })
+        .getCurrentUserUsername(sessionId);
+    }
+  });
+
+  // Event listener for logout
+  document
+    .getElementById("logout-link")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+
+      if (confirm("Apakah Anda yakin ingin logout?")) {
+        // Show loading indicator
+        this.textContent = "Logging out...";
+        this.style.opacity = "0.7";
+
+        const sessionId = getSessionId();
+
+        // Call logout function with session ID
+        google.script.run
+          .withSuccessHandler(function (url) {
+            window.location.href = url;
+          })
+          .withFailureHandler(function (error) {
+            alert("Gagal logout: " + error);
+            document.getElementById("logout-link").textContent = "Logout";
+            document.getElementById("logout-link").style.opacity = "1";
+          })
+          .logoutAndDestroySession(sessionId);
+      }
+    });
+</script>

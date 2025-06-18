@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Admin - Buku Induk</title>
+    <base target="_top" />
+    <?!= include('CSS_Dashboard') ?>
+    <?!= include('CSS_Students_manage') ?>
+  </head>
+  <body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Pass sessionId to the Navbar template -->
+    <?!= includeNavbar() ?>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Dashboard</h1>
+        <!-- Hidden input to store sessionId for JavaScript access -->
+        <input type="hidden" id="sessionId" value="<?= sessionId ?>" />
+        <div class="page-date" id="current-date">Memuat tanggal...</div>
+      </div>
+
+      <div class="stats-container">
+        <div class="stat-card">
+          <div class="stat-icon students">👨‍🎓</div>
+          <div class="stat-info">
+            <div class="stat-value" id="total-siswa">-</div>
+            <div class="stat-label">Total Siswa</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="recent-container">
+        <div class="container-header">
+          <div class="container-title">Siswa Terbaru</div>
+          <!-- Update link to include sessionId -->
+          <a href="#" id="view-all-students" class="view-all">Lihat Semua</a>
+        </div>
+        <table class="student-table">
+          <thead>
+            <tr>
+              <th>NIS</th>
+              <th>Nama</th>
+              <th>Jenis Kelamin</th>
+              <th>Tanggal Daftar</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="recent-students">
+            <tr>
+              <td colspan="6" style="text-align: center">
+                Memuat data siswa...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Modal View Detail Siswa -->
+      <div class="modal-overlay" id="view-modal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Detail Siswa</h2>
+            <button class="modal-close" id="close-view-modal">&times;</button>
+          </div>
+          <div class="modal-body" id="student-detail-content">
+            <!-- Content will be filled by JavaScript -->
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" id="close-detail-btn">
+              Tutup
+            </button>
+            <button class="btn btn-primary" id="access-pdf-btn">
+              Lihat PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <footer
+        style="
+          margin-top: 50px;
+          text-align: center;
+          padding: 20px;
+          border-top: 1px solid #e0e0e0;
+          color: #7f8c8d;
+          font-size: 14px;
+        "
+      >
+        &copy; 2025 SMP Negeri 3 Pekalongan.
+      </footer>
+    </div>
+
+    <?!= include('JavaScript_Dashboard') ?>
+  </body>
+</html>

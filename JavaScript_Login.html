@@ -1,0 +1,100 @@
+<script>
+  // JavaScript_Login.html
+  function goBack() {
+    // Redirect to the main page
+    google.script.run
+      .withSuccessHandler(function (url) {
+        window.location.href = url;
+      })
+      .getHomeUrl();
+  }
+
+  // Set up login button event handler
+  document.getElementById("loginBtn").addEventListener("click", login);
+
+  // Set up Enter key press event handlers
+  document
+    .getElementById("username")
+    .addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        login();
+      }
+    });
+
+  document
+    .getElementById("password")
+    .addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        login();
+      }
+    });
+
+  function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const status = document.getElementById("status");
+    const loadingIcon = document.getElementById("loadingIcon");
+
+    if (username === "" || password === "") {
+      status.innerText = "Harap isi username dan password";
+      status.className = "error";
+      return;
+    }
+
+    // Show loading indicator
+    loadingIcon.style.display = "inline-block";
+    status.style.display = "none";
+    status.className = "";
+
+    console.log("Attempting login with username: " + username);
+
+    // Call the server-side function to verify login
+    google.script.run
+      .withSuccessHandler(function (result) {
+        // Hide loading indicator
+        loadingIcon.style.display = "none";
+
+        console.log("Login result: ", result);
+
+        if (result.success) {
+          // Login successful
+          status.innerText = "Login berhasil! Mengalihkan ke dashboard...";
+          status.className = "success";
+          status.style.display = "block";
+
+          console.log("Login successful, creating session...");
+
+          // Create session and redirect to dashboard
+          setTimeout(function () {
+            google.script.run
+              .withSuccessHandler(function (dashboardUrl) {
+                console.log("Redirecting to dashboard URL: " + dashboardUrl);
+                window.location.href = dashboardUrl;
+              })
+              .withFailureHandler(function (error) {
+                console.error("Error creating session: ", error);
+                status.innerText = "Error: " + error.message;
+                status.className = "error";
+                status.style.display = "block";
+              })
+              .setSessionAndGetDashboardUrl(username);
+          }, 1000);
+        } else {
+          // Login failed
+          console.log("Login failed: " + result.message);
+          status.innerText = result.message || "Username atau password salah";
+          status.className = "error";
+          status.style.display = "block";
+        }
+      })
+      .withFailureHandler(function (error) {
+        // Server error
+        console.error("Server error: ", error);
+        loadingIcon.style.display = "none";
+        status.innerText = "Terjadi kesalahan pada server: " + error.message;
+        status.className = "error";
+        status.style.display = "block";
+      })
+      .verifyLogin(username, password);
+  }
+</script>

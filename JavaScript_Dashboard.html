@@ -1,0 +1,364 @@
+<script>
+  // JavaScript_Dashboard.html
+
+  // Get session ID from hidden input
+  function getSessionId() {
+    return document.getElementById("sessionId").value;
+  }
+
+  // Fungsi untuk toggle sidebar di tampilan mobile
+  function toggleSidebar() {
+    document.body.classList.toggle("sidebar-active");
+  }
+
+  // Fungsi untuk mengupdate tanggal
+  function updateDateTime() {
+    const now = new Date();
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    document.getElementById("current-date").textContent =
+      now.toLocaleDateString("id-ID", options);
+  }
+
+  // Fungsi untuk memuat data dashboard (statistik)
+  function loadDashboardData() {
+    // Get session ID
+    const sessionId = getSessionId();
+
+    // Tampilkan loading state
+    document.getElementById("total-siswa").textContent = "...";
+
+    // Panggil fungsi di server untuk mendapatkan data dashboard
+    google.script.run
+      .withSuccessHandler(function (data) {
+        // Update statistik dengan data dari server
+        document.getElementById("total-siswa").textContent =
+          data.totalSiswa || 0;
+
+        // Admin name is now handled by getCurrentUserUsername in sidebar
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error loading dashboard data:", error);
+        showNotification(
+          "Terjadi kesalahan saat memuat data dashboard: " + error,
+          "error"
+        );
+      })
+      .getDashboardData();
+  }
+
+  // Menyimpan data siswa secara global untuk diakses oleh fungsi lain
+  let allStudents = [];
+
+  // Helper function to convert Indonesian date format to ISO format
+  function convertIndonesianDateToISO(indonesianDate) {
+    if (!indonesianDate) return "";
+
+    // Handle various date formats
+    // Example: "21 Januari 2023" -> "2023-01-21"
+    const months = {
+      Januari: "01",
+      Februari: "02",
+      Maret: "03",
+      April: "04",
+      Mei: "05",
+      Juni: "06",
+      Juli: "07",
+      Agustus: "08",
+      September: "09",
+      Oktober: "10",
+      November: "11",
+      Desember: "12",
+    };
+
+    const parts = indonesianDate.split(" ");
+    if (parts.length === 3) {
+      const day = parts[0].padStart(2, "0");
+      const month = months[parts[1]] || "01";
+      const year = parts[2];
+
+      return `${year}-${month}-${day}`;
+    }
+
+    return indonesianDate; // Return original if format doesn't match
+  }
+
+  // Fungsi untuk memuat data siswa terbaru
+  function loadRecentStudents() {
+    // Get session ID
+    const sessionId = getSessionId();
+
+    const recentStudentsContainer = document.getElementById("recent-students");
+    recentStudentsContainer.innerHTML =
+      "<tr><td colspan='6' style='text-align: center;'>Memuat data siswa...</td></tr>";
+
+    // Panggil fungsi di server untuk mendapatkan data siswa terbaru
+    google.script.run
+      .withSuccessHandler(function (students) {
+        console.log("Received students data:", students); // Debugging
+
+        // Simpan data siswa ke variabel global
+        allStudents = students;
+
+        if (students && students.length > 0) {
+          // Bersihkan container
+          recentStudentsContainer.innerHTML = "";
+
+          // Sort students by registration date (newest first)
+          students.sort(function (a, b) {
+            // Convert dates to comparable format
+            const dateA = a.tanggalDaftar
+              ? new Date(convertIndonesianDateToISO(a.tanggalDaftar))
+              : new Date(0);
+            const dateB = b.tanggalDaftar
+              ? new Date(convertIndonesianDateToISO(b.tanggalDaftar))
+              : new Date(0);
+
+            // Sort descending (newest first)
+            return dateB - dateA;
+          });
+
+          // Tambahkan baris untuk setiap siswa
+          students.forEach(function (student) {
+            const status = getStatusBadge(student.status);
+
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${student.nis || "-"}</td>
+              <td class="student-name">${student.nama || "-"}</td>
+              <td>${student.jenisKelamin || student.gender || "-"}</td>
+              <td>${student.tanggalDaftar || "-"}</td>
+              <td>${status}</td>
+            `;
+
+            // Add click event to open student details
+            row.style.cursor = "pointer";
+            row.addEventListener("click", function () {
+              openViewModal(student.nis);
+            });
+
+            recentStudentsContainer.appendChild(row);
+          });
+        } else {
+          recentStudentsContainer.innerHTML =
+            "<tr><td colspan='6' style='text-align: center;'>Tidak ada data siswa</td></tr>";
+        }
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error loading recent students:", error);
+        recentStudentsContainer.innerHTML = `<tr><td colspan='6' style='text-align: center; color: #e74c3c;'>Error: ${error}</td></tr>`;
+        showNotification("Gagal memuat data siswa: " + error, "error");
+      })
+      .getRecentStudents();
+  }
+
+  // Helper untuk mendapatkan badge status
+  function getStatusBadge(status) {
+    switch (status?.toLowerCase()) {
+      case "aktif":
+        return '<span class="badge badge-success">Aktif</span>';
+      case "lulus":
+        return '<span class="badge badge-primary">Lulus</span>';
+      case "mutasi":
+        return '<span class="badge badge-warning">Mutasi</span>';
+      case "keluar":
+        return '<span class="badge badge-danger">Keluar</span>';
+      default:
+        return '<span class="badge badge-success">Aktif</span>';
+    }
+  }
+
+  // Fungsi untuk membuka modal detail siswa
+  function openViewModal(studentId) {
+    console.log("Opening view modal for student ID:", studentId); // Debugging
+    console.log("All students data available:", allStudents); // Debugging
+
+    const student = allStudents.find((s) => s.nis == studentId);
+    console.log("Found student data:", student); // Debugging
+
+    if (!student) {
+      showNotification("Data siswa tidak ditemukan", "error");
+      return;
+    }
+
+    const detailContent = document.getElementById("student-detail-content");
+    console.log("Detail content element:", detailContent); // Debugging
+
+    // Format detail content
+    detailContent.innerHTML = `
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Informasi Siswa</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">NIS</div>
+          <div class="detail-value">${student.nis || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">NISN</div>
+          <div class="detail-value">${student.nisn || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Nama Lengkap</div>
+          <div class="detail-value">${student.nama || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Jenis Kelamin</div>
+          <div class="detail-value">${
+            student.jenisKelamin || student.gender || "-"
+          }</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tempat Lahir</div>
+          <div class="detail-value">${student.birthplace || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tanggal Lahir</div>
+          <div class="detail-value">${student.birthdate || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Alamat</div>
+          <div class="detail-value">${student.alamat || "-"}</div>
+        </div>
+      </div>
+      
+      <div class="student-detail-section">
+        <h3 class="student-detail-heading">Informasi Akademik</h3>
+        
+        <div class="detail-row">
+          <div class="detail-label">Tanggal Diterima</div>
+          <div class="detail-value">${student.tanggalDaftar || "-"}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">${student.status || "Aktif"}</div>
+        </div>
+      </div>
+      
+  
+    `;
+
+    // Store student ID for PDF button
+    document
+      .getElementById("access-pdf-btn")
+      .setAttribute("data-id", studentId);
+
+    // Get the modal element
+    const viewModal = document.getElementById("view-modal");
+    console.log("View modal element:", viewModal); // Debugging
+
+    // Show modal
+    if (viewModal) {
+      viewModal.style.display = "flex";
+      console.log("Modal display style set to flex"); // Debugging
+    } else {
+      console.error("Modal element not found!"); // Debugging
+    }
+  }
+
+  // Fungsi untuk menampilkan notifikasi
+  function showNotification(message, type) {
+    console.log("Showing notification:", message, type); // Debugging
+
+    // Create notification element if it doesn't exist
+    let notification = document.querySelector(".notification");
+
+    if (!notification) {
+      notification = document.createElement("div");
+      notification.className = "notification";
+      document.body.appendChild(notification);
+    }
+
+    // Set content and type
+    notification.textContent = message;
+    notification.className = `notification notification-${type}`;
+
+    // Show notification
+    setTimeout(() => {
+      notification.classList.add("show");
+    }, 10);
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+      notification.classList.remove("show");
+    }, 4000);
+  }
+
+  // Setup logout button
+  function setupLogout() {
+    const logoutLink = document.getElementById("logout-link");
+    if (logoutLink) {
+      logoutLink.addEventListener("click", function (e) {
+        e.preventDefault();
+
+        if (confirm("Apakah Anda yakin ingin logout?")) {
+          const sessionId = getSessionId();
+
+          // Show loading indicator
+          this.textContent = "Logging out...";
+          this.style.opacity = "0.7";
+
+          // Call logout function with session ID
+          google.script.run
+            .withSuccessHandler(function (url) {
+              window.location.href = url;
+            })
+            .withFailureHandler(function (error) {
+              alert("Gagal logout: " + error);
+              document.getElementById("logout-link").textContent = "Logout";
+              document.getElementById("logout-link").style.opacity = "1";
+            })
+            .logoutAndDestroySession(sessionId);
+        }
+      });
+    } else {
+      console.error("Logout link not found!");
+    }
+  }
+
+  // Inisialisasi saat halaman dimuat
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM fully loaded"); // Debugging
+
+    const sessionId = getSessionId();
+    const viewAllStudents = document.getElementById("view-all-students");
+    viewAllStudents.href =
+      "<?= myURL() ?>?page=Students_manage&sessionId=" +
+      encodeURIComponent(sessionId);
+
+    // Update tanggal
+    updateDateTime();
+
+    // Load data dashboard
+    loadDashboardData();
+
+    // Load recent students
+    loadRecentStudents();
+
+    // Setup logout
+    setupLogout();
+
+    // Tambahkan efek hover pada kartu statistik
+    const statCards = document.querySelectorAll(".stat-card");
+    statCards.forEach(function (card) {
+      card.addEventListener("mouseenter", function () {
+        this.style.transform = "translateY(-5px)";
+      });
+      card.addEventListener("mouseleave", function () {
+        this.style.transform = "translateY(0)";
+      });
+    });
+
+    console.log("Initialization complete"); // Debugging
+  });
+</script>
