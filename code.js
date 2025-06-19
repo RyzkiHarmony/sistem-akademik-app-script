@@ -26,6 +26,7 @@ function doGet(e) {
     "Dashboard",
     "Students_manage",
     "Student_detail",
+    "Student_edit",
     "Student_form",
   ];
 
@@ -1141,6 +1142,121 @@ function getStudentById(nisId, sessionId) {
     Logger.log("ERROR in getStudentById: " + error.toString());
     Logger.log("Error stack: " + error.stack);
     throw error; // Re-throw untuk ditangani oleh client-side failure handler
+  }
+}
+
+// Function to update student data
+function updateStudentData(updateData, sessionId) {
+  try {
+    Logger.log("=== updateStudentData called ===");
+    Logger.log('- updateData: ' + JSON.stringify(updateData));
+    Logger.log('- sessionId: "' + sessionId + '"');
+
+    // Validate session
+    const username = validateSession(sessionId);
+    if (!username) {
+      throw new Error("Session tidak valid. Silakan login kembali.");
+    }
+
+    // Validate parameters
+    if (!updateData || !updateData.studentId || !updateData.changes) {
+      throw new Error("Data update tidak valid");
+    }
+
+    const studentId = String(updateData.studentId).trim();
+    const changes = updateData.changes;
+
+    if (Object.keys(changes).length === 0) {
+      return { success: true, message: "Tidak ada perubahan untuk disimpan" };
+    }
+
+    Logger.log('Updating student with NIS: "' + studentId + '"');
+    Logger.log('Changes: ' + JSON.stringify(changes));
+
+    // Open spreadsheet
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+
+    if (!studentsSheet) {
+      throw new Error('Sheet "' + STUDENTS_SHEET_NAME + '" tidak ditemukan');
+    }
+
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length === 0) {
+      throw new Error("Sheet kosong");
+    }
+
+    const headers = values[0];
+    const nisIndex = headers.indexOf("NIS");
+
+    if (nisIndex === -1) {
+      throw new Error("Kolom NIS tidak ditemukan");
+    }
+
+    // Find student row
+    let studentRowIndex = -1;
+    for (let i = 1; i < values.length; i++) {
+      const rowNIS = String(values[i][nisIndex]).trim();
+      if (rowNIS === studentId) {
+        studentRowIndex = i;
+        break;
+      }
+    }
+
+    if (studentRowIndex === -1) {
+      throw new Error('Siswa dengan NIS "' + studentId + '" tidak ditemukan');
+    }
+
+    Logger.log('Student found at row: ' + (studentRowIndex + 1));
+
+    // Update the data
+    let updatedFields = [];
+    for (const fieldName in changes) {
+      const columnIndex = headers.indexOf(fieldName);
+      if (columnIndex !== -1) {
+        const oldValue = values[studentRowIndex][columnIndex];
+        const newValue = changes[fieldName];
+        
+        // Update the cell
+        studentsSheet.getRange(studentRowIndex + 1, columnIndex + 1).setValue(newValue);
+        
+        updatedFields.push({
+          field: fieldName,
+          oldValue: oldValue,
+          newValue: newValue
+        });
+        
+        Logger.log('Updated field "' + fieldName + '": "' + oldValue + '" -> "' + newValue + '"');
+      } else {
+        Logger.log('Warning: Field "' + fieldName + '" not found in headers');
+      }
+    }
+
+    if (updatedFields.length === 0) {
+      return { success: false, error: "Tidak ada field yang valid untuk diupdate" };
+    }
+
+    // Log the update activity
+    Logger.log('Successfully updated ' + updatedFields.length + ' fields for student NIS: ' + studentId);
+    Logger.log('Updated by user: ' + username);
+
+    return {
+      success: true,
+      message: "Data siswa berhasil diperbarui",
+      updatedFields: updatedFields,
+      updatedBy: username,
+      timestamp: new Date().toISOString()
+    };
+
+  } catch (error) {
+    Logger.log("ERROR in updateStudentData: " + error.toString());
+    Logger.log("Error stack: " + error.stack);
+    return {
+      success: false,
+      error: error.message || "Terjadi kesalahan saat mengupdate data siswa"
+    };
   }
 }
 

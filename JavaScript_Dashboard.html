@@ -124,12 +124,6 @@
               <td>${status}</td>
             `;
 
-            // Add click event to open student details
-            row.style.cursor = "pointer";
-            row.addEventListener("click", function () {
-              openViewModal(student.nis);
-            });
-
             recentStudentsContainer.appendChild(row);
           });
         } else {
@@ -157,92 +151,6 @@
         return '<span class="badge badge-danger">Keluar</span>';
       default:
         return '<span class="badge badge-success">Aktif</span>';
-    }
-  }
-
-  // Fungsi untuk membuka modal detail siswa
-  function openViewModal(studentId) {
-    const student = allStudents.find((s) => s.nis == studentId);
-
-    if (!student) {
-      showNotification("Data siswa tidak ditemukan", "error");
-      return;
-    }
-
-    const detailContent = document.getElementById("student-detail-content");
-
-    // Format detail content
-    detailContent.innerHTML = `
-      <div class="student-detail-section">
-        <h3 class="student-detail-heading">Informasi Siswa</h3>
-        
-        <div class="detail-row">
-          <div class="detail-label">NIS</div>
-          <div class="detail-value">${student.nis || "-"}</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">NISN</div>
-          <div class="detail-value">${student.nisn || "-"}</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">Nama Lengkap</div>
-          <div class="detail-value">${student.nama || "-"}</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">Jenis Kelamin</div>
-          <div class="detail-value">${
-            student.jenisKelamin || student.gender || "-"
-          }</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">Tempat Lahir</div>
-          <div class="detail-value">${student.birthplace || "-"}</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">Tanggal Lahir</div>
-          <div class="detail-value">${student.birthdate || "-"}</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">Alamat</div>
-          <div class="detail-value">${student.alamat || "-"}</div>
-        </div>
-      </div>
-      
-      <div class="student-detail-section">
-        <h3 class="student-detail-heading">Informasi Akademik</h3>
-        
-        <div class="detail-row">
-          <div class="detail-label">Tanggal Diterima</div>
-          <div class="detail-value">${student.tanggalDaftar || "-"}</div>
-        </div>
-        
-        <div class="detail-row">
-          <div class="detail-label">Status</div>
-          <div class="detail-value">${student.status || "Aktif"}</div>
-        </div>
-      </div>
-      
-  
-    `;
-
-    // Store student ID for PDF button
-    document
-      .getElementById("access-pdf-btn")
-      .setAttribute("data-id", studentId);
-
-    // Get the modal element
-    const viewModal = document.getElementById("view-modal");
-
-    // Show modal
-    if (viewModal) {
-      viewModal.style.display = "flex";
-    } else {
     }
   }
 

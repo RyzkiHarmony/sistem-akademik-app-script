@@ -651,7 +651,8 @@
           <h2 id="student-header-name">Memuat informasi siswa...</h2>
           <div class="student-info" id="student-header-info">
             <div class="student-info-item" id="student-header-nis"></div>
-            <div class="student-info-item" id="student-header-class"></div>
+            <div class="student-info-item" id="student-header-nisn"></div>
+            <div class="student-info-item" id="student-header-status"></div>
           </div>
         </div>
 
@@ -662,14 +663,15 @@
         </div>
 
         <div class="action-buttons" id="action-buttons" style="display: none">
-          <button
-            class="btn btn-warning"
-            onclick="editStudent()"
+          <a
+            href="#"
+            class="btn btn-warning btn-edit-student"
+            onclick="editStudent(event)"
             title="Edit data siswa"
           >
             <span class="btn-icon">✏️</span>
             Edit Data
-          </button>
+          </a>
           <button
             class="btn btn-info"
             onclick="generatePDF()"
@@ -677,22 +679,6 @@
           >
             <span class="btn-icon">📄</span>
             Cetak PDF
-          </button>
-          <button
-            class="btn btn-success"
-            onclick="testSpreadsheet()"
-            title="Test koneksi spreadsheet"
-          >
-            <span class="btn-icon">🔧</span>
-            Test Koneksi
-          </button>
-          <button
-            class="btn btn-primary"
-            onclick="searchCurrentStudent()"
-            title="Debug data siswa saat ini"
-          >
-            <span class="btn-icon">🔍</span>
-            Debug Siswa
           </button>
           <button
             class="btn btn-secondary"
@@ -758,15 +744,20 @@
 
       // Go back to students list
       function goBack() {
+        const urlParams = new URLSearchParams(window.location.search);
         const sessionId = getSessionId();
-        const url =
+        window.location.href =
           "<?= myURL() ?>?page=Students_manage&sessionId=" +
           encodeURIComponent(sessionId);
-        window.location.href = url;
       }
 
       // Edit student
-      function editStudent() {
+      function editStudent(event) {
+        // Prevent default link behavior if called from link
+        if (event) {
+          event.preventDefault();
+        }
+
         if (!currentStudentId) {
           alert("ID siswa tidak tersedia");
           return;
@@ -780,11 +771,12 @@
           }
 
           const editUrl =
-            "<?= myURL() ?>?page=Students_manage&sessionId=" +
+            "<?= myURL() ?>?page=Student_edit&sessionId=" +
             encodeURIComponent(sessionId) +
-            "&edit=" +
+            "&id=" +
             encodeURIComponent(currentStudentId);
 
+          // Direct redirect without delay to ensure URL changes immediately
           window.location.href = editUrl;
         } catch (error) {
           console.error("Error in editStudent:", error);
@@ -812,18 +804,18 @@
           pdfButton.innerHTML = '<span class="btn-icon">⏳</span>Memproses...';
           pdfButton.disabled = true;
 
-          // Call server-side function to generate PDF
+          // Call server-side function to get PDF URL
           google.script.run
-            .withSuccessHandler(function (pdfUrl) {
+            .withSuccessHandler(function (result) {
               // Reset button
               pdfButton.innerHTML = originalText;
               pdfButton.disabled = false;
 
-              if (pdfUrl) {
+              if (result.success) {
                 // Open PDF in new tab
-                window.open(pdfUrl, "_blank");
+                window.open(result.url, "_blank");
               } else {
-                alert("Gagal menghasilkan PDF");
+                alert(result.message || "Gagal mengakses file PDF");
               }
             })
             .withFailureHandler(function (error) {
@@ -832,9 +824,9 @@
               pdfButton.disabled = false;
 
               console.error("Error generating PDF:", error);
-              alert("Fitur cetak PDF sedang dalam pengembangan");
+              alert("Terjadi kesalahan: " + error);
             })
-            .getStudentPDFUrl(currentStudentId, sessionId);
+            .getStudentPDFUrl(currentStudentId);
         } catch (error) {
           console.error("Error in generatePDF:", error);
           alert("Terjadi kesalahan saat membuat PDF");
@@ -856,8 +848,6 @@
         document.getElementById("detail-content").innerHTML = `
           <div class="loading-container" style="text-align: center; padding: 50px;">
             <div style="font-size: 18px; color: #666;">Memuat data siswa...</div>
-            <div style="margin-top: 10px; font-size: 14px; color: #999;">NIS: ${studentId}</div>
-            <div style="margin-top: 5px; font-size: 12px; color: #999;">Mohon tunggu sebentar</div>
           </div>
         `;
 
@@ -981,9 +971,13 @@
             student.NIS || student.nis || "-"
           }`;
 
+          document.getElementById("student-header-nisn").textContent = `NISN: ${
+            student.NISN || student.nisn || "-"
+          }`;
+
           document.getElementById(
-            "student-header-class"
-          ).textContent = `NISN: ${student.NISN || student.nisn || "-"}`;
+            "student-header-status"
+          ).textContent = `Status: ${student["Status Akademik"] || "-"}`;
 
           // Render detail sections
           const detailContent = document.getElementById("detail-content");
@@ -1110,7 +1104,7 @@
                     <div class="detail-label">Jarak ke Sekolah</div>
                     <div class="detail-value">${
                       student["Jarak ke Sekolah"] || "-"
-                    }</div>
+                    } Km</div>
                   </div>
                 </div>
               </div>
@@ -1226,13 +1220,13 @@
                     <div class="detail-label">Tinggi Badan</div>
                     <div class="detail-value">${
                       student["Tinggi Badan"] || student.tinggiBadan || "-"
-                    }</div>
+                    } Cm</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Berat Badan</div>
                     <div class="detail-value">${
                       student["Berat Badan"] || student.beratBadan || "-"
-                    }</div>
+                    } Kg</div>
                   </div>
                 </div>
               </div>
@@ -1242,6 +1236,22 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="pendidikan">Pendidikan Sebelumnya</h3>
                 </div>
+                <div class="detail-row">
+                    <div class="detail-label">Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</div>
+                    <div class="detail-value">${
+                      student[
+                        "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan"
+                      ] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row">
+                    <div class="detail-label">Tanggal Diterima di SMPN 03 Pekalongan</div>
+                    <div class="detail-value">${
+                      student[
+                        "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"
+                      ] || "-"
+                    }</div>
+                  </div>
                 <div class="section-content">
                   <div class="detail-row">
                     <div class="detail-label">Asal Sekolah (SD/MI)</div>
@@ -1252,7 +1262,7 @@
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Tanggal Lulus SD/MI</div>
+                    <div class="detail-label">Tanggal Lulus (SD/MI)</div>
                     <div class="detail-value">${
                       student["Tanggal Lulus SD/MI"] ||
                       student.tanggalLulusSD ||
@@ -1260,7 +1270,7 @@
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Nomor Ijazah SD/MI</div>
+                    <div class="detail-label">Nomor Ijazah (SD/MI)</div>
                     <div class="detail-value">${
                       student["Nomor Ijazah SD/MI"] ||
                       student.nomorIjazahSD ||
@@ -1268,12 +1278,12 @@
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Lama Belajar di SD/MI</div>
+                    <div class="detail-label">Lama Belajar di (SD/MI)</div>
                     <div class="detail-value">${
                       student["Lama Belajar di SD/MI"] ||
                       student.lamaBelajarSD ||
                       "-"
-                    }</div>
+                    } Tahun</div>
                   </div>
                   <div class="detail-row">
                     <div class="detail-label">Apakah Kamu Siswa Pindahan?</div>
@@ -1281,22 +1291,7 @@
                       student["Apakah Kamu Siswa Pindahan?"] || "-"
                     }</div>
                   </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</div>
-                    <div class="detail-value">${
-                      student[
-                        "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan"
-                      ] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan</div>
-                    <div class="detail-value">${
-                      student[
-                        "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"
-                      ] || "-"
-                    }</div>
-                  </div>
+                  
                   <div class="detail-row">
                     <div class="detail-label">Asal Sekolah (SMP/MTS/Sederajat)</div>
                     <div class="detail-value">${
@@ -1309,20 +1304,8 @@
                       student["Alasan Pindah Sekolah"] || "-"
                     }</div>
                   </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Nomor Ijazah SD/MI</div>
-                    <div class="detail-value">${
-                      student["Nomor Ijazah SD/MI"] || student.noIjazahSD || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Lama Belajar di SD/MI</div>
-                    <div class="detail-value">${
-                      student["Lama Belajar di SD/MI"] ||
-                      student.lamaBelajarSD ||
-                      "-"
-                    }</div>
-                  </div>
+                  
+                  
                 </div>
               </div>
               
@@ -1335,7 +1318,7 @@
                   <div class="detail-row">
                     <div class="detail-label">Nama Ayah Kandung</div>
                     <div class="detail-value">${
-                      student["Nama Ayah  Kandung"] ||
+                      student["Nama Ayah Kandung"] ||
                       student["Nama Lengkap Ayah"] ||
                       student.ayah ||
                       "-"
@@ -1603,14 +1586,6 @@
                       student["Status Wali"] || student.statusWali || "-"
                     }</div>
                   </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Hubungan dengan Siswa</div>
-                    <div class="detail-value">${
-                      student["Hubungan dengan Siswa"] ||
-                      student.hubunganWali ||
-                      "-"
-                    }</div>
-                  </div>
                 </div>
               </div>
               
@@ -1621,102 +1596,175 @@
                 </div>
                 <div class="section-content">
                   <div class="detail-row">
-                    <div class="detail-label">Bidang Seni</div>
+                    <div class="detail-label">Hobi Seni</div>
                     <div class="detail-value">${
                       student["Bidang Seni"] || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Bidang Olahraga</div>
+                    <div class="detail-label">Hobi Olahraga</div>
                     <div class="detail-value">${
                       student["Bidang Olahraga"] || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Bidang Lain-Lain</div>
+                    <div class="detail-label">Bidang Lain</div>
                     <div class="detail-value">${
                       student["Bidang Lain-Lain"] || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Apakah Peserta Didik Pernah Meraih Prestasi?</div>
-                    <div class="detail-value">${
-                      student["Apakah Peserta Didik Pernah Meraih Prestasi?"] ||
-                      "-"
-                    }</div>
+                    <div class="detail-label">Prestasi Siswa</div>
                   </div>
+                  ${
+                    student["Nama Prestasi"] &&
+                    student["Nama Prestasi"] !== "-" &&
+                    student["Nama Prestasi"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Nama Prestasi"]
+                       } - ${student["Tingkat Prestasi"] || "-"} - ${
+                          student["Tahun Prestasi"] || "-"
+                        }</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    student["Nama Prestasi (2)"] &&
+                    student["Nama Prestasi (2)"] !== "-" &&
+                    student["Nama Prestasi (2)"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Nama Prestasi (2)"]
+                       } - ${student["Tingkat Prestasi (2)"] || "-"} - ${
+                          student["Tahun Prestasi (2)"] || "-"
+                        }</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    student["Nama Prestasi (3)"] &&
+                    student["Nama Prestasi (3)"] !== "-" &&
+                    student["Nama Prestasi (3)"].trim() !== ""
+                      ? `<div class="detail-row">
+                    <div class="detail-value">    ${
+                      student["Nama Prestasi (3)"]
+                    } - ${student["Tingkat Prestasi (3)"] || "-"} - ${
+                          student["Tahun Prestasi (3)"] || "-"
+                        }</div>
+                  </div>`
+                      : ""
+                  }
+                  ${
+                    student["Nama Prestasi (4)"] &&
+                    student["Nama Prestasi (4)"] !== "-" &&
+                    student["Nama Prestasi (4)"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Nama Prestasi (4)"]
+                       } - ${student["Tingkat Prestasi (4)"] || "-"} - ${
+                          student["Tahun Prestasi (4)"] || "-"
+                        }</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    student["Nama Prestasi (5)"] &&
+                    student["Nama Prestasi (5)"] !== "-" &&
+                    student["Nama Prestasi (5)"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Nama Prestasi (5)"]
+                       } - ${student["Tingkat Prestasi (5)"] || "-"} - ${
+                          student["Tahun Prestasi (5)"] || "-"
+                        }</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    (!student["Nama Prestasi"] ||
+                      student["Nama Prestasi"] === "-" ||
+                      student["Nama Prestasi"].trim() === "") &&
+                    (!student["Nama Prestasi (2)"] ||
+                      student["Nama Prestasi (2)"] === "-" ||
+                      student["Nama Prestasi (2)"].trim() === "") &&
+                    (
+                      !student["Nama Prestasi (3)"] ||
+                      student["Nama Prestasi (3)"] === "-" ||
+                      student["Nama Prestasi (3)"].trim() === ""
+                    )(
+                      !student["Nama Prestasi (4)"] ||
+                        student["Nama Prestasi (4)"] === "-" ||
+                        student["Nama Prestasi (4)"].trim() === ""
+                    )(
+                      !student["Nama Prestasi (5)"] ||
+                        student["Nama Prestasi (5)"] === "-" ||
+                        student["Nama Prestasi (5))"].trim() === ""
+                    )
+                      ? `<div class="detail-row">
+                       <div class="detail-value">Tidak ada prestasi</div>
+                     </div>`
+                      : ""
+                  }
+                  
                   <div class="detail-row">
-                    <div class="detail-label">Jenis Prestasi</div>
-                    <div class="detail-value">${
-                      student["Jenis Prestasi"] || "-"
-                    }</div>
+                    <div class="detail-label">Beasiswa Siswa</div>
                   </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tingkat Prestasi</div>
-                    <div class="detail-value">${
-                      student["Tingkat Prestasi"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Nama Prestasi</div>
-                    <div class="detail-value">${
-                      student["Nama Prestasi"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tahun Prestasi</div>
-                    <div class="detail-value">${
-                      student["Tahun Prestasi"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Penyelenggara</div>
-                    <div class="detail-value">${
-                      student["Penyelenggara"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Peringkat</div>
-                    <div class="detail-value">${
-                      student["Peringkat"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Apakah Peserta Didik Memiliki Beasiswa</div>
-                    <div class="detail-value">${
-                      student["Apakah Peserta Didik Memiliki Beasiswa"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Jenis Beasiswa</div>
-                    <div class="detail-value">${
-                      student["Jenis Beasiswa"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Keterangan</div>
-                    <div class="detail-value">${
-                      student["Keterangan"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tahun Mulai</div>
-                    <div class="detail-value">${
-                      student["Tahun Mulai"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Tahun Selesai</div>
-                    <div class="detail-value">${
-                      student["Tahun Selesai"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Status Akademik</div>
-                    <div class="detail-value">${
-                      student["Status Akademik"] || "-"
-                    }</div>
-                  </div>
+                  ${
+                    student["Jenis Beasiswa"] &&
+                    student["Jenis Beasiswa"] !== "-" &&
+                    student["Jenis Beasiswa"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Jenis Beasiswa"]
+                       } - ${student["Keterangan"] || "-"} - ${
+                          student["Tahun Mulai"] || "-"
+                        } s/d ${student["Tahun Selesai"] || "-"}</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    student["Jenis Beasiswa (2)"] &&
+                    student["Jenis Beasiswa (2)"] !== "-" &&
+                    student["Jenis Beasiswa (2)"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Jenis Beasiswa (2)"]
+                       } - ${student["Keterangan (2)"] || "-"} - ${
+                          student["Tahun Mulai (2)"] || "-"
+                        } s/d ${student["Tahun Selesai (2)"] || "-"}</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    student["Jenis Beasiswa (3)"] &&
+                    student["Jenis Beasiswa (3)"] !== "-" &&
+                    student["Jenis Beasiswa (3)"].trim() !== ""
+                      ? `<div class="detail-row">
+                       <div class="detail-value">   ${
+                         student["Jenis Beasiswa (3)"]
+                       } - ${student["Keterangan (3)"] || "-"} - ${
+                          student["Tahun Mulai (3)"] || "-"
+                        } s/d ${student["Tahun Selesai (3)"] || "-"}</div>
+                     </div>`
+                      : ""
+                  }
+                  ${
+                    (!student["Jenis Beasiswa"] ||
+                      student["Jenis Beasiswa"] === "-" ||
+                      student["Jenis Beasiswa"].trim() === "") &&
+                    (!student["Jenis Beasiswa (2)"] ||
+                      student["Jenis Beasiswa (2)"] === "-" ||
+                      student["Jenis Beasiswa (2)"].trim() === "") &&
+                    (!student["Jenis Beasiswa (3)"] ||
+                      student["Jenis Beasiswa (3)"] === "-" ||
+                      student["Jenis Beasiswa (3)"].trim() === "")
+                      ? `<div class="detail-row">
+                       <div class="detail-value">Tidak ada beasiswa</div>
+                     </div>`
+                      : ""
+                  }
+
                 </div>
               </div>
             </div>
@@ -1724,6 +1772,19 @@
 
           // Show action buttons
           document.getElementById("action-buttons").style.display = "block";
+
+          // Setup edit button href (Opsi 1 - like navbar approach)
+          const editButton = document.querySelector(".btn-edit-student");
+          if (editButton && currentStudentId) {
+            const sessionId = getSessionId();
+            if (sessionId) {
+              editButton.href =
+                "<?= myURL() ?>?page=Student_edit&sessionId=" +
+                encodeURIComponent(sessionId) +
+                "&id=" +
+                encodeURIComponent(currentStudentId);
+            }
+          }
         } catch (error) {
           console.error("Error rendering student detail:", error);
           showError("Gagal menampilkan detail siswa");

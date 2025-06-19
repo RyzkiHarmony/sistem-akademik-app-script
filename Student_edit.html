@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Data Siswa - Buku Induk</title>
+    <base target="_top" />
+    <?!= include('CSS_Students_manage') ?>
+    <style>
+      .detail-container {
+        padding: 0;
+        animation: fadeIn 0.6s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .back-button {
+        background: #1a5276;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-bottom: 25px;
+        box-shadow: 0 3px 10px rgba(26, 82, 118, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .back-button:hover {
+        background: #154360;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(26, 82, 118, 0.4);
+      }
+
+      .student-header-card {
+        background: linear-gradient(135deg, #ffffff, #f8f9fa);
+        border-radius: 16px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        margin-bottom: 35px;
+        text-align: center;
+        border: 1px solid rgba(26, 82, 118, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .student-header-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #007bff, #0056b3, #007bff);
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          background-position: 200% 0;
+        }
+        50% {
+          background-position: -200% 0;
+        }
+      }
+
+      .student-header-card h2 {
+        margin: 0 0 15px 0;
+        color: #2c3e50;
+        font-size: 2.2em;
+        font-weight: 700;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        letter-spacing: -0.5px;
+      }
+
+      .student-info {
+        color: #6c757d;
+        font-size: 1.2em;
+        font-weight: 500;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .student-info-item {
+        background: rgba(26, 82, 118, 0.1);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #1a5276;
+      }
+
+      .detail-sections {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+        gap: 25px;
+        animation: slideUp 0.8s ease-out 0.2s both;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .detail-section {
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        border-radius: 16px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .detail-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+      }
+
+      .section-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 25px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .section-title {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.4em;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title::before {
+        font-size: 1.2em;
+        margin-right: 5px;
+      }
+
+      .section-title[data-section="identitas"]::before {
+        content: "👤";
+      }
+
+      .section-title[data-section="alamat"]::before {
+        content: "🏠";
+      }
+
+      .section-title[data-section="kesehatan"]::before {
+        content: "🏥";
+      }
+
+      .section-title[data-section="pendidikan"]::before {
+        content: "🎓";
+      }
+
+      .section-title[data-section="ayah"]::before {
+        content: "👨";
+      }
+
+      .section-title[data-section="ibu"]::before {
+        content: "👩";
+      }
+
+      .section-title[data-section="wali"]::before {
+        content: "👥";
+      }
+
+      .section-title[data-section="hobi"]::before {
+        content: "🏆";
+      }
+
+      .edit-toggle-btn {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .edit-toggle-btn:hover {
+        background: #218838;
+        transform: scale(1.05);
+      }
+
+      .edit-toggle-btn.save-mode {
+        background: #007bff;
+      }
+
+      .edit-toggle-btn.save-mode:hover {
+        background: #0056b3;
+      }
+
+      .edit-toggle-btn.cancel-mode {
+        background: #dc3545;
+        margin-left: 8px;
+      }
+
+      .edit-toggle-btn.cancel-mode:hover {
+        background: #c82333;
+      }
+
+      .section-content {
+        padding: 25px;
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .detail-row {
+        display: flex;
+        margin-bottom: 18px;
+        padding: 15px;
+        border-radius: 10px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.9),
+          rgba(248, 249, 250, 0.5)
+        );
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .detail-row:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 123, 255, 0.05),
+          rgba(248, 249, 250, 0.8)
+        );
+        border-color: rgba(0, 123, 255, 0.2);
+        transform: translateX(5px);
+        box-shadow: 0 3px 10px rgba(0, 123, 255, 0.1);
+      }
+
+      .detail-label {
+        flex: 0 0 42%;
+        font-weight: 700;
+        color: #2c3e50;
+        padding-right: 20px;
+        font-size: 0.95em;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+      }
+
+      .detail-value {
+        flex: 1;
+        color: #495057;
+        font-weight: 500;
+        line-height: 1.5;
+        word-wrap: break-word;
+        background: rgba(255, 255, 255, 0.7);
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+      }
+
+      .detail-input {
+        flex: 1;
+        padding: 8px 12px;
+        border: 2px solid #007bff;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        background: white;
+        transition: all 0.3s ease;
+      }
+
+      .detail-input:focus {
+        outline: none;
+        border-color: #0056b3;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      .detail-select {
+        flex: 1;
+        padding: 8px 12px;
+        border: 2px solid #007bff;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        background: white;
+        transition: all 0.3s ease;
+      }
+
+      .detail-select:focus {
+        outline: none;
+        border-color: #0056b3;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 400px;
+        font-size: 1.2em;
+        color: #6c757d;
+      }
+
+      .error-container {
+        text-align: center;
+        padding: 50px;
+        color: #dc3545;
+      }
+
+      .action-buttons {
+        text-align: center;
+        margin-top: 40px;
+        padding: 30px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+      }
+
+      .btn {
+        margin: 10px 8px;
+        padding: 14px 28px;
+        font-size: 15px;
+        font-weight: 600;
+        min-width: 150px;
+        border-radius: 12px;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.4s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: 2px solid transparent;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #1a5276, #154360);
+        color: white;
+        border: 2px solid #1a5276;
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #154360, #0f2a44);
+        border-color: #0f2a44;
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        border: 2px solid #6c757d;
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        border-color: #495057;
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: 2px solid #28a745;
+      }
+
+      .btn-success:hover {
+        background: linear-gradient(135deg, #20c997, #17a2b8);
+        border-color: #17a2b8;
+      }
+
+      .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        font-weight: 500;
+      }
+
+      .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+      }
+
+      .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+      }
+
+      .alert-info {
+        background-color: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+      }
+
+      @media (max-width: 768px) {
+        .detail-sections {
+          grid-template-columns: 1fr;
+        }
+
+        .detail-row {
+          flex-direction: column;
+        }
+
+        .detail-label {
+          margin-bottom: 5px;
+          padding-right: 0;
+        }
+
+        .section-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <?!= includeNavbar() ?>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Edit Data Siswa</h1>
+        <input type="hidden" id="sessionId" value="<?= sessionId ?>" />
+        <div class="page-date" id="current-date">Memuat tanggal...</div>
+      </div>
+
+      <div class="detail-container">
+        <button class="back-button" onclick="goBack()">
+          🔙 Kembali ke Detail Siswa
+        </button>
+
+        <div class="student-header-card">
+          <h2 id="student-header-name">Memuat informasi siswa...</h2>
+          <div class="student-info" id="student-header-info">
+            <div class="student-info-item" id="student-header-nis"></div>
+            <div class="student-info-item" id="student-header-class"></div>
+          </div>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div id="detail-content">
+          <div class="loading-container">
+            <div>Memuat data siswa untuk diedit...</div>
+          </div>
+        </div>
+
+        <div class="action-buttons" id="action-buttons" style="display: none">
+          <button
+            class="btn btn-success"
+            onclick="saveAllChanges()"
+            title="Simpan semua perubahan"
+          >
+            <span class="btn-icon">💾</span>
+            Simpan Semua Perubahan
+          </button>
+          <button
+            class="btn btn-secondary"
+            onclick="goBack()"
+            title="Kembali tanpa menyimpan"
+          >
+            <span class="btn-icon">↩️</span>
+            Kembali
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentStudentId = null;
+      let originalStudentData = {};
+      let editModeCards = {};
+      let pendingChanges = {};
+
+      // Fungsi untuk toggle sidebar di tampilan mobile
+      function toggleSidebar() {
+        document.body.classList.toggle("sidebar-active");
+      }
+
+      // Fungsi untuk mengupdate tanggal
+      function updateDateTime() {
+        const now = new Date();
+        const options = {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        };
+        document.getElementById("current-date").textContent =
+          now.toLocaleDateString("id-ID", options);
+      }
+
+      // Get session ID
+      function getSessionId() {
+        // First try to get from hidden input
+        const hiddenInput = document.getElementById("sessionId");
+        if (hiddenInput && hiddenInput.value) {
+          return hiddenInput.value;
+        }
+
+        // Fallback to URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("sessionId");
+      }
+
+      // Get student ID from URL parameters or server-side template
+      function getStudentIdFromUrl() {
+        // First try to get from server-side template parameter
+        const serverStudentId =
+          '<?= typeof studentId !== "undefined" ? studentId : "" ?>';
+        if (serverStudentId && serverStudentId !== "") {
+          return serverStudentId;
+        }
+
+        // Fallback to URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlStudentId = urlParams.get("id");
+
+        return urlStudentId;
+      }
+
+      // Go back to student detail
+      function goBack() {
+        const sessionId = getSessionId();
+        const url =
+          "<?= myURL() ?>?page=Student_detail&sessionId=" +
+          encodeURIComponent(sessionId) +
+          "&id=" +
+          encodeURIComponent(currentStudentId);
+        window.location.href = url;
+      }
+
+      // Show alert message
+      function showAlert(message, type = "info") {
+        const alertContainer = document.getElementById("alert-container");
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.innerHTML = message;
+        alertContainer.innerHTML = "";
+        alertContainer.appendChild(alertDiv);
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          alertDiv.remove();
+        }, 5000);
+      }
+
+      // Toggle edit mode for a card
+      function toggleEditMode(cardId) {
+        const isEditing = editModeCards[cardId] || false;
+
+        if (isEditing) {
+          // Save changes for this card
+          saveCardChanges(cardId);
+        } else {
+          // Enter edit mode
+          enterEditMode(cardId);
+        }
+      }
+
+      // Enter edit mode for a card
+      function enterEditMode(cardId) {
+        editModeCards[cardId] = true;
+        const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        const editBtn = card.querySelector(".edit-toggle-btn");
+
+        // Update button
+        editBtn.innerHTML = "💾 Simpan";
+        editBtn.className = "edit-toggle-btn save-mode";
+
+        // Add cancel button
+        const cancelBtn = document.createElement("button");
+        cancelBtn.innerHTML = "❌ Batal";
+        cancelBtn.className = "edit-toggle-btn cancel-mode";
+        cancelBtn.onclick = () => cancelEditMode(cardId);
+        editBtn.parentNode.appendChild(cancelBtn);
+
+        // Convert values to inputs
+        const detailRows = card.querySelectorAll(".detail-row");
+        detailRows.forEach((row) => {
+          const valueElement = row.querySelector(".detail-value");
+          const fieldName = row.getAttribute("data-field");
+
+          if (valueElement && fieldName) {
+            const currentValue = valueElement.textContent.trim();
+            const fieldType = getFieldType(fieldName);
+
+            if (fieldType === "select") {
+              const selectOptions = getSelectOptions(fieldName);
+              const select = document.createElement("select");
+              select.className = "detail-select";
+              select.setAttribute("data-field", fieldName);
+
+              selectOptions.forEach((option) => {
+                const optionElement = document.createElement("option");
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                if (option.value === currentValue) {
+                  optionElement.selected = true;
+                }
+                select.appendChild(optionElement);
+              });
+
+              valueElement.replaceWith(select);
+            } else {
+              const input = document.createElement("input");
+              input.type = fieldType;
+              input.className = "detail-input";
+              input.value = currentValue === "-" ? "" : currentValue;
+              input.setAttribute("data-field", fieldName);
+              valueElement.replaceWith(input);
+            }
+          }
+        });
+      }
+
+      // Cancel edit mode for a card
+      function cancelEditMode(cardId) {
+        editModeCards[cardId] = false;
+        const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
+        const cancelBtn = card.querySelector(".edit-toggle-btn.cancel-mode");
+
+        // Update button
+        editBtn.innerHTML = "✏️ Edit";
+        editBtn.className = "edit-toggle-btn";
+
+        // Remove cancel button
+        if (cancelBtn) {
+          cancelBtn.remove();
+        }
+
+        // Restore original values
+        const detailRows = card.querySelectorAll(".detail-row");
+        detailRows.forEach((row) => {
+          const inputElement = row.querySelector(
+            ".detail-input, .detail-select"
+          );
+          const fieldName = row.getAttribute("data-field");
+
+          if (inputElement && fieldName) {
+            const originalValue = getOriginalValue(fieldName);
+            const valueDiv = document.createElement("div");
+            valueDiv.className = "detail-value";
+            valueDiv.textContent = originalValue || "-";
+            inputElement.replaceWith(valueDiv);
+          }
+        });
+      }
+
+      // Save changes for a specific card
+      function saveCardChanges(cardId) {
+        const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        const inputs = card.querySelectorAll(".detail-input, .detail-select");
+        const changes = {};
+
+        inputs.forEach((input) => {
+          const fieldName = input.getAttribute("data-field");
+          const newValue = input.value.trim();
+          const originalValue = getOriginalValue(fieldName);
+
+          if (newValue !== originalValue) {
+            changes[fieldName] = newValue;
+            pendingChanges[fieldName] = newValue;
+          }
+        });
+
+        if (Object.keys(changes).length > 0) {
+          // Save to server
+          saveChangesToServer(changes, cardId);
+        } else {
+          // No changes, just exit edit mode
+          exitEditMode(cardId);
+        }
+      }
+
+      // Exit edit mode and update display
+      function exitEditMode(cardId) {
+        editModeCards[cardId] = false;
+        const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
+        const cancelBtn = card.querySelector(".edit-toggle-btn.cancel-mode");
+
+        // Update button
+        editBtn.innerHTML = "✏️ Edit";
+        editBtn.className = "edit-toggle-btn";
+
+        // Remove cancel button
+        if (cancelBtn) {
+          cancelBtn.remove();
+        }
+
+        // Convert inputs back to values
+        const detailRows = card.querySelectorAll(".detail-row");
+        detailRows.forEach((row) => {
+          const inputElement = row.querySelector(
+            ".detail-input, .detail-select"
+          );
+          const fieldName = row.getAttribute("data-field");
+
+          if (inputElement && fieldName) {
+            const currentValue =
+              pendingChanges[fieldName] || getOriginalValue(fieldName);
+            const valueDiv = document.createElement("div");
+            valueDiv.className = "detail-value";
+            valueDiv.textContent = currentValue || "-";
+            inputElement.replaceWith(valueDiv);
+          }
+        });
+      }
+
+      // Get field type for input
+      function getFieldType(fieldName) {
+        const selectFields = [
+          "Jenis Kelamin",
+          "Agama",
+          "Kewarganegaraan",
+          "Status Orang Tua",
+          "Status Akademik",
+        ];
+        const dateFields = [
+          "Tanggal Lahir",
+          "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan",
+        ];
+
+        if (selectFields.includes(fieldName)) {
+          return "select";
+        } else if (dateFields.includes(fieldName)) {
+          return "date";
+        } else {
+          return "text";
+        }
+      }
+
+      // Get select options for dropdown fields
+      function getSelectOptions(fieldName) {
+        const options = {
+          "Jenis Kelamin": [
+            { value: "", text: "Pilih Jenis Kelamin" },
+            { value: "Laki-laki", text: "Laki-laki" },
+            { value: "Perempuan", text: "Perempuan" },
+          ],
+          Agama: [
+            { value: "", text: "Pilih Agama" },
+            { value: "Islam", text: "Islam" },
+            { value: "Kristen", text: "Kristen" },
+            { value: "Katolik", text: "Katolik" },
+            { value: "Hindu", text: "Hindu" },
+            { value: "Buddha", text: "Buddha" },
+            { value: "Konghucu", text: "Konghucu" },
+          ],
+          Kewarganegaraan: [
+            { value: "", text: "Pilih Kewarganegaraan" },
+            {
+              value: "WNI (Warga Negara Indonesia)",
+              text: "WNI (Warga Negara Indonesia)",
+            },
+            {
+              value: "WNA (Warga Negara Asing)",
+              text: "WNA (Warga Negara Asing)",
+            },
+          ],
+          "Status Orang Tua": [
+            { value: "", text: "Pilih Status" },
+            { value: "Lengkap", text: "Lengkap" },
+            { value: "Yatim", text: "Yatim" },
+            { value: "Piatu", text: "Piatu" },
+            { value: "Yatim Piatu", text: "Yatim Piatu" },
+          ],
+          "Status Akademik": [
+            { value: "", text: "Pilih Status" },
+            { value: "Aktif", text: "Aktif" },
+            { value: "Lulus", text: "Lulus" },
+            { value: "Mutasi", text: "Mutasi" },
+            { value: "Keluar", text: "Keluar" },
+          ],
+        };
+
+        return options[fieldName] || [];
+      }
+
+      // Get original value for a field
+      function getOriginalValue(fieldName) {
+        return originalStudentData[fieldName] || "";
+      }
+
+      // Save changes to server
+      function saveChangesToServer(changes, cardId) {
+        const sessionId = getSessionId();
+
+        // Show loading state
+        const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
+        const originalText = editBtn.innerHTML;
+        editBtn.innerHTML = "⏳ Menyimpan...";
+        editBtn.disabled = true;
+
+        // Prepare data for server
+        const updateData = {
+          studentId: currentStudentId,
+          changes: changes,
+        };
+
+        google.script.run
+          .withSuccessHandler(function (result) {
+            editBtn.innerHTML = originalText;
+            editBtn.disabled = false;
+
+            if (result.success) {
+              showAlert("✅ Data berhasil disimpan!", "success");
+
+              // Update original data
+              Object.keys(changes).forEach((key) => {
+                originalStudentData[key] = changes[key];
+              });
+
+              exitEditMode(cardId);
+            } else {
+              showAlert(
+                "❌ Gagal menyimpan data: " + (result.error || "Unknown error"),
+                "danger"
+              );
+            }
+          })
+          .withFailureHandler(function (error) {
+            editBtn.innerHTML = originalText;
+            editBtn.disabled = false;
+            showAlert(
+              "❌ Terjadi kesalahan saat menyimpan: " + error.message,
+              "danger"
+            );
+          })
+          .updateStudentData(updateData, sessionId);
+      }
+
+      // Save all pending changes
+      function saveAllChanges() {
+        if (Object.keys(pendingChanges).length === 0) {
+          showAlert("ℹ️ Tidak ada perubahan untuk disimpan.", "info");
+          return;
+        }
+
+        const sessionId = getSessionId();
+        const updateData = {
+          studentId: currentStudentId,
+          changes: pendingChanges,
+        };
+
+        // Show loading state
+        const saveBtn = document.querySelector(".btn-success");
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<span class="btn-icon">⏳</span>Menyimpan...';
+        saveBtn.disabled = true;
+
+        google.script.run
+          .withSuccessHandler(function (result) {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+
+            if (result.success) {
+              showAlert("✅ Semua perubahan berhasil disimpan!", "success");
+
+              // Update original data
+              Object.keys(pendingChanges).forEach((key) => {
+                originalStudentData[key] = pendingChanges[key];
+              });
+
+              // Clear pending changes
+              pendingChanges = {};
+
+              // Exit all edit modes
+              Object.keys(editModeCards).forEach((cardId) => {
+                if (editModeCards[cardId]) {
+                  exitEditMode(cardId);
+                }
+              });
+            } else {
+              showAlert(
+                "❌ Gagal menyimpan data: " + (result.error || "Unknown error"),
+                "danger"
+              );
+            }
+          })
+          .withFailureHandler(function (error) {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+            showAlert(
+              "❌ Terjadi kesalahan saat menyimpan: " + error.message,
+              "danger"
+            );
+          })
+          .updateStudentData(updateData, sessionId);
+      }
+
+      // Load student data for editing
+      function loadStudentForEdit(studentId) {
+        if (!studentId) {
+          showError("ID siswa tidak ditemukan");
+          return;
+        }
+
+        currentStudentId = studentId;
+        const sessionId = getSessionId();
+
+        // Show loading indicator
+        document.getElementById("detail-content").innerHTML = `
+          <div class="loading-container" style="text-align: center; padding: 50px;">
+            <div style="font-size: 18px; color: #666;">Memuat data siswa untuk diedit...</div>
+            <div style="margin-top: 10px; font-size: 14px; color: #999;">NIS: ${studentId}</div>
+          </div>
+        `;
+
+        google.script.run
+          .withSuccessHandler(function (student) {
+            if (!student) {
+              showError("Data siswa tidak ditemukan");
+              return;
+            }
+
+            originalStudentData = { ...student };
+            renderStudentEditForm(student);
+          })
+          .withFailureHandler(function (error) {
+            console.error("Error loading student data:", error);
+            showError("Gagal memuat data siswa: " + error.message);
+          })
+          .getStudentById(studentId, sessionId);
+      }
+
+      // Show error message
+      function showError(message) {
+        document.getElementById("detail-content").innerHTML = `
+          <div class="error-container">
+            <h3>Error</h3>
+            <p>${message}</p>
+            <button class="btn btn-primary" onclick="goBack()">Kembali</button>
+          </div>
+        `;
+      }
+
+      // Render student edit form
+      function renderStudentEditForm(student) {
+        try {
+          // Update header card
+          document.getElementById("student-header-name").textContent =
+            student["Nama Siswa"] || student.nama || "Nama tidak tersedia";
+
+          document.getElementById("student-header-nis").textContent = `NIS: ${
+            student.NIS || student.nis || "-"
+          }`;
+
+          document.getElementById(
+            "student-header-class"
+          ).textContent = `NISN: ${student.NISN || student.nisn || "-"}`;
+
+          // Render edit sections
+          const detailContent = document.getElementById("detail-content");
+          detailContent.innerHTML = `
+            <div class="detail-sections">
+              <!-- Data Identitas -->
+              <div class="detail-section" data-card-id="identitas">
+                <div class="section-header">
+                  <h3 class="section-title" data-section="identitas">Data Identitas</h3>
+                  <button class="edit-toggle-btn" onclick="toggleEditMode('identitas')">
+                    ✏️ Edit
+                  </button>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row" data-field="NIS">
+                    <div class="detail-label">NIS</div>
+                    <div class="detail-value">${
+                      student.NIS || student.nis || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="NISN">
+                    <div class="detail-label">NISN</div>
+                    <div class="detail-value">${
+                      student.NISN || student.nisn || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Nama Siswa">
+                    <div class="detail-label">Nama Lengkap</div>
+                    <div class="detail-value">${
+                      student["Nama Siswa"] || student.nama || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Jenis Kelamin">
+                    <div class="detail-label">Jenis Kelamin</div>
+                    <div class="detail-value">${
+                      student["Jenis Kelamin"] || student.gender || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="NIK">
+                    <div class="detail-label">NIK</div>
+                    <div class="detail-value">${
+                      student["NIK"] || student.nik || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Tempat Lahir">
+                    <div class="detail-label">Tempat Lahir</div>
+                    <div class="detail-value">${
+                      student["Tempat Lahir"] || student.birthplace || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Tanggal Lahir">
+                    <div class="detail-label">Tanggal Lahir</div>
+                    <div class="detail-value">${
+                      student["Tanggal Lahir"] || student.birthdate || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Agama">
+                    <div class="detail-label">Agama</div>
+                    <div class="detail-value">${
+                      student["Agama"] || student.agama || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Kewarganegaraan">
+                    <div class="detail-label">Kewarganegaraan</div>
+                    <div class="detail-value">${
+                      student["Kewarganegaraan"] ||
+                      student.kewarganegaraan ||
+                      "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Alamat -->
+              <div class="detail-section" data-card-id="alamat">
+                <div class="section-header">
+                  <h3 class="section-title" data-section="alamat">Data Alamat</h3>
+                  <button class="edit-toggle-btn" onclick="toggleEditMode('alamat')">
+                    ✏️ Edit
+                  </button>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row" data-field="Alamat Lengkap">
+                    <div class="detail-label">Alamat Lengkap</div>
+                    <div class="detail-value">${
+                      student["Alamat Lengkap"] || student.alamat || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="RT/RW">
+                    <div class="detail-label">RT</div>
+                    <div class="detail-value">${student["RT/RW"] || "-"}</div>
+                  </div>
+                  <div class="detail-row" data-field="Nama Dusun">
+                    <div class="detail-label">Nama Dusun</div>
+                    <div class="detail-value">${
+                      student["Nama Dusun"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Kelurahan/Desa">
+                    <div class="detail-label">Kelurahan/Desa</div>
+                    <div class="detail-value">${
+                      student["Nama Desa/Kelurahan  "] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Kecamatan">
+                    <div class="detail-label">Kecamatan</div>
+                    <div class="detail-value">${
+                      student["Kecamatan"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Kabupaten/Kota">
+                    <div class="detail-label">Kabupaten/Kota</div>
+                    <div class="detail-value">${
+                      student["Kabupaten/Kota"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Provinsi">
+                    <div class="detail-label">Provinsi</div>
+                    <div class="detail-value">${
+                      student["Provinsi"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Kode Pos">
+                    <div class="detail-label">Kode Pos</div>
+                    <div class="detail-value">${
+                      student["Kode Pos"] || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Pendidikan -->
+              <div class="detail-section" data-card-id="pendidikan">
+                <div class="section-header">
+                  <h3 class="section-title" data-section="pendidikan">Data Pendidikan</h3>
+                  <button class="edit-toggle-btn" onclick="toggleEditMode('pendidikan')">
+                    ✏️ Edit
+                  </button>
+                </div>
+                <div class="section-content">
+                  <div class="detail-row" data-field="Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan">
+                    <div class="detail-label">Tanggal Diterima</div>
+                    <div class="detail-value">${
+                      student[
+                        "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"
+                      ] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Status Akademik">
+                    <div class="detail-label">Status Akademik</div>
+                    <div class="detail-value">${
+                      student["Status Akademik"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Asal Sekolah">
+                    <div class="detail-label">Asal Sekolah</div>
+                    <div class="detail-value">${
+                      student["Asal Sekolah"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Alamat Asal Sekolah">
+                    <div class="detail-label">Alamat Asal Sekolah</div>
+                    <div class="detail-value">${
+                      student["Alamat Asal Sekolah"] || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Data Orang Tua -->
+              <div class="detail-section" data-card-id="orangtua">
+                <div class="section-header">
+                  <h3 class="section-title" data-section="ayah">Data Orang Tua</h3>
+                  <button class="edit-toggle-btn" onclick="toggleEditMode('orangtua')">
+                    ✏️ Edit
+                  </button>
+                </div>
+                <div class="section-content">
+                  <h4 style="color: #1a5276; margin-bottom: 15px;">👨 Data Ayah</h4>
+                  <div class="detail-row" data-field="Nama Ayah">
+                    <div class="detail-label">Nama Ayah</div>
+                    <div class="detail-value">${
+                      student["Nama Ayah"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Pekerjaan Ayah">
+                    <div class="detail-label">Pekerjaan Ayah</div>
+                    <div class="detail-value">${
+                      student["Pekerjaan Ayah"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Penghasilan Ayah">
+                    <div class="detail-label">Penghasilan Ayah</div>
+                    <div class="detail-value">${
+                      student["Penghasilan Ayah"] || "-"
+                    }</div>
+                  </div>
+
+                  <h4 style="color: #1a5276; margin: 25px 0 15px 0;">👩 Data Ibu</h4>
+                  <div class="detail-row" data-field="Nama Ibu">
+                    <div class="detail-label">Nama Ibu</div>
+                    <div class="detail-value">${
+                      student["Nama Ibu"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Pekerjaan Ibu">
+                    <div class="detail-label">Pekerjaan Ibu</div>
+                    <div class="detail-value">${
+                      student["Pekerjaan Ibu"] || "-"
+                    }</div>
+                  </div>
+                  <div class="detail-row" data-field="Penghasilan Ibu">
+                    <div class="detail-label">Penghasilan Ibu</div>
+                    <div class="detail-value">${
+                      student["Penghasilan Ibu"] || "-"
+                    }</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          // Show action buttons
+          document.getElementById("action-buttons").style.display = "block";
+        } catch (error) {
+          console.error("Error rendering edit form:", error);
+          showError("Gagal menampilkan form edit: " + error.message);
+        }
+      }
+
+      // Initialize page
+      document.addEventListener("DOMContentLoaded", function () {
+        updateDateTime();
+        setInterval(updateDateTime, 60000);
+
+        const studentId = getStudentIdFromUrl();
+        if (studentId) {
+          loadStudentForEdit(studentId);
+        } else {
+          showError("ID siswa tidak ditemukan di URL");
+        }
+      });
+    </script>
+  </body>
+</html>
