@@ -1,4 +1,5 @@
 <!-- CSS_Students.html -->
+
 <style>
   * {
     box-sizing: border-box;
@@ -143,7 +144,7 @@
     top: 10px;
     left: 10px;
     z-index: 1001;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 20px;
   }
@@ -295,7 +296,7 @@
   }
 
   .btn-primary:hover {
-    background-color: #2980b9;
+    background-color: #3498db;
   }
 
   .btn-secondary {
@@ -322,7 +323,7 @@
   }
 
   .btn-warning:hover {
-    background-color: #f39c12;
+    background-color: #f1c40f;
   }
 
   .btn-danger {
@@ -437,16 +438,32 @@
     font-size: 12px;
   }
 
+  .btn-view {
+    text-decoration: none !important;
+  }
+
+  .btn-view:hover {
+    text-decoration: none !important;
+  }
+
   .btn-view:before {
     content: "👁️";
   }
 
-  .btn-pdf:before {
-    content: "📃";
+  .btn-edit {
+    text-decoration: none !important;
+  }
+
+  .btn-edit:hover {
+    text-decoration: none !important;
   }
 
   .btn-edit:before {
     content: "✏️";
+  }
+
+  .btn-pdf:before {
+    content: "📃";
   }
 
   .btn-delete:before {
@@ -613,7 +630,6 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1010;
@@ -662,6 +678,196 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+  }
+
+  /* Preview Styles for Batch Graduation */
+  .preview-box {
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .preview-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: white;
+    border-radius: 8px;
+    border-left: 4px solid #3498db;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preview-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    border-left-color: #2980b9;
+  }
+
+  .preview-item::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.02), transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .preview-item:hover::before {
+    opacity: 1;
+  }
+
+  .preview-student-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .preview-number {
+    background: linear-gradient(135deg, #3498db, #1a5276);
+    color: white;
+    font-weight: 600;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+  }
+
+  .preview-student-details {
+    flex: 1;
+  }
+
+  .preview-student-name {
+    font-weight: 600;
+    color: #1a5276;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .preview-student-id {
+    font-size: 12px;
+    color: #7f8c8d;
+    font-family: 'Courier New', monospace;
+  }
+
+  .preview-student-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .preview-gender {
+    background: #f8f9fa;
+    color: #34495e;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 11px;
+  }
+
+  .preview-status {
+    background: rgba(46, 204, 113, 0.1);
+    color: #27ae60;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 11px;
+  }
+
+  .preview-year {
+    background: rgba(241, 196, 15, 0.1);
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid #ffeaa7;
+  }
+
+  .preview-summary {
+    padding: 15px 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #e0e0e0;
+    margin-top: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+
+  .text-success {
+    color: #27ae60 !important;
+  }
+
+  .text-warning {
+    color: #f39c12 !important;
+  }
+
+  .text-muted {
+    color: #7f8c8d !important;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  /* Filter Options */
+  .filter-option {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 15px;
+  }
+
+  .form-col-6 {
+    flex: 1;
+  }
+
+  /* Alert Styles */
+  .alert {
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
+
+  .alert-info {
+    background-color: rgba(52, 152, 219, 0.1);
+    border: 1px solid #b8daff;
+    color: #0c5460;
+  }
+
+  .icon-info-circle {
+    margin-right: 5px;
   }
 
   .form-row {
@@ -804,7 +1010,7 @@
     border-radius: 4px;
     padding: 10px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
+    background-color: #f8f9fa;
   }
 
   .preview-item {
@@ -835,6 +1041,283 @@
 
   .icon-info-circle {
     margin-right: 5px;
+  }
+
+  body.navigating {
+    cursor: wait;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .disabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  /* Loading indicator styles */
+  .btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .fa-spinner {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Search input loading state */
+  .form-control[style*="opacity: 0.7"] {
+    transition: opacity 0.3s ease;
+  }
+
+  /* Enhanced search button styles */
+  .btn-search {
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .btn-search:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-search:disabled {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Real-time search feedback */
+  .search-box {
+    position: relative;
+  }
+
+  .search-box::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(26, 82, 118, 0.1),
+      transparent
+    );
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .search-box.searching::after {
+    opacity: 1;
+    animation: searchPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes searchPulse {
+    0% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Enhanced Preview Styles */
+  .preview-statistics {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+  }
+
+  .stat-item {
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  .stat-details {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stat-badge {
+    background: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #e0e0e0;
+    color: #1a5276;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .preview-content {
+    flex: 1;
+    margin-right: 10px;
+  }
+
+  .preview-year {
+    font-size: 12px;
+    color: #7f8c8d;
+    margin-left: auto;
+  }
+
+  /* Progress Modal Styles */
+  #progress-modal {
+    z-index: 1020;
+  }
+
+  #progress-modal .modal {
+    animation: modalSlideIn 0.3s ease-out;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Enhanced notification styles */
+  .notification {
+    animation: slideInRight 0.3s ease-out;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  /* Responsive enhancements for new features */
+  @media (max-width: 768px) {
+    .stat-details {
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .preview-box {
+      padding: 15px;
+      max-height: 280px;
+    }
+
+    .preview-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .preview-student-info {
+      width: 100%;
+      gap: 8px;
+    }
+
+    .preview-student-meta {
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .preview-year {
+      margin-left: 0;
+      align-self: flex-end;
+    }
+
+    .preview-number {
+      min-width: 25px;
+      height: 25px;
+      font-size: 11px;
+    }
+
+    .preview-student-name {
+      font-size: 13px;
+    }
+
+    .preview-student-id {
+      font-size: 11px;
+    }
+
+    .preview-summary {
+      padding: 12px 15px;
+      font-size: 14px;
+    }
+
+    #progress-modal .modal {
+      margin: 10px;
+      max-width: calc(100% - 20px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .preview-box {
+      padding: 12px;
+      max-height: 250px;
+    }
+
+    .preview-item {
+      padding: 8px 10px;
+      gap: 6px;
+    }
+
+    .preview-student-info {
+      gap: 6px;
+    }
+
+    .preview-number {
+      min-width: 22px;
+      height: 22px;
+      font-size: 10px;
+    }
+
+    .preview-student-name {
+      font-size: 12px;
+    }
+
+    .preview-student-id {
+      font-size: 10px;
+    }
+
+    .preview-gender,
+    .preview-status {
+      padding: 1px 6px;
+      font-size: 10px;
+    }
+
+    .preview-year {
+      padding: 3px 6px;
+      font-size: 10px;
+    }
+
+    .preview-summary {
+      padding: 10px 12px;
+      font-size: 13px;
+    }
   }
 
   body.navigating {

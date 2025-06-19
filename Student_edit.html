@@ -65,7 +65,7 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #007bff, #0056b3, #007bff);
+        background: linear-gradient(90deg, #1a5276, #154360, #1a5276);
         background-size: 200% 100%;
         animation: shimmer 3s ease-in-out infinite;
       }
@@ -200,11 +200,11 @@
       }
 
       .edit-toggle-btn {
-        background: #28a745;
+        background: #2ecc71;
         color: white;
         border: none;
         padding: 8px 16px;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         font-size: 12px;
         font-weight: 500;
@@ -215,25 +215,25 @@
       }
 
       .edit-toggle-btn:hover {
-        background: #218838;
+        background: #27ae60;
         transform: scale(1.05);
       }
 
       .edit-toggle-btn.save-mode {
-        background: #007bff;
+        background: #3498db;
       }
 
       .edit-toggle-btn.save-mode:hover {
-        background: #0056b3;
+        background: #2980b9;
       }
 
       .edit-toggle-btn.cancel-mode {
-        background: #dc3545;
+        background: #e74c3c;
         margin-left: 8px;
       }
 
       .edit-toggle-btn.cancel-mode:hover {
-        background: #c82333;
+        background: #c0392b;
       }
 
       .section-content {
@@ -383,25 +383,25 @@
       }
 
       .btn-secondary {
-        background: linear-gradient(135deg, #6c757d, #5a6268);
+        background: linear-gradient(135deg, #95a5a6, #7f8c8d);
         color: white;
         border: 2px solid #6c757d;
       }
 
       .btn-secondary:hover {
-        background: linear-gradient(135deg, #5a6268, #495057);
+        background: linear-gradient(135deg, #7f8c8d, #95a5a6);
         border-color: #495057;
       }
 
       .btn-success {
-        background: linear-gradient(135deg, #28a745, #20c997);
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
         color: white;
         border: 2px solid #28a745;
       }
 
       .btn-success:hover {
-        background: linear-gradient(135deg, #20c997, #17a2b8);
-        border-color: #17a2b8;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        border-color: #27ae60;
       }
 
       .alert {
@@ -492,14 +492,16 @@
             <span class="btn-icon">💾</span>
             Simpan Semua Perubahan
           </button>
-          <button
+          <a
+            href="#"
             class="btn btn-secondary"
             onclick="goBack()"
             title="Kembali tanpa menyimpan"
+            id="back-to-detail-btn"
           >
             <span class="btn-icon">↩️</span>
             Kembali
-          </button>
+          </a>
         </div>
       </div>
     </div>
@@ -751,14 +753,49 @@
       function getFieldType(fieldName) {
         const selectFields = [
           "Jenis Kelamin",
+          "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan",
           "Agama",
+          "Agama Ayah",
+          "Agama Ibu",
+          "Agama Wali Murid",
           "Kewarganegaraan",
+          "Kewarganegaraan Ayah",
+          "Kewarganegaraan Ibu",
+          "Kewarganegaraan Wali",
           "Status Orang Tua",
           "Status Akademik",
+          "Pendidikan Terakhir Ayah",
+          "Pendidikan Terakhir Ibu",
+          "Pendidikan Terakhir Wali",
+          "Penghasilan Bulanan Ayah",
+          "Penghasilan Bulanan Ibu",
+          "Penghasilan Bulanan Wali",
+          "Status Ayah",
+          "Status Ibu",
+          "Status Wali",
+
+          "Jenis Prestasi",
+          "Jenis Prestasi (2)",
+          "Jenis Prestasi (3)",
+          "Jenis Prestasi (4)",
+          "Jenis Prestasi (5)",
+          "Tingkat Prestasi",
+          "Tingkat Prestasi (2)",
+          "Tingkat Prestasi (3)",
+          "Tingkat Prestasi (4)",
+          "Tingkat Prestasi (5)",
+
+          "Jenis Beasiswa",
+          "Jenis Beasiswa (2)",
+          "Jenis Beasiswa (3)",
         ];
         const dateFields = [
           "Tanggal Lahir",
           "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan",
+          "Tanggal Lulus SD/MI",
+          "Tempat dan Tanggal Lahir Ayah",
+          "Tempat dan Tanggal Lahir Ibu",
+          "Tempat dan Tanggal Lahir Wali",
         ];
 
         if (selectFields.includes(fieldName)) {
@@ -778,6 +815,12 @@
             { value: "Laki-laki", text: "Laki-laki" },
             { value: "Perempuan", text: "Perempuan" },
           ],
+          "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan": [
+            { value: "", text: "Pilih Kelas" },
+            { value: "VII", text: "VII" },
+            { value: "VIII", text: "VIII" },
+            { value: "IX", text: "IX" },
+          ],
           Agama: [
             { value: "", text: "Pilih Agama" },
             { value: "Islam", text: "Islam" },
@@ -787,7 +830,67 @@
             { value: "Buddha", text: "Buddha" },
             { value: "Konghucu", text: "Konghucu" },
           ],
+          "Agama Ayah": [
+            { value: "", text: "Pilih Agama" },
+            { value: "Islam", text: "Islam" },
+            { value: "Kristen", text: "Kristen" },
+            { value: "Katolik", text: "Katolik" },
+            { value: "Hindu", text: "Hindu" },
+            { value: "Buddha", text: "Buddha" },
+            { value: "Konghucu", text: "Konghucu" },
+          ],
+          "Agama Ibu": [
+            { value: "", text: "Pilih Agama" },
+            { value: "Islam", text: "Islam" },
+            { value: "Kristen", text: "Kristen" },
+            { value: "Katolik", text: "Katolik" },
+            { value: "Hindu", text: "Hindu" },
+            { value: "Buddha", text: "Buddha" },
+            { value: "Konghucu", text: "Konghucu" },
+          ],
+          "Agama Wali": [
+            { value: "", text: "Pilih Agama" },
+            { value: "Islam", text: "Islam" },
+            { value: "Kristen", text: "Kristen" },
+            { value: "Katolik", text: "Katolik" },
+            { value: "Hindu", text: "Hindu" },
+            { value: "Buddha", text: "Buddha" },
+            { value: "Konghucu", text: "Konghucu" },
+          ],
           Kewarganegaraan: [
+            { value: "", text: "Pilih Kewarganegaraan" },
+            {
+              value: "WNI (Warga Negara Indonesia)",
+              text: "WNI (Warga Negara Indonesia)",
+            },
+            {
+              value: "WNA (Warga Negara Asing)",
+              text: "WNA (Warga Negara Asing)",
+            },
+          ],
+          "Kewarganegaraan Ayah": [
+            { value: "", text: "Pilih Kewarganegaraan" },
+            {
+              value: "WNI (Warga Negara Indonesia)",
+              text: "WNI (Warga Negara Indonesia)",
+            },
+            {
+              value: "WNA (Warga Negara Asing)",
+              text: "WNA (Warga Negara Asing)",
+            },
+          ],
+          "Kewarganegaraan Ibu": [
+            { value: "", text: "Pilih Kewarganegaraan" },
+            {
+              value: "WNI (Warga Negara Indonesia)",
+              text: "WNI (Warga Negara Indonesia)",
+            },
+            {
+              value: "WNA (Warga Negara Asing)",
+              text: "WNA (Warga Negara Asing)",
+            },
+          ],
+          "Kewarganegaraan Wali": [
             { value: "", text: "Pilih Kewarganegaraan" },
             {
               value: "WNI (Warga Negara Indonesia)",
@@ -1017,7 +1120,7 @@
                     }</div>
                   </div>
                   <div class="detail-row" data-field="Nama Siswa">
-                    <div class="detail-label">Nama Lengkap</div>
+                    <div class="detail-label">Nama Siswa</div>
                     <div class="detail-value">${
                       student["Nama Siswa"] || student.nama || "-"
                     }</div>
@@ -1088,7 +1191,7 @@
                       student["Nama Dusun"] || "-"
                     }</div>
                   </div>
-                  <div class="detail-row" data-field="Kelurahan/Desa">
+                  <div class="detail-row" data-field="Nama Desa/Kelurahan">
                     <div class="detail-label">Kelurahan/Desa</div>
                     <div class="detail-value">${
                       student["Nama Desa/Kelurahan  "] || "-"
@@ -1214,6 +1317,19 @@
 
           // Show action buttons
           document.getElementById("action-buttons").style.display = "block";
+
+          // Setup back button href (Opsi 1 - like navbar approach)
+          const backButton = document.querySelector("#back-to-detail-btn");
+          if (backButton && currentStudentId) {
+            const sessionId = getSessionId();
+            if (sessionId) {
+              backButton.href =
+                "<?= myURL() ?>?page=Student_detail&sessionId=" +
+                encodeURIComponent(sessionId) +
+                "&id=" +
+                encodeURIComponent(currentStudentId);
+            }
+          }
         } catch (error) {
           console.error("Error rendering edit form:", error);
           showError("Gagal menampilkan form edit: " + error.message);

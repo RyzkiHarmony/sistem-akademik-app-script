@@ -476,6 +476,10 @@ let studentColumnMap = null;
 // Function to get all students with optional filtering, sorting, and pagination
 function getAllStudents(options = {}) {
   try {
+    Logger.log(
+      "getAllStudents called with options: " + JSON.stringify(options)
+    );
+
     // Default options
     const defaultOptions = {
       searchQuery: "",
@@ -488,19 +492,36 @@ function getAllStudents(options = {}) {
       fieldsToReturn: [], // Kolom yang ingin dikembalikan (kosong = semua kolom)
     };
 
+    Logger.log("Default options: " + JSON.stringify(defaultOptions));
+
     // Merge default options with provided options
     options = { ...defaultOptions, ...options };
+    Logger.log("Final merged options: " + JSON.stringify(options));
 
     // Access the spreadsheet
+    Logger.log(
+      "Attempting to open spreadsheet with ID: " + BUKU_INDUK_SPREADSHEET_ID
+    );
     const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    Logger.log("Spreadsheet opened successfully");
+
     let studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+    Logger.log("Students sheet accessed: " + STUDENTS_SHEET_NAME);
 
     // Get all data from the sheet
     const dataRange = studentsSheet.getDataRange();
+    Logger.log("Data range obtained: " + dataRange.getA1Notation());
+
     const values = dataRange.getValues();
+    Logger.log("Total rows read from sheet: " + values.length);
+
+    if (values.length > 0) {
+      Logger.log("First row (headers): " + JSON.stringify(values[0]));
+    }
 
     // Return empty array if only header or no data
     if (values.length <= 1) {
+      Logger.log("No student data found (only headers or empty sheet)");
       return {
         students: [],
         totalCount: 0,
@@ -511,10 +532,14 @@ function getAllStudents(options = {}) {
 
     // Extract the header row and initialize column map
     const headers = values[0];
+    Logger.log("Headers extracted: " + JSON.stringify(headers));
+
     initializeColumnMap(headers);
+    Logger.log("Column map initialized successfully");
 
     // Process data rows into student objects
     let students = [];
+    Logger.log("Starting to process " + (values.length - 1) + " student rows");
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
 
@@ -528,8 +553,6 @@ function getAllStudents(options = {}) {
         rowIndex: i + 1, // Store the actual sheet row index for later use in updates
       };
 
-      // Jika fieldsToReturn kosong, ambil semua kolom
-      // Jika tidak, hanya ambil kolom yang diminta
       if (options.fieldsToReturn && options.fieldsToReturn.length > 0) {
         // Hanya ambil kolom yang diminta
         options.fieldsToReturn.forEach((field) => {
@@ -685,9 +708,11 @@ function getAllStudents(options = {}) {
       students.push(student);
     }
 
+    Logger.log("Total students processed: " + students.length);
+
     // Apply search filter if provided
     if (options.searchQuery) {
-      const query = options.searchQuery.toLowerCase();
+      const query = options.searchQuery.toLowerCase().trim();
       Logger.log("Applying search filter with query: '" + query + "'");
       Logger.log("Total students before filter: " + students.length);
 
@@ -704,26 +729,61 @@ function getAllStudents(options = {}) {
       }
 
       students = students.filter((student) => {
-        // For NIS search, use exact match when query is numeric
+        // Improved search logic - more flexible matching
         const isNumericQuery = /^\d+$/.test(query);
 
+        // Helper function for fuzzy matching
+        function fuzzyMatch(text, searchQuery) {
+          if (!text) return false;
+          const textLower = text.toString().toLowerCase();
+
+          // Direct substring match
+          if (textLower.includes(searchQuery)) {
+            return true;
+          }
+
+          // For numeric queries, also try partial matching from start
+          if (isNumericQuery && textLower.startsWith(searchQuery)) {
+            return true;
+          }
+
+          // Split search query into words for multi-word search
+          const queryWords = searchQuery
+            .split(/\s+/)
+            .filter((word) => word.length > 0);
+          if (queryWords.length > 1) {
+            return queryWords.every((word) => textLower.includes(word));
+          }
+
+          return false;
+        }
+
+        // Search in multiple fields with improved logic
         let nisMatch = false;
         if (student.nis) {
+          const nisStr = student.nis.toString();
           if (isNumericQuery) {
-            // Exact match for numeric NIS
-            nisMatch = student.nis.toString() === query;
+            // For numeric queries, allow partial match from start or exact match
+            nisMatch = nisStr.startsWith(query) || nisStr === query;
           } else {
-            // Partial match for non-numeric search
-            nisMatch = student.nis.toString().toLowerCase().includes(query);
+            // For non-numeric, use fuzzy matching
+            nisMatch = fuzzyMatch(nisStr, query);
           }
         }
 
-        const namaMatch =
-          student.nama && student.nama.toLowerCase().includes(query);
-        const nisnMatch =
-          student.nisn && student.nisn.toString().toLowerCase().includes(query);
+        // Search in name with fuzzy matching
+        const namaMatch = student.nama && fuzzyMatch(student.nama, query);
 
-        const isMatch = nisMatch || namaMatch || nisnMatch;
+        // Search in NISN with improved matching
+        const nisnMatch = student.nisn && fuzzyMatch(student.nisn, query);
+
+        // Additional search fields for better results
+        const nikMatch = student.nik && fuzzyMatch(student.nik, query);
+        const tempatLahirMatch =
+          student.birthplace && fuzzyMatch(student.birthplace, query);
+
+        const isMatch =
+          nisMatch || namaMatch || nisnMatch || nikMatch || tempatLahirMatch;
 
         if (isMatch) {
           Logger.log(
@@ -782,12 +842,25 @@ function getAllStudents(options = {}) {
     }
 
     // Return data dengan informasi pagination
-    return {
+    const result = {
       students: students,
       totalCount: totalCount,
       totalPages: totalPages,
       currentPage: options.page,
     };
+
+    Logger.log(
+      "Returning result: students=" +
+        students.length +
+        ", totalCount=" +
+        totalCount +
+        ", totalPages=" +
+        totalPages +
+        ", currentPage=" +
+        options.page
+    );
+
+    return result;
   } catch (error) {
     Logger.log("Error in getAllStudents: " + error.message);
     throw new Error("Gagal mendapatkan data siswa: " + error.message);
@@ -1149,7 +1222,7 @@ function getStudentById(nisId, sessionId) {
 function updateStudentData(updateData, sessionId) {
   try {
     Logger.log("=== updateStudentData called ===");
-    Logger.log('- updateData: ' + JSON.stringify(updateData));
+    Logger.log("- updateData: " + JSON.stringify(updateData));
     Logger.log('- sessionId: "' + sessionId + '"');
 
     // Validate session
@@ -1171,7 +1244,7 @@ function updateStudentData(updateData, sessionId) {
     }
 
     Logger.log('Updating student with NIS: "' + studentId + '"');
-    Logger.log('Changes: ' + JSON.stringify(changes));
+    Logger.log("Changes: " + JSON.stringify(changes));
 
     // Open spreadsheet
     const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
@@ -1209,7 +1282,7 @@ function updateStudentData(updateData, sessionId) {
       throw new Error('Siswa dengan NIS "' + studentId + '" tidak ditemukan');
     }
 
-    Logger.log('Student found at row: ' + (studentRowIndex + 1));
+    Logger.log("Student found at row: " + (studentRowIndex + 1));
 
     // Update the data
     let updatedFields = [];
@@ -1218,110 +1291,61 @@ function updateStudentData(updateData, sessionId) {
       if (columnIndex !== -1) {
         const oldValue = values[studentRowIndex][columnIndex];
         const newValue = changes[fieldName];
-        
+
         // Update the cell
-        studentsSheet.getRange(studentRowIndex + 1, columnIndex + 1).setValue(newValue);
-        
+        studentsSheet
+          .getRange(studentRowIndex + 1, columnIndex + 1)
+          .setValue(newValue);
+
         updatedFields.push({
           field: fieldName,
           oldValue: oldValue,
-          newValue: newValue
+          newValue: newValue,
         });
-        
-        Logger.log('Updated field "' + fieldName + '": "' + oldValue + '" -> "' + newValue + '"');
+
+        Logger.log(
+          'Updated field "' +
+            fieldName +
+            '": "' +
+            oldValue +
+            '" -> "' +
+            newValue +
+            '"'
+        );
       } else {
         Logger.log('Warning: Field "' + fieldName + '" not found in headers');
       }
     }
 
     if (updatedFields.length === 0) {
-      return { success: false, error: "Tidak ada field yang valid untuk diupdate" };
+      return {
+        success: false,
+        error: "Tidak ada field yang valid untuk diupdate",
+      };
     }
 
     // Log the update activity
-    Logger.log('Successfully updated ' + updatedFields.length + ' fields for student NIS: ' + studentId);
-    Logger.log('Updated by user: ' + username);
+    Logger.log(
+      "Successfully updated " +
+        updatedFields.length +
+        " fields for student NIS: " +
+        studentId
+    );
+    Logger.log("Updated by user: " + username);
 
     return {
       success: true,
       message: "Data siswa berhasil diperbarui",
       updatedFields: updatedFields,
       updatedBy: username,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
-
   } catch (error) {
     Logger.log("ERROR in updateStudentData: " + error.toString());
     Logger.log("Error stack: " + error.stack);
     return {
       success: false,
-      error: error.message || "Terjadi kesalahan saat mengupdate data siswa"
-    };
-  }
-}
-
-// Function untuk testing dari client-side
-function testSpreadsheetFromClient() {
-  try {
-    Logger.log("=== CLIENT-SIDE SPREADSHEET TEST ===");
-
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
-    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
-
-    if (!studentsSheet) {
-      return {
-        success: false,
-        error: 'Sheet "' + STUDENTS_SHEET_NAME + '" tidak ditemukan',
-        availableSheets: ss.getSheets().map((s) => s.getName()),
-      };
-    }
-
-    const dataRange = studentsSheet.getDataRange();
-    const values = dataRange.getValues();
-
-    if (values.length === 0) {
-      return {
-        success: false,
-        error: "Sheet kosong, tidak ada data siswa",
-      };
-    }
-
-    const headers = values[0];
-    const nisIndex = headers.indexOf("NIS");
-
-    if (nisIndex === -1) {
-      return {
-        success: false,
-        error: "Kolom NIS tidak ditemukan",
-        headers: headers,
-      };
-    }
-
-    // Ambil sample NIS
-    const sampleNIS = [];
-    for (let i = 1; i < Math.min(6, values.length); i++) {
-      const nis = values[i][nisIndex];
-      if (nis) {
-        sampleNIS.push(String(nis).trim());
-      }
-    }
-
-    return {
-      success: true,
-      spreadsheetName: ss.getName(),
-      sheetName: studentsSheet.getName(),
-      totalRows: values.length,
-      dataRows: values.length - 1,
-      headers: headers,
-      nisColumnIndex: nisIndex,
-      sampleNIS: sampleNIS,
-    };
-  } catch (error) {
-    Logger.log("Error in testSpreadsheetFromClient: " + error.toString());
-    return {
-      success: false,
-      error: error.toString(),
-      stack: error.stack,
+      error: error.message || "Terjadi kesalahan saat mengupdate data siswa",
     };
   }
 }
@@ -1486,7 +1510,7 @@ function getStudentPDFUrl(nisId) {
     // Cari file di folder Google Drive
     const folder = DriveApp.getFolderById(STUDENT_PDF_FOLDER_ID);
 
-    // Cari dengan nama lengkap terlebih dahulu
+    // Cari dengan nama Siswa terlebih dahulu
     let files = folder.getFilesByName(pdfFileName);
 
     if (files.hasNext()) {
@@ -2021,122 +2045,6 @@ function getStudentStatistics() {
   }
 }
 
-// Fungsi untuk preview siswa berdasarkan tanggal diterima
-function previewStudentsByEntryDate(params) {
-  try {
-    // Buka spreadsheet dan dapatkan sheet siswa
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
-    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
-
-    if (!studentsSheet) {
-      throw new Error("Sheet siswa tidak ditemukan");
-    }
-
-    // Dapatkan semua data siswa
-    const dataRange = studentsSheet.getDataRange();
-    const values = dataRange.getValues();
-    const headers = values[0];
-
-    // Temukan indeks kolom yang dibutuhkan dengan berbagai kemungkinan nama kolom
-    const nisIndex = findColumnIndex(headers, ["nis", "NIS"]);
-    const nameIndex = findColumnIndex(headers, [
-      "nama",
-      "Nama Lengkap",
-      "nama_lengkap",
-      "Nama Siswa",
-    ]);
-    const genderIndex = findColumnIndex(headers, [
-      "gender",
-      "Jenis Kelamin",
-      "jenis_kelamin",
-    ]);
-    const statusIndex = findColumnIndex(headers, [
-      "status",
-      "Status Akademik",
-      "Status",
-    ]);
-    const entryDateIndex = findColumnIndex(headers, [
-      "tanggalDaftar",
-      "Tanggal Diterima",
-      "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan",
-      "Tanggal Diterima di SMPN 03 Pekalongan",
-    ]);
-
-    if (nisIndex === -1 || entryDateIndex === -1) {
-      throw new Error("Kolom NIS atau tanggal diterima tidak ditemukan");
-    }
-
-    // Filter siswa berdasarkan parameter
-    const filteredStudents = [];
-
-    // Tanggal tertentu
-    if (params.date) {
-      const targetDate = new Date(params.date);
-
-      for (let i = 1; i < values.length; i++) {
-        const entryDate = new Date(values[i][entryDateIndex]);
-
-        // Bandingkan tanggal (tanpa waktu)
-        if (
-          entryDate.toDateString() === targetDate.toDateString() &&
-          (statusIndex === -1 || values[i][statusIndex] === "Aktif")
-        ) {
-          filteredStudents.push({
-            nis: values[i][nisIndex],
-            name: nameIndex !== -1 ? values[i][nameIndex] : "Tidak diketahui",
-            gender: genderIndex !== -1 ? values[i][genderIndex] : "",
-          });
-        }
-      }
-    }
-    // Rentang tanggal
-    else if (params.startDate && params.endDate) {
-      const startDate = new Date(params.startDate);
-      const endDate = new Date(params.endDate);
-
-      for (let i = 1; i < values.length; i++) {
-        const entryDate = new Date(values[i][entryDateIndex]);
-
-        if (
-          entryDate >= startDate &&
-          entryDate <= endDate &&
-          (statusIndex === -1 || values[i][statusIndex] === "Aktif")
-        ) {
-          filteredStudents.push({
-            nis: values[i][nisIndex],
-            name: nameIndex !== -1 ? values[i][nameIndex] : "Tidak diketahui",
-            gender: genderIndex !== -1 ? values[i][genderIndex] : "",
-          });
-        }
-      }
-    }
-    // Tahun tertentu
-    else if (params.year) {
-      const year = parseInt(params.year);
-
-      for (let i = 1; i < values.length; i++) {
-        const entryDate = new Date(values[i][entryDateIndex]);
-
-        if (
-          entryDate.getFullYear() === year &&
-          (statusIndex === -1 || values[i][statusIndex] === "Aktif")
-        ) {
-          filteredStudents.push({
-            nis: values[i][nisIndex],
-            name: nameIndex !== -1 ? values[i][nameIndex] : "Tidak diketahui",
-            gender: genderIndex !== -1 ? values[i][genderIndex] : "",
-          });
-        }
-      }
-    }
-
-    return filteredStudents;
-  } catch (error) {
-    Logger.log("Error in previewStudentsByEntryDate: " + error.message);
-    throw error;
-  }
-}
-
 // Fungsi untuk menemukan indeks kolom berdasarkan berbagai kemungkinan nama
 function findColumnIndex(headers, possibleNames) {
   for (const name of possibleNames) {
@@ -2146,108 +2054,6 @@ function findColumnIndex(headers, possibleNames) {
     }
   }
   return -1;
-}
-
-// Fungsi untuk update status siswa secara batch
-function updateStudentsStatusBatch(params) {
-  try {
-    // Pertama preview siswa yang akan diupdate
-    const studentsToUpdate = previewStudentsByEntryDate(params.filter);
-
-    if (studentsToUpdate.length === 0) {
-      return {
-        success: false,
-        message: "Tidak ada siswa yang sesuai dengan kriteria",
-        count: 0,
-      };
-    }
-
-    // Buka spreadsheet dan dapatkan sheet siswa
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
-    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
-
-    if (!studentsSheet) {
-      throw new Error("Sheet siswa tidak ditemukan");
-    }
-
-    // Dapatkan semua data siswa
-    const dataRange = studentsSheet.getDataRange();
-    const values = dataRange.getValues();
-    const headers = values[0];
-
-    // Temukan indeks kolom yang dibutuhkan dengan berbagai kemungkinan nama kolom
-    const nisIndex = findColumnIndex(headers, ["nis", "NIS"]);
-    const statusIndex = findColumnIndex(headers, [
-      "status",
-      "Status Akademik",
-      "Status",
-    ]);
-    const notesIndex = findColumnIndex(headers, [
-      "notes",
-      "Keterangan",
-      "keterangan",
-    ]);
-
-    if (nisIndex === -1) {
-      throw new Error("Kolom NIS tidak ditemukan");
-    }
-
-    if (statusIndex === -1) {
-      throw new Error("Kolom Status tidak ditemukan");
-    }
-
-    // Kumpulkan NIS siswa yang akan diupdate
-    const nisToUpdate = studentsToUpdate.map((student) => student.nis);
-
-    // Update status siswa
-    let updatedCount = 0;
-
-    for (let i = 1; i < values.length; i++) {
-      if (nisToUpdate.includes(values[i][nisIndex])) {
-        // Update status
-        studentsSheet
-          .getRange(i + 1, statusIndex + 1)
-          .setValue(params.update.newStatus);
-
-        // Update notes jika ada
-        if (notesIndex !== -1 && params.update.notes) {
-          let currentNotes = values[i][notesIndex] || "";
-          let newNotes = currentNotes;
-
-          // Tambahkan tanggal kelulusan ke notes jika ada
-          if (params.update.graduationDate) {
-            const graduationDate = new Date(params.update.graduationDate);
-            const dateString = Utilities.formatDate(
-              graduationDate,
-              Session.getScriptTimeZone(),
-              "dd/MM/yyyy"
-            );
-            newNotes +=
-              (currentNotes ? "\n" : "") +
-              `${params.update.newStatus} pada tanggal ${dateString}. `;
-          }
-
-          // Tambahkan notes baru
-          if (params.update.notes) {
-            newNotes += params.update.notes;
-          }
-
-          studentsSheet.getRange(i + 1, notesIndex + 1).setValue(newNotes);
-        }
-
-        updatedCount++;
-      }
-    }
-
-    return {
-      success: true,
-      message: "Berhasil mengupdate status siswa",
-      count: updatedCount,
-    };
-  } catch (error) {
-    Logger.log("Error in updateStudentsStatusBatch: " + error.message);
-    return { success: false, message: error.message, count: 0 };
-  }
 }
 
 // Tambahkan fungsi ini untuk mendapatkan username pengguna saat ini dari client-side
@@ -2330,7 +2136,7 @@ function addStudent(studentData) {
   try {
     // Validate required fields
     if (!studentData.nis || !studentData.nama) {
-      return { success: false, message: "NIS dan Nama Lengkap wajib diisi" };
+      return { success: false, message: "NIS dan Nama Siswa wajib diisi" };
     }
 
     // Access the spreadsheet
@@ -2382,7 +2188,7 @@ function addStudent(studentData) {
 
     // Data Identitas Siswa
     setCellValue("NIS", studentData.nis);
-    setCellValue("Nama Lengkap", studentData.nama);
+    setCellValue("Nama Siswa", studentData.nama);
     setCellValue("NISN", studentData.nisn);
     setCellValue("Jenis Kelamin", studentData.gender);
     setCellValue("Tempat Lahir", studentData.tempatLahir);
@@ -2515,7 +2321,7 @@ function createStudentsSheet(spreadsheet) {
     // Define headers for the students sheet
     const headers = [
       "NIS",
-      "Nama Lengkap",
+      "Nama Siswa",
       "NISN",
       "Jenis Kelamin",
       "Tempat Lahir",
@@ -2619,5 +2425,243 @@ function createStudentsSheet(spreadsheet) {
   } catch (error) {
     Logger.log("Error creating students sheet: " + error.message);
     throw new Error("Gagal membuat sheet siswa: " + error.message);
+  }
+}
+
+// Fungsi untuk preview siswa berdasarkan tanggal masuk
+function previewStudentsByEntryDate(filterParams) {
+  try {
+    Logger.log(
+      "previewStudentsByEntryDate called with params: " +
+        JSON.stringify(filterParams)
+    );
+
+    // Akses spreadsheet
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+
+    // Ambil semua data
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length <= 1) {
+      return [];
+    }
+
+    // Inisialisasi column map
+    const headers = values[0];
+    initializeColumnMap(headers);
+
+    let filteredStudents = [];
+
+    // Filter berdasarkan tanggal masuk
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+
+      // Skip rows yang tidak memiliki data penting
+      if (!row[studentColumnMap.nis] && !row[studentColumnMap.nama]) {
+        continue;
+      }
+
+      const tanggalDaftar = row[studentColumnMap.tanggalDaftar];
+      if (!tanggalDaftar) {
+        continue;
+      }
+
+      let tanggalDaftarDate;
+      if (tanggalDaftar instanceof Date) {
+        tanggalDaftarDate = tanggalDaftar;
+      } else {
+        tanggalDaftarDate = new Date(tanggalDaftar);
+      }
+
+      // Skip jika tanggal tidak valid
+      if (isNaN(tanggalDaftarDate.getTime())) {
+        continue;
+      }
+
+      let isMatch = false;
+
+      if (filterParams.date) {
+        // Filter tanggal tertentu
+        const targetDate = new Date(filterParams.date);
+        isMatch =
+          tanggalDaftarDate.toDateString() === targetDate.toDateString();
+      } else if (filterParams.startDate && filterParams.endDate) {
+        // Filter rentang tanggal
+        const startDate = new Date(filterParams.startDate);
+        const endDate = new Date(filterParams.endDate);
+        isMatch =
+          tanggalDaftarDate >= startDate && tanggalDaftarDate <= endDate;
+      } else if (filterParams.year) {
+        // Filter berdasarkan tahun
+        const targetYear = parseInt(filterParams.year);
+        isMatch = tanggalDaftarDate.getFullYear() === targetYear;
+      }
+
+      if (isMatch) {
+        // Buat objek siswa untuk preview
+        const student = {
+          nis: row[studentColumnMap.nis] || "",
+          nama: row[studentColumnMap.nama] || "",
+          gender: row[studentColumnMap.gender] || "",
+          tanggalDaftar: formatDate(tanggalDaftarDate),
+          status: row[studentColumnMap.status] || "Aktif",
+        };
+
+        filteredStudents.push(student);
+      }
+    }
+
+    Logger.log(
+      "Found " + filteredStudents.length + " students matching criteria"
+    );
+    return filteredStudents;
+  } catch (error) {
+    Logger.log("Error in previewStudentsByEntryDate: " + error.message);
+    throw new Error("Gagal mendapatkan preview siswa: " + error.message);
+  }
+}
+
+// Fungsi untuk batch update status siswa
+function batchUpdateStudentStatus(batchUpdateParams) {
+  try {
+    Logger.log(
+      "batchUpdateStudentStatus called with params: " +
+        JSON.stringify(batchUpdateParams)
+    );
+
+    const filterParams = batchUpdateParams.filter;
+    const updateData = batchUpdateParams.update;
+
+    // Validasi parameter update
+    if (!updateData.newStatus) {
+      throw new Error("Status baru harus diisi");
+    }
+
+    // Akses spreadsheet
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+
+    // Ambil semua data
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length <= 1) {
+      return { success: false, message: "Tidak ada data siswa", count: 0 };
+    }
+
+    // Inisialisasi column map
+    const headers = values[0];
+    initializeColumnMap(headers);
+
+    let updatedCount = 0;
+    const rowsToUpdate = [];
+
+    // Cari siswa yang sesuai kriteria
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+
+      // Skip rows yang tidak memiliki data penting
+      if (!row[studentColumnMap.nis] && !row[studentColumnMap.nama]) {
+        continue;
+      }
+
+      const tanggalDaftar = row[studentColumnMap.tanggalDaftar];
+      if (!tanggalDaftar) {
+        continue;
+      }
+
+      let tanggalDaftarDate;
+      if (tanggalDaftar instanceof Date) {
+        tanggalDaftarDate = tanggalDaftar;
+      } else {
+        tanggalDaftarDate = new Date(tanggalDaftar);
+      }
+
+      // Skip jika tanggal tidak valid
+      if (isNaN(tanggalDaftarDate.getTime())) {
+        continue;
+      }
+
+      let isMatch = false;
+
+      if (filterParams.date) {
+        // Filter tanggal tertentu
+        const targetDate = new Date(filterParams.date);
+        isMatch =
+          tanggalDaftarDate.toDateString() === targetDate.toDateString();
+      } else if (filterParams.startDate && filterParams.endDate) {
+        // Filter rentang tanggal
+        const startDate = new Date(filterParams.startDate);
+        const endDate = new Date(filterParams.endDate);
+        isMatch =
+          tanggalDaftarDate >= startDate && tanggalDaftarDate <= endDate;
+      } else if (filterParams.year) {
+        // Filter berdasarkan tahun
+        const targetYear = parseInt(filterParams.year);
+        isMatch = tanggalDaftarDate.getFullYear() === targetYear;
+      }
+
+      if (isMatch) {
+        // Siapkan data untuk update
+        const rowIndex = i + 1; // Sheet row index (1-based)
+        rowsToUpdate.push({
+          rowIndex: rowIndex,
+          nis: row[studentColumnMap.nis],
+          nama: row[studentColumnMap.nama],
+        });
+      }
+    }
+
+    if (rowsToUpdate.length === 0) {
+      return {
+        success: false,
+        message: "Tidak ada siswa yang sesuai kriteria",
+        count: 0,
+      };
+    }
+
+    // Update status siswa
+    for (const studentRow of rowsToUpdate) {
+      try {
+        // Update status
+        studentsSheet
+          .getRange(studentRow.rowIndex, studentColumnMap.status + 1)
+          .setValue(updateData.newStatus);
+
+        // Note: Tanggal lulus dan notes tidak tersedia dalam struktur kolom saat ini
+        // Jika diperlukan, kolom tersebut perlu ditambahkan ke spreadsheet terlebih dahulu
+
+        updatedCount++;
+        Logger.log(
+          "Updated student: " + studentRow.nis + " - " + studentRow.nama
+        );
+      } catch (updateError) {
+        Logger.log(
+          "Error updating student " +
+            studentRow.nis +
+            ": " +
+            updateError.message
+        );
+      }
+    }
+
+    Logger.log(
+      "Batch update completed. Updated " + updatedCount + " students."
+    );
+
+    return {
+      success: true,
+      message: "Batch update berhasil",
+      count: updatedCount,
+    };
+  } catch (error) {
+    Logger.log("Error in batchUpdateStudentStatus: " + error.message);
+    return {
+      success: false,
+      message: "Gagal melakukan batch update: " + error.message,
+      count: 0,
+    };
   }
 }

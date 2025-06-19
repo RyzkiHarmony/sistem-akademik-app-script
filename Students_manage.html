@@ -133,10 +133,10 @@
               </select>
             </div>
 
-            <!-- Filter untuk tanggal tertentu -->
+            <!-- Filter Tanggal Tertentu -->
             <div class="filter-option" id="specific-date-filter">
               <div class="form-group">
-                <label class="form-label">Tanggal Penerimaan *</label>
+                <label class="form-label">Tanggal Penerimaan</label>
                 <input
                   type="date"
                   class="form-control"
@@ -146,7 +146,7 @@
               </div>
             </div>
 
-            <!-- Filter untuk rentang tanggal -->
+            <!-- Filter Rentang Tanggal -->
             <div
               class="filter-option"
               id="date-range-filter"
@@ -155,32 +155,34 @@
               <div class="form-row">
                 <div class="form-col-6">
                   <div class="form-group">
-                    <label class="form-label">Tanggal Mulai *</label>
+                    <label class="form-label">Tanggal Mulai</label>
                     <input
                       type="date"
                       class="form-control"
                       id="entry-start-date"
+                      required
                     />
                   </div>
                 </div>
                 <div class="form-col-6">
                   <div class="form-group">
-                    <label class="form-label">Tanggal Akhir *</label>
+                    <label class="form-label">Tanggal Akhir</label>
                     <input
                       type="date"
                       class="form-control"
                       id="entry-end-date"
+                      required
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Filter untuk tahun penerimaan -->
+            <!-- Filter Tahun -->
             <div class="filter-option" id="year-filter" style="display: none">
               <div class="form-group">
-                <label class="form-label">Tahun Penerimaan *</label>
-                <select class="form-control" id="entry-year">
+                <label class="form-label">Tahun Penerimaan</label>
+                <select class="form-control" id="entry-year" required>
                   <option value="">Pilih Tahun</option>
                   <!-- Opsi tahun akan diisi secara dinamis via JavaScript -->
                 </select>
@@ -233,6 +235,25 @@
           <button class="btn btn-info" id="preview-btn">Preview</button>
           <button class="btn btn-primary" id="process-btn" disabled>
             Proses
+          </button>
+        </div>
+      </div>
+
+
+    <!-- Modal View Detail Siswa -->
+    <div class="modal-overlay" id="view-modal">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">Detail Siswa</h2>
+          <button class="modal-close" id="close-view-modal">&times;</button>
+        </div>
+        <div class="modal-body" id="student-detail-content">
+          <!-- Content will be filled by JavaScript -->
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="close-detail-btn">Tutup</button>
+          <button class="btn btn-warning" id="edit-from-view-btn">
+            Edit Data
           </button>
         </div>
       </div>

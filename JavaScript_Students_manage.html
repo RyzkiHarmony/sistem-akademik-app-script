@@ -12,6 +12,16 @@
   let currentSortField = "nis";
   let currentSortDirection = "asc";
   let studentToDelete = null;
+  let isLoading = false; // Status loading
+
+  // Real-time search variables
+  let searchTimeout = null;
+  let lastSearchQuery = "";
+
+  // Progress tracking variables
+  let progressModal = null;
+  let progressBar = null;
+  let progressText = null;
 
   // Fungsi untuk toggle sidebar di tampilan mobile
   function toggleSidebar() {
@@ -91,6 +101,10 @@
             "error"
           );
           enablePaginationControls();
+        } finally {
+          // Sembunyikan loading indicator
+          hideLoadingIndicator();
+          isLoading = false;
         }
       })
       .withFailureHandler(function (error) {
@@ -101,6 +115,9 @@
           "Error memuat data";
         showNotification("Gagal memuat data siswa: " + error, "error");
         enablePaginationControls();
+        // Sembunyikan loading indicator
+        hideLoadingIndicator();
+        isLoading = false;
       })
       .getAllStudents(options);
   }
@@ -117,6 +134,243 @@
           btn.style.opacity = "";
         }
       });
+    }
+  }
+
+  // Fungsi untuk menampilkan loading indicator
+  function showLoadingIndicator() {
+    const searchBtn = document.getElementById("search-btn");
+    const searchInput = document.getElementById("search-input");
+    const searchBox = document.querySelector(".search-box");
+
+    if (searchBtn) {
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mencari...';
+    }
+
+    if (searchInput) {
+      searchInput.style.opacity = "0.7";
+    }
+
+    if (searchBox) {
+      searchBox.classList.add("searching");
+    }
+  }
+
+  // Fungsi untuk menyembunyikan loading indicator
+  function hideLoadingIndicator() {
+    const searchBtn = document.getElementById("search-btn");
+    const searchInput = document.getElementById("search-input");
+    const searchBox = document.querySelector(".search-box");
+
+    if (searchBtn) {
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = '<i class="fas fa-search"></i> Cari';
+    }
+
+    if (searchInput) {
+      searchInput.style.opacity = "1";
+    }
+
+    if (searchBox) {
+      searchBox.classList.remove("searching");
+    }
+  }
+
+  // Real-time search dengan debouncing
+  function setupRealTimeSearch() {
+    const searchInput = document.getElementById("search-input");
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function (e) {
+        const query = e.target.value.trim();
+
+        // Clear previous timeout
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
+
+        // Only search if query changed
+        if (query === lastSearchQuery) {
+          return;
+        }
+
+        lastSearchQuery = query;
+
+        // Show real-time feedback
+        const searchBox = document.querySelector(".search-box");
+        if (searchBox) {
+          searchBox.classList.add("searching");
+        }
+
+        // Debounce search - wait 500ms after user stops typing
+        searchTimeout = setTimeout(() => {
+          currentPage = 1; // Reset to first page
+          loadStudents();
+
+          // Remove searching class after search completes
+          setTimeout(() => {
+            if (searchBox) {
+              searchBox.classList.remove("searching");
+            }
+          }, 300);
+        }, 500);
+      });
+
+      // Handle Enter key for immediate search
+      searchInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+          currentPage = 1;
+          loadStudents();
+        }
+      });
+    }
+  }
+
+  // Calculate student statistics for enhanced preview
+  function calculateStudentStatistics(students) {
+    const stats = {
+      total: students.length,
+      male: 0,
+      female: 0,
+      years: new Set(),
+    };
+
+    students.forEach((student) => {
+      if (student.gender === "Laki-laki" || student.gender === "L") {
+        stats.male++;
+      } else if (student.gender === "Perempuan" || student.gender === "P") {
+        stats.female++;
+      }
+
+      // Extract year from tanggalDaftar
+      if (student.tanggalDaftar) {
+        const year = new Date(student.tanggalDaftar).getFullYear();
+        if (!isNaN(year)) {
+          stats.years.add(year);
+        }
+      }
+    });
+
+    // Create year range string
+    const yearArray = Array.from(stats.years).sort();
+    stats.yearRange =
+      yearArray.length > 0
+        ? yearArray.length === 1
+          ? yearArray[0].toString()
+          : `${yearArray[0]} - ${yearArray[yearArray.length - 1]}`
+        : "N/A";
+
+    return stats;
+  }
+
+  // Generate enhanced preview with better formatting
+  function generateEnhancedPreview(students, stats) {
+    let html = '<div class="preview-list">';
+
+    students.forEach((student, index) => {
+      const genderIcon =
+        student.gender === "Laki-laki" || student.gender === "L" ? "👨" : "👩";
+      const entryYear = student.tanggalDaftar
+        ? new Date(student.tanggalDaftar).getFullYear()
+        : "N/A";
+      
+      const genderText = student.gender === "Laki-laki" || student.gender === "L" ? "Laki-laki" : "Perempuan";
+      const statusText = student.status || "Aktif";
+
+      html += `
+        <div class="preview-item">
+          <div class="preview-student-info">
+            <div class="preview-number">${index + 1}</div>
+            <div class="preview-student-details">
+              <div class="preview-student-name">${student.nama}</div>
+              <div class="preview-student-id">${student.nis}</div>
+              <div class="preview-student-meta">
+                <span class="preview-gender">${genderIcon} ${genderText}</span>
+                <span class="preview-status">📋 ${statusText}</span>
+              </div>
+            </div>
+          </div>
+          <div class="preview-year">📅 ${entryYear}</div>
+        </div>
+      `;
+    });
+
+    html += "</div>";
+    return html;
+  }
+
+  // Create and show progress modal
+  function createProgressModal() {
+    const modalHtml = `
+      <div id="progress-modal" class="modal-overlay" style="display: flex;">
+        <div class="modal" style="max-width: 400px;">
+          <div class="modal-header">
+            <h3 class="modal-title">🔄 Memproses Batch Update</h3>
+          </div>
+          <div class="modal-body">
+            <div style="margin-bottom: 15px;">
+              <div id="progress-text" style="text-align: center; margin-bottom: 10px; font-weight: 500;">
+                Memulai proses...
+              </div>
+              <div style="background: #f8f9fa; border-radius: 10px; overflow: hidden; height: 20px;">
+                <div id="progress-bar" style="background: linear-gradient(90deg, #3498db, #2ecc71); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 10px;"></div>
+              </div>
+              <div style="text-align: center; margin-top: 5px; font-size: 12px; color: #666;">
+                <span id="progress-percentage">0%</span>
+              </div>
+            </div>
+            <div id="progress-details" style="font-size: 14px; color: #666; text-align: center;">
+              Mohon tunggu, jangan tutup halaman ini...
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+    progressModal = document.getElementById("progress-modal");
+    progressBar = document.getElementById("progress-bar");
+    progressText = document.getElementById("progress-text");
+
+    return {
+      modal: progressModal,
+      bar: progressBar,
+      text: progressText,
+      percentage: document.getElementById("progress-percentage"),
+      details: document.getElementById("progress-details"),
+    };
+  }
+
+  // Update progress
+  function updateProgress(percentage, text, details) {
+    if (progressBar) {
+      progressBar.style.width = percentage + "%";
+    }
+    if (progressText) {
+      progressText.textContent = text;
+    }
+    if (document.getElementById("progress-percentage")) {
+      document.getElementById("progress-percentage").textContent =
+        percentage + "%";
+    }
+    if (details && document.getElementById("progress-details")) {
+      document.getElementById("progress-details").textContent = details;
+    }
+  }
+
+  // Close progress modal
+  function closeProgressModal() {
+    if (progressModal) {
+      progressModal.remove();
+      progressModal = null;
+      progressBar = null;
+      progressText = null;
     }
   }
 
@@ -166,12 +420,9 @@
           <a href="#" class="btn btn-sm btn-primary btn-view" data-id="${
             student.nis
           }">Lihat</a>
-          <button class="btn btn-sm btn-warning btn-edit" data-id="${
+          <a href="#" class="btn btn-sm btn-warning btn-edit" data-id="${
             student.nis
-          }">Edit</button>
-          <button class="btn btn-sm btn-warning btn-pdf" data-id="${
-            student.nis
-          }">PDF</button>
+          }">Edit</a>
           <button class="btn btn-sm btn-danger btn-delete" data-id="${
             student.nis
           }">Hapus</button>
@@ -417,24 +668,28 @@
         openDeleteModal(studentId);
       });
     });
-
-    // PDF button - mengakses file PDF dari Google Drive
-    document.querySelectorAll(".btn-pdf").forEach(function (button) {
-      button.addEventListener("click", function () {
-        const studentId = this.getAttribute("data-id");
-
-        accessStudentPDF(studentId);
-      });
-    });
   }
 
   // Open student detail page
   function openDetailStudent(studentId, event) {
-    // Prevent default link behavior if called from link
-    if (event) {
+    // Only prevent default if href is not properly set (fallback mode)
+    const button = event ? event.target : null;
+    const hasValidHref =
+      button &&
+      button.href &&
+      button.href !== "#" &&
+      !button.href.endsWith("#");
+
+    if (event && !hasValidHref) {
       event.preventDefault();
     }
 
+    // If href is properly set, let the browser handle navigation naturally
+    if (hasValidHref) {
+      return; // Let the href handle navigation
+    }
+
+    // Fallback navigation for cases where href is not set
     if (!studentId) {
       showNotification("ID siswa tidak valid", "error");
       return;
@@ -460,11 +715,24 @@
 
   // Open page to edit student
   function openEditStudent(studentId, event) {
-    // Prevent default link behavior if called from link
-    if (event) {
+    // Only prevent default if href is not properly set (fallback mode)
+    const button = event ? event.target : null;
+    const hasValidHref =
+      button &&
+      button.href &&
+      button.href !== "#" &&
+      !button.href.endsWith("#");
+
+    if (event && !hasValidHref) {
       event.preventDefault();
     }
 
+    // If href is properly set, let the browser handle navigation naturally
+    if (hasValidHref) {
+      return; // Let the href handle navigation
+    }
+
+    // Fallback navigation for cases where href is not set
     if (!studentId) {
       showNotification("ID siswa tidak valid", "error");
       return;
@@ -482,7 +750,7 @@
         encodeURIComponent(studentId);
 
       // Direct redirect without delay to ensure URL changes immediately
-      window.location.href = detailUrl;
+      window.location.href = editUrl;
     } catch (error) {
       showNotification("Terjadi kesalahan saat membuka edit siswa", "error");
     }
@@ -547,30 +815,6 @@
       .deleteStudent(studentToDelete.nis);
   }
 
-  // Fungsi untuk mengakses file PDF siswa di Google Drive
-  function accessStudentPDF(studentId) {
-    // Tampilkan loading state
-    showNotification("Mengakses file PDF siswa...", "info");
-
-    // Panggil fungsi di server untuk mendapatkan URL PDF
-    google.script.run
-      .withSuccessHandler(function (result) {
-        if (result.success) {
-          // Buka link PDF di tab baru
-          window.open(result.url, "_blank");
-        } else {
-          showNotification(
-            result.message || "Gagal mengakses file PDF",
-            "error"
-          );
-        }
-      })
-      .withFailureHandler(function (error) {
-        showNotification("Terjadi kesalahan: " + error, "error");
-      })
-      .getStudentPDFUrl(studentId);
-  }
-
   // Toggle form fields enabled/disabled
   function toggleFormEnabled(enabled) {
     const form = document.getElementById("student-form");
@@ -589,7 +833,7 @@
     }
   }
 
-  // Reset search and filters
+  // Reset search and filters (mengadaptasi dari file_old)
   function resetFilters() {
     document.getElementById("search-input").value = "";
     document.getElementById("filter-status").value = "";
@@ -598,7 +842,7 @@
     applyFiltersAndSort();
   }
 
-  // Sort table by column
+  // Sort table by column (mengadaptasi dari file_old)
   function sortTable(field) {
     if (field === currentSortField) {
       // Toggle direction if same field
@@ -608,9 +852,6 @@
       currentSortField = field;
       currentSortDirection = "asc";
     }
-
-    // Update sort indicators
-    updateSortIndicators();
 
     // Apply sort
     applyFiltersAndSort();
@@ -669,15 +910,32 @@
     }, 4000);
   }
 
-  function closeGraduationBatchModal() {
-    document.getElementById("graduation-batch-modal").style.display = "none";
-  }
-
   function closeDeleteModal() {
     document.getElementById("delete-modal").style.display = "none";
     studentToDelete = null;
     document.getElementById("confirm-delete-btn").disabled = false;
     document.getElementById("confirm-delete-btn").textContent = "Hapus Data";
+  }
+
+  // Function to close graduation batch modal - adapted from file_old
+  function closeGraduationBatchModal() {
+    document.getElementById("graduation-batch-modal").style.display = "none";
+    // Reset form
+    document.getElementById("filter-type").value = "specific-date";
+    document.getElementById("entry-specific-date").value = "";
+    document.getElementById("entry-start-date").value = "";
+    document.getElementById("entry-end-date").value = "";
+    document.getElementById("entry-year").value = "";
+    document.getElementById("new-status").value = "Lulus";
+    document.getElementById("graduation-date").value = "";
+    document.getElementById("batch-notes").value = "";
+    document.getElementById("preview-container").style.display = "none";
+    document.getElementById("process-btn").disabled = true;
+    // Show specific date filter by default
+    document.querySelectorAll(".filter-option").forEach((el) => {
+      el.style.display = "none";
+    });
+    document.getElementById("specific-date-filter").style.display = "block";
   }
 
   // Setup logout button
@@ -710,16 +968,14 @@
       updateSortIndicators();
     }, 200);
 
-    // Check for URL parameters (like edit mode)
-    checkUrlParameters();
-
-    // Setup event listeners for search and filter
+    // Setup event listeners for search and filter (mengadaptasi dari file_old)
     document
       .getElementById("search-btn")
       .addEventListener("click", function () {
         applyFiltersAndSort();
       });
 
+    // Event listener untuk pencarian dengan Enter key (dari file_old)
     document
       .getElementById("search-input")
       .addEventListener("keyup", function (event) {
@@ -728,23 +984,17 @@
         }
       });
 
+    // Status filter change event (dari file_old)
     document
       .getElementById("filter-status")
       .addEventListener("change", function () {
         applyFiltersAndSort();
       });
 
+    // Reset button event (dari file_old)
     document.getElementById("reset-btn").addEventListener("click", function () {
       resetFilters();
     });
-
-    // Setup buttons for graduate
-    document
-      .getElementById("graduate-batch-btn")
-      .addEventListener("click", function () {
-        document.getElementById("graduation-batch-modal").style.display =
-          "flex";
-      });
 
     // Setup delete modal events
     document
@@ -765,7 +1015,7 @@
         deleteStudent();
       });
 
-    // Setup table header sorting
+    // Setup table header sorting (mengadaptasi dari file_old)
     document
       .querySelectorAll(".student-table th")
       .forEach(function (th, index) {
@@ -785,19 +1035,37 @@
         }
       });
 
-    // Setup logout
-    setupLogout();
+    // Setup buttons for graduate - adapted from file_old
+    document
+      .getElementById("graduate-batch-btn")
+      .addEventListener("click", function () {
+        document.getElementById("graduation-batch-modal").style.display =
+          "flex";
+      });
 
-    // Tampilkan opsi filter yang sesuai berdasarkan pilihan
+    // Setup graduation batch modal events - adapted from file_old
+    document
+      .getElementById("close-graduate-modal")
+      .addEventListener("click", function () {
+        closeGraduationBatchModal();
+      });
+
+    document
+      .getElementById("cancel-graduate-btn")
+      .addEventListener("click", function () {
+        closeGraduationBatchModal();
+      });
+
+    // Filter type change handler - adapted from file_old
     document
       .getElementById("filter-type")
       .addEventListener("change", function () {
-        // Sembunyikan semua opsi filter
+        // Hide all filter options
         document.querySelectorAll(".filter-option").forEach((el) => {
           el.style.display = "none";
         });
 
-        // Tampilkan opsi filter yang dipilih
+        // Show selected filter option
         const selectedFilter = this.value;
         document.getElementById(selectedFilter + "-filter").style.display =
           "block";
@@ -807,7 +1075,7 @@
         document.getElementById("process-btn").disabled = true;
       });
 
-    // Isi opsi tahun (5 tahun terakhir)
+    // Fill year options (last 10 years) - adapted from file_old
     const yearSelect = document.getElementById("entry-year");
     const currentYear = new Date().getFullYear();
     for (let year = currentYear; year >= currentYear - 10; year--) {
@@ -817,7 +1085,7 @@
       yearSelect.appendChild(option);
     }
 
-    // Preview button handler
+    // Enhanced preview button handler with statistics
     document
       .getElementById("preview-btn")
       .addEventListener("click", function () {
@@ -829,7 +1097,7 @@
             "entry-specific-date"
           ).value;
           if (!filterParams.date) {
-            alert("Harap pilih tanggal tertentu");
+            showNotification("Harap pilih tanggal tertentu", "error");
             return;
           }
         } else if (filterType === "date-range") {
@@ -838,18 +1106,25 @@
           filterParams.endDate =
             document.getElementById("entry-end-date").value;
           if (!filterParams.startDate || !filterParams.endDate) {
-            alert("Harap pilih tanggal mulai dan akhir");
+            showNotification("Harap pilih tanggal mulai dan akhir", "error");
             return;
           }
         } else if (filterType === "year") {
           filterParams.year = document.getElementById("entry-year").value;
           if (!filterParams.year) {
-            alert("Harap pilih tahun");
+            showNotification("Harap pilih tahun", "error");
             return;
           }
         }
 
-        // Panggil fungsi server untuk mendapatkan siswa yang sesuai
+        // Show loading state for preview
+        const previewBtn = document.getElementById("preview-btn");
+        const originalText = previewBtn.innerHTML;
+        previewBtn.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Memuat Preview...';
+        previewBtn.disabled = true;
+
+        // Call server function to get matching students
         google.script.run
           .withSuccessHandler(function (students) {
             const previewContainer =
@@ -861,35 +1136,65 @@
 
             if (students.length === 0) {
               studentsPreview.innerHTML =
-                '<p class="text-center">Tidak ada siswa yang sesuai dengan kriteria</p>';
-              previewSummary.textContent = "Total: 0 siswa";
+                '<p style="text-align: center; color: #666; padding: 20px;">📭 Tidak ada siswa yang sesuai dengan kriteria</p>';
+              previewSummary.innerHTML =
+                '<div class="text-warning">Total: 0 siswa</div>';
               document.getElementById("process-btn").disabled = true;
             } else {
-              let html = "";
-              students.forEach((student) => {
-                html += `<div class="preview-item">
-                  <strong>${student.nis}</strong> - ${student.name} 
-                  (${student.gender}})
-                </div>`;
-              });
+              // Calculate statistics
+              const stats = calculateStudentStatistics(students);
+
+              // Generate enhanced preview with statistics
+              let html = generateEnhancedPreview(students, stats);
 
               studentsPreview.innerHTML = html;
-              previewSummary.textContent = `Total: ${students.length} siswa akan diperbarui`;
+
+              // Enhanced summary with statistics
+              const summaryHtml = `
+                <div class="preview-statistics">
+                  <div class="stat-item text-success">
+                    <strong>📊 Total: ${students.length} siswa</strong>
+                  </div>
+                  <div class="stat-details">
+                    <span class="stat-badge">👨 Laki-laki: ${stats.male}</span>
+                    <span class="stat-badge">👩 Perempuan: ${stats.female}</span>
+                  </div>
+                  <div class="stat-details">
+                    <span class="stat-badge">📅 Rentang Tahun: ${stats.yearRange}</span>
+                  </div>
+                </div>
+              `;
+
+              previewSummary.innerHTML = summaryHtml;
               document.getElementById("process-btn").disabled = false;
             }
+
+            // Reset preview button
+            previewBtn.innerHTML = originalText;
+            previewBtn.disabled = false;
           })
           .withFailureHandler(function (error) {
-            alert("Error: " + error);
+            showNotification("Error: " + error, "error");
+            // Reset preview button
+            previewBtn.innerHTML = originalText;
+            previewBtn.disabled = false;
           })
           .previewStudentsByEntryDate(filterParams);
       });
 
-    // Process button handler
+    // Enhanced process button handler with progress indicator
     document
       .getElementById("process-btn")
       .addEventListener("click", function () {
+        const previewSummary = document.getElementById("preview-summary");
+        const studentCount = previewSummary
+          ? (previewSummary.textContent.match(/\d+/) || [0])[0]
+          : 0;
+
         if (
-          !confirm("Apakah Anda yakin akan mengubah status siswa secara batch?")
+          !confirm(
+            `Apakah Anda yakin akan mengubah status ${studentCount} siswa secara batch?\n\nProses ini tidak dapat dibatalkan!`
+          )
         ) {
           return;
         }
@@ -916,55 +1221,100 @@
           notes: document.getElementById("batch-notes").value,
         };
 
-        // Gabungkan parameter filter dan data update
+        // Combine filter parameters and update data
         const batchUpdateParams = {
           filter: filterParams,
           update: updateData,
         };
 
-        // Panggil fungsi server untuk memproses perubahan batch
+        // Create and show progress modal
+        const progress = createProgressModal();
+
+        // Simulate progress steps
+        updateProgress(
+          10,
+          "Memvalidasi data...",
+          "Memeriksa parameter batch update"
+        );
+
+        setTimeout(() => {
+          updateProgress(
+            25,
+            "Mengambil data siswa...",
+            "Memfilter siswa berdasarkan kriteria"
+          );
+        }, 500);
+
+        setTimeout(() => {
+          updateProgress(
+            50,
+            "Memproses update...",
+            "Mengupdate status siswa di database"
+          );
+        }, 1000);
+
+        // Call server function to process batch changes
         google.script.run
           .withSuccessHandler(function (result) {
-            if (result.success) {
-              alert(
-                `Berhasil! ${result.count} siswa telah diperbarui statusnya menjadi "${updateData.newStatus}"`
+            updateProgress(
+              90,
+              "Menyelesaikan...",
+              "Memverifikasi hasil update"
+            );
+
+            setTimeout(() => {
+              updateProgress(
+                100,
+                "Selesai!",
+                "Batch update berhasil diselesaikan"
               );
-              closeGraduationBatchModal(); // Menggunakan fungsi yang benar
-              loadStudents(); // Fungsi yang sudah benar
-            } else {
-              alert("Error: " + result.message);
-            }
+
+              setTimeout(() => {
+                closeProgressModal();
+
+                if (result.success) {
+                  showNotification(
+                    `🎉 Berhasil! ${result.count} siswa telah diperbarui statusnya menjadi "${updateData.newStatus}"`,
+                    "success"
+                  );
+                  closeGraduationBatchModal();
+                  loadStudents();
+                } else {
+                  showNotification("❌ Error: " + result.message, "error");
+                }
+              }, 1000);
+            }, 500);
           })
           .withFailureHandler(function (error) {
-            alert("Error: " + error);
+            updateProgress(100, "Error!", "Terjadi kesalahan saat memproses");
+
+            setTimeout(() => {
+              closeProgressModal();
+              showNotification("❌ Error: " + error, "error");
+            }, 1500);
           })
-          .updateStudentsStatusBatch(batchUpdateParams);
+          .batchUpdateStudentStatus(batchUpdateParams);
       });
 
-    // Cancel button handler
-    document
-      .getElementById("cancel-btn")
-      .addEventListener("click", function () {
-        document.getElementById("close-modal").click();
-      });
+    // Setup real-time search
+    setupRealTimeSearch();
 
-    // Close modal handler
-    document
-      .getElementById("close-modal")
-      .addEventListener("click", function () {
-        document.getElementById("student-modal").style.display = "none";
-      });
+    // Setup logout
+    setupLogout();
 
-    // Close modals when clicking outside
+    // Note: Removed incorrect cancel-btn and close-modal handlers
+    // as these elements don't exist in the current HTML structure
+
+    // Close modals when clicking outside - adapted from file_old
     window.onclick = function (event) {
       const deleteModal = document.getElementById("delete-modal");
-      const graduationBatchModal = document.getElementById(
-        "graduation-batch-modal"
-      );
+      const graduationModal = document.getElementById("graduation-batch-modal");
 
       if (event.target === deleteModal) {
         closeDeleteModal();
-      } else if (event.target === graduationBatchModal) {
+      }
+
+      if (event.target === graduationModal) {
         closeGraduationBatchModal();
       }
     };

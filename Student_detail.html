@@ -69,7 +69,7 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: linear-gradient(90deg, #007bff, #0056b3, #007bff);
+        background: linear-gradient(90deg, #1a5276, #154360, #1a5276);
         background-size: 200% 100%;
         animation: shimmer 3s ease-in-out infinite;
       }
@@ -153,7 +153,7 @@
         left: 0;
         right: 0;
         height: 3px;
-        background: linear-gradient(90deg, #007bff, #28a745, #ffc107, #dc3545);
+        background: linear-gradient(90deg, #1a5276, #2ecc71, #f1c40f, #e74c3c);
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -292,7 +292,7 @@
         top: 0;
         bottom: 0;
         width: 3px;
-        background: linear-gradient(180deg, #007bff, #0056b3);
+        background: linear-gradient(180deg, #1a5276, #154360);
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -324,7 +324,7 @@
         word-wrap: break-word;
         background: rgba(255, 255, 255, 0.7);
         padding: 8px 12px;
-        border-radius: 6px;
+        border-radius: 8px;
         border: 1px solid rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
         position: relative;
@@ -423,13 +423,13 @@
       }
 
       .btn-info {
-        background: linear-gradient(135deg, #17a2b8, #138496);
+        background: linear-gradient(135deg, #3498db, #2980b9);
         color: white;
         border: 2px solid #17a2b8;
       }
 
       .btn-info:hover {
-        background: linear-gradient(135deg, #138496, #117a8b);
+        background: linear-gradient(135deg, #2980b9, #1a5276);
         border-color: #117a8b;
       }
 
@@ -440,19 +440,19 @@
       }
 
       .btn-warning:hover {
-        background: linear-gradient(135deg, #f1c40f, #d4ac0d);
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
         border-color: #d4ac0d;
         color: white;
       }
 
       .btn-success {
-        background: linear-gradient(135deg, #28a745, #20c997);
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
         color: white;
         border: 2px solid #28a745;
       }
 
       .btn-success:hover {
-        background: linear-gradient(135deg, #20c997, #17a2b8);
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
         border-color: #17a2b8;
       }
 
@@ -643,9 +643,42 @@
       </div>
 
       <div class="detail-container">
-        <button class="back-button" onclick="goBack()">
-          🔙 Kembali ke Daftar Siswa
-        </button>
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+          "
+        >
+          <a
+            href="#"
+            id="back-to-list-btn"
+            class="back-button"
+            onclick="goBack()"
+          >
+            🔙 Kembali ke Daftar Siswa
+          </a>
+          <div class="action-buttons-right" style="display: flex; gap: 10px">
+            <a
+              href="#"
+              id="edit-student-btn"
+              class="btn btn-warning"
+              title="Edit data siswa"
+            >
+              <span class="btn-icon">✏️</span>
+              Edit Siswa
+            </a>
+            <button
+              class="btn btn-info"
+              onclick="generatePDF()"
+              title="Cetak PDF siswa"
+            >
+              <span class="btn-icon">📄</span>
+              Cetak PDF
+            </button>
+          </div>
+        </div>
 
         <div class="student-header-card">
           <h2 id="student-header-name">Memuat informasi siswa...</h2>
@@ -660,34 +693,6 @@
           <div class="loading-container">
             <div>Memuat detail siswa...</div>
           </div>
-        </div>
-
-        <div class="action-buttons" id="action-buttons" style="display: none">
-          <a
-            href="#"
-            class="btn btn-warning btn-edit-student"
-            onclick="editStudent(event)"
-            title="Edit data siswa"
-          >
-            <span class="btn-icon">✏️</span>
-            Edit Data
-          </a>
-          <button
-            class="btn btn-info"
-            onclick="generatePDF()"
-            title="Cetak PDF siswa"
-          >
-            <span class="btn-icon">📄</span>
-            Cetak PDF
-          </button>
-          <button
-            class="btn btn-secondary"
-            onclick="goBack()"
-            title="Kembali ke daftar siswa"
-          >
-            <span class="btn-icon">↩️</span>
-            Kembali ke Daftar
-          </button>
         </div>
       </div>
     </div>
@@ -749,39 +754,6 @@
         window.location.href =
           "<?= myURL() ?>?page=Students_manage&sessionId=" +
           encodeURIComponent(sessionId);
-      }
-
-      // Edit student
-      function editStudent(event) {
-        // Prevent default link behavior if called from link
-        if (event) {
-          event.preventDefault();
-        }
-
-        if (!currentStudentId) {
-          alert("ID siswa tidak tersedia");
-          return;
-        }
-
-        try {
-          const sessionId = getSessionId();
-          if (!sessionId) {
-            alert("Session tidak valid. Silakan login kembali.");
-            return;
-          }
-
-          const editUrl =
-            "<?= myURL() ?>?page=Student_edit&sessionId=" +
-            encodeURIComponent(sessionId) +
-            "&id=" +
-            encodeURIComponent(currentStudentId);
-
-          // Direct redirect without delay to ensure URL changes immediately
-          window.location.href = editUrl;
-        } catch (error) {
-          console.error("Error in editStudent:", error);
-          alert("Terjadi kesalahan saat membuka halaman edit");
-        }
       }
 
       // Generate PDF
@@ -941,7 +913,7 @@
                 <p><strong>Pesan:</strong> ${errorMessage}</p>
                 <div style="margin-top: 15px;">
                   <button class="btn btn-primary" onclick="loadStudentDetail('${studentId}')">🔄 Coba Lagi</button>
-                  <button class="btn btn-secondary" onclick="goBack()">📋 Kembali ke Daftar</button>
+                  <button class="btn btn-secondary" onclick="goBack()">📋 Kembali ke Daftar Siswa </button>
                 </div>
               </div>
             `;
@@ -1002,7 +974,7 @@
                     }</div>
                   </div>
                   <div class="detail-row">
-                    <div class="detail-label">Nama Lengkap</div>
+                    <div class="detail-label">Nama Siswa</div>
                     <div class="detail-value">${
                       student["Nama Siswa"] || student.nama || "-"
                     }</div>
@@ -1318,10 +1290,7 @@
                   <div class="detail-row">
                     <div class="detail-label">Nama Ayah Kandung</div>
                     <div class="detail-value">${
-                      student["Nama Ayah Kandung"] ||
-                      student["Nama Lengkap Ayah"] ||
-                      student.ayah ||
-                      "-"
+                      student["Nama Ayah Kandung"] || student.ayah || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
@@ -1411,10 +1380,7 @@
                   <div class="detail-row">
                     <div class="detail-label">Nama Ibu Kandung</div>
                     <div class="detail-value">${
-                      student["Nama Ibu Kandung"] ||
-                      student["Nama Lengkap Ibu"] ||
-                      student.ibu ||
-                      "-"
+                      student["Nama Ibu Kandung"] || student.ibu || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
@@ -1502,10 +1468,7 @@
                   <div class="detail-row">
                     <div class="detail-label">Nama Wali</div>
                     <div class="detail-value">${
-                      student["Nama Wali"] ||
-                      student["Nama Lengkap Wali"] ||
-                      student.wali ||
-                      "-"
+                      student["Nama Wali"] || student.wali || "-"
                     }</div>
                   </div>
                   <div class="detail-row">
@@ -1688,19 +1651,15 @@
                     (!student["Nama Prestasi (2)"] ||
                       student["Nama Prestasi (2)"] === "-" ||
                       student["Nama Prestasi (2)"].trim() === "") &&
-                    (
-                      !student["Nama Prestasi (3)"] ||
+                    (!student["Nama Prestasi (3)"] ||
                       student["Nama Prestasi (3)"] === "-" ||
-                      student["Nama Prestasi (3)"].trim() === ""
-                    )(
-                      !student["Nama Prestasi (4)"] ||
-                        student["Nama Prestasi (4)"] === "-" ||
-                        student["Nama Prestasi (4)"].trim() === ""
-                    )(
-                      !student["Nama Prestasi (5)"] ||
-                        student["Nama Prestasi (5)"] === "-" ||
-                        student["Nama Prestasi (5))"].trim() === ""
-                    )
+                      student["Nama Prestasi (3)"].trim() === "") &&
+                    (!student["Nama Prestasi (4)"] ||
+                      student["Nama Prestasi (4)"] === "-" ||
+                      student["Nama Prestasi (4)"].trim() === "") &&
+                    (!student["Nama Prestasi (5)"] ||
+                      student["Nama Prestasi (5)"] === "-" ||
+                      student["Nama Prestasi (5))"].trim() === "")
                       ? `<div class="detail-row">
                        <div class="detail-value">Tidak ada prestasi</div>
                      </div>`
@@ -1769,22 +1728,6 @@
               </div>
             </div>
           `;
-
-          // Show action buttons
-          document.getElementById("action-buttons").style.display = "block";
-
-          // Setup edit button href (Opsi 1 - like navbar approach)
-          const editButton = document.querySelector(".btn-edit-student");
-          if (editButton && currentStudentId) {
-            const sessionId = getSessionId();
-            if (sessionId) {
-              editButton.href =
-                "<?= myURL() ?>?page=Student_edit&sessionId=" +
-                encodeURIComponent(sessionId) +
-                "&id=" +
-                encodeURIComponent(currentStudentId);
-            }
-          }
         } catch (error) {
           console.error("Error rendering student detail:", error);
           showError("Gagal menampilkan detail siswa");
@@ -1794,7 +1737,27 @@
       // Initialize page
       document.addEventListener("DOMContentLoaded", function () {
         updateDateTime();
+
+        // Set up back button href like navbar approach
+        const sessionId = getSessionId();
+        const backButton = document.getElementById("back-to-list-btn");
+        if (backButton && sessionId) {
+          backButton.href =
+            "<?= myURL() ?>?page=Students_manage&sessionId=" +
+            encodeURIComponent(sessionId);
+        }
+
+        // Set up edit button href like navbar approach
         const studentId = getStudentIdFromUrl();
+        const editButton = document.getElementById("edit-student-btn");
+        if (editButton && sessionId && studentId) {
+          editButton.href =
+            "<?= myURL() ?>?page=Student_edit&sessionId=" +
+            encodeURIComponent(sessionId) +
+            "&id=" +
+            encodeURIComponent(studentId);
+        }
+
         if (studentId) {
           loadStudentDetail(studentId);
         } else {
