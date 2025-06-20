@@ -52,7 +52,13 @@
 
     google.script.run
       .withSuccessHandler(function (data) {
-        if (data && data.grades) {
+        console.log('getAllStudentGradesForFrontend response (loadAllStudentsData):', data);
+        console.log('Data type:', typeof data);
+        console.log('Has grades property:', data && data.hasOwnProperty('grades'));
+        console.log('Has success property:', data && data.hasOwnProperty('success'));
+        
+        if (data && data.success && data.grades && data.grades.length > 0) {
+          console.log('Grades length:', data.grades.length);
           // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
           allStudentsData = data.grades.map(grade => {
             // Hitung jumlah mata pelajaran yang memiliki nilai
@@ -89,12 +95,24 @@
               averageGrade: averageGrade
             };
           });
+          console.log('Processed allStudentsData length:', allStudentsData.length);
+          
+          // Show pagination info if there are more pages
+          if (data.totalPages && data.totalPages > 1) {
+            console.log('Data pagination info: Page ' + data.currentPage + ' of ' + data.totalPages + ', Total records: ' + data.totalCount);
+            showInfo('Menampilkan ' + allStudentsData.length + ' dari ' + data.totalCount + ' total siswa (Halaman ' + data.currentPage + ' dari ' + data.totalPages + ')');
+          }
+        } else {
+          console.warn('No grades data received in loadAllStudentsData:', data);
+          const errorMessage = data && data.message ? data.message : 'Tidak ada data nilai siswa yang ditemukan';
+          showError(errorMessage);
         }
       })
       .withFailureHandler(function (error) {
         console.error("Error loading student grades data:", error);
+        showError('Gagal memuat data nilai siswa: ' + (error.message || error.toString()));
       })
-      .getAllStudentGrades();
+      .getAllStudentGradesForFrontend();
   }
 
   // Fungsi untuk mencari siswa berdasarkan NIS atau nama
@@ -123,7 +141,13 @@
       google.script.run
         .withSuccessHandler(function (data) {
           isSearching = false;
-          if (data && data.grades) {
+          console.log('getAllStudentGradesForFrontend response (searchStudents):', data);
+          console.log('Data type:', typeof data);
+          console.log('Has grades property:', data && data.hasOwnProperty('grades'));
+          console.log('Has success property:', data && data.hasOwnProperty('success'));
+          
+          if (data && data.success && data.grades && data.grades.length > 0) {
+            console.log('Grades length:', data.grades.length);
             // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
             allStudentsData = data.grades.map(grade => {
               // Hitung jumlah mata pelajaran yang memiliki nilai
@@ -160,18 +184,27 @@
                 averageGrade: averageGrade
               };
             });
+            console.log('Processed allStudentsData length:', allStudentsData.length);
+            
+            // Show pagination info if there are more pages
+            if (data.totalPages && data.totalPages > 1) {
+              console.log('Data pagination info: Page ' + data.currentPage + ' of ' + data.totalPages + ', Total records: ' + data.totalCount);
+              showInfo('Menampilkan ' + allStudentsData.length + ' dari ' + data.totalCount + ' total siswa (Halaman ' + data.currentPage + ' dari ' + data.totalPages + ')');
+            }
             
             performSearch(searchTerm);
           } else {
-            showError("Gagal memuat data nilai siswa");
+            console.warn('No grades data received in searchStudents:', data);
+            const errorMessage = data && data.message ? data.message : 'Gagal memuat data nilai siswa - data kosong atau tidak valid';
+            showError(errorMessage);
           }
         })
         .withFailureHandler(function (error) {
           isSearching = false;
           console.error("Error searching student grades:", error);
-          showError("Terjadi kesalahan saat mencari data nilai siswa");
+          showError("Terjadi kesalahan saat mencari data nilai siswa: " + (error.message || error.toString()));
         })
-        .getAllStudentGrades();
+        .getAllStudentGradesForFrontend();
     }
   }
 
@@ -179,8 +212,11 @@
   function performSearch(searchTerm) {
     const searchLower = searchTerm.toLowerCase();
     const filteredResults = allStudentsData.filter(student => {
-      return student.nis.toLowerCase().includes(searchLower) || 
-             student.nama.toLowerCase().includes(searchLower);
+      // Safely convert to string and check if the values exist
+      const nis = student.nis ? String(student.nis).toLowerCase() : '';
+      const nama = student.nama ? String(student.nama).toLowerCase() : '';
+      
+      return nis.includes(searchLower) || nama.includes(searchLower);
     });
     
     searchResults = filteredResults;
@@ -318,6 +354,14 @@
     `;
     
     hideLoadingIndicator();
+  }
+
+  // Fungsi untuk menampilkan info
+  function showInfo(message) {
+    const searchInfo = document.getElementById("search-info");
+    
+    searchInfo.innerHTML = `<div style="color: #007bff; font-weight: bold;">ℹ️ ${message}</div>`;
+    searchInfo.style.display = "block";
   }
 
   // Fungsi untuk menampilkan info pencarian

@@ -627,14 +627,14 @@
     // Debug: Check if delete buttons exist
     const deleteButtons = document.querySelectorAll(".btn-delete");
     console.log("Found delete buttons:", deleteButtons.length);
-    
+
     // Remove any existing event listeners to prevent duplicates
     deleteButtons.forEach((button) => {
       // Clone the button to remove all event listeners
       const newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
     });
-    
+
     // Re-query after cloning
     const freshDeleteButtons = document.querySelectorAll(".btn-delete");
 
@@ -685,29 +685,29 @@
     // Setup delete buttons with direct event listeners
     freshDeleteButtons.forEach((button, index) => {
       console.log(`Setting up delete button ${index + 1}:`, button);
-      
+
       button.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
         const studentId = this.getAttribute("data-id");
         console.log("Delete button clicked for student:", studentId);
         console.log("Button element:", this);
-        
+
         // Add visual feedback
         this.style.transform = "scale(0.95)";
         setTimeout(() => {
           this.style.transform = "";
         }, 150);
-        
+
         openDeleteModal(studentId);
       });
-      
+
       // Add additional debugging
-      button.addEventListener("mousedown", function() {
+      button.addEventListener("mousedown", function () {
         console.log("Delete button mousedown event");
       });
-      
-      button.addEventListener("mouseup", function() {
+
+      button.addEventListener("mouseup", function () {
         console.log("Delete button mouseup event");
       });
     });
@@ -1434,11 +1434,17 @@
       const graduationModal = document.getElementById("graduation-batch-modal");
 
       // Only close modal if it's currently visible and the click target is the modal overlay itself
-      if (event.target === deleteModal && deleteModal.style.display === "flex") {
+      if (
+        event.target === deleteModal &&
+        deleteModal.style.display === "flex"
+      ) {
         closeDeleteModal();
       }
 
-      if (event.target === graduationModal && graduationModal.style.display === "flex") {
+      if (
+        event.target === graduationModal &&
+        graduationModal.style.display === "flex"
+      ) {
         closeGraduationBatchModal();
       }
     };
