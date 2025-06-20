@@ -25,6 +25,9 @@
       <a href="#" id="menu-students" class="menu-data">Kelola Data Siswa</a>
     </li>
     <li>
+      <a href="#" id="menu-grades" class="menu-grades">Kelola Nilai Siswa</a>
+    </li>
+    <li>
       <a href="#" id="logout-link" class="menu-logout">Logout</a>
     </li>
   </ul>
@@ -56,6 +59,11 @@
     const menuStudents = document.getElementById("menu-students");
     menuStudents.href =
       "<?= myURL() ?>?page=Students_manage&sessionId=" +
+      encodeURIComponent(sessionId);
+
+    const menuGrades = document.getElementById("menu-grades");
+    menuGrades.href =
+      "<?= myURL() ?>?page=Students_grades&sessionId=" +
       encodeURIComponent(sessionId);
 
     // Get and display admin name

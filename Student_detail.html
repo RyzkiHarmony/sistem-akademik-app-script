@@ -1208,7 +1208,8 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="pendidikan">Pendidikan Sebelumnya</h3>
                 </div>
-                <div class="detail-row">
+                <div class="section-content">
+                  <div class="detail-row">
                     <div class="detail-label">Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</div>
                     <div class="detail-value">${
                       student[
@@ -1224,7 +1225,6 @@
                       ] || "-"
                     }</div>
                   </div>
-                <div class="section-content">
                   <div class="detail-row">
                     <div class="detail-label">Asal Sekolah (SD/MI)</div>
                     <div class="detail-value">${
@@ -1257,13 +1257,9 @@
                       "-"
                     } Tahun</div>
                   </div>
-                  <div class="detail-row">
-                    <div class="detail-label">Apakah Kamu Siswa Pindahan?</div>
-                    <div class="detail-value">${
-                      student["Apakah Kamu Siswa Pindahan?"] || "-"
-                    }</div>
-                  </div>
-                  
+                </div>
+                <div class="detail-section">
+                  <div class="detail-label">Siswa Pindahan</div>
                   <div class="detail-row">
                     <div class="detail-label">Asal Sekolah (SMP/MTS/Sederajat)</div>
                     <div class="detail-value">${
@@ -1276,9 +1272,7 @@
                       student["Alasan Pindah Sekolah"] || "-"
                     }</div>
                   </div>
-                  
-                  
-                </div>
+                </div>    
               </div>
               
               <!-- Data Orang Tua -->

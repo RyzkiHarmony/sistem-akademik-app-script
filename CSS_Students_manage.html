@@ -130,6 +130,10 @@
     content: "👨‍🎓";
   }
 
+  .menu-grades:before {
+    content: "📝";
+  }
+
   .menu-logout:before {
     content: "🚪";
   }
@@ -726,7 +730,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.02), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(52, 152, 219, 0.02),
+      transparent
+    );
     opacity: 0;
     transition: opacity 0.2s ease;
   }
@@ -770,7 +779,7 @@
   .preview-student-id {
     font-size: 12px;
     color: #7f8c8d;
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
   }
 
   .preview-student-meta {
@@ -914,9 +923,70 @@
 
   .student-to-delete-info {
     margin-top: 15px;
-    padding: 10px;
+    padding: 15px;
     background-color: #f8f9fa;
-    border-radius: 5px;
+    border-radius: 8px;
+    border-left: 4px solid #e74c3c;
+  }
+
+  .student-delete-details {
+    margin-bottom: 15px;
+  }
+
+  .student-delete-details div {
+    margin-bottom: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .student-delete-details div:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
+  .delete-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    color: #856404;
+  }
+
+  .delete-warning .icon-warning {
+    color: #f39c12;
+    font-size: 16px;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .delete-warning .icon-warning::before {
+    content: "⚠️";
+    font-style: normal;
+  }
+
+  .delete-warning small {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  /* Enhanced modal button states */
+  .modal-footer .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .modal-footer .btn-danger:disabled {
+    background-color: #c0392b;
+    border-color: #c0392b;
+  }
+
+  /* Loading state for delete button */
+  .btn-danger .fas.fa-spinner {
+    margin-right: 8px;
   }
 
   /* Loading States */

@@ -1,0 +1,105 @@
+=== ANALISIS STRUKTUR SHEET DATA NILAI ===
+
+Total kolom: 146
+
+=== INFORMASI DASAR SISWA ===
+timestamp: Timestamp (kolom 1)
+nama: Nama Siswa (kolom 4)
+nis: NIS (kolom 5)
+nisn: NISN (kolom 6)
+kelas: Kelas (kolom 8)
+semester: Semester (kolom 10)
+tahunAjaran: Tahun Ajaran (kolom 11)
+
+=== MATA PELAJARAN DENGAN NILAI ===
+ 1. Pendidikan Agama Islam (kolom 12)
+ 2. Pendidikan Pancasila (kolom 14)
+ 3. Bahasa Indonesia (kolom 16)
+ 4. Matematika (kolom 18)
+ 5. Ilmu Pengetahuan Alam (kolom 20)
+ 6. Ilmu Pengetahuan Sosial (kolom 22)
+ 7. Bahasa Inggris (kolom 24)
+ 8. Pendidikan Jasmani, Olahraga, dan Kesehatan (kolom 26)
+ 9. Informatika (kolom 28)
+10. Seni Budaya (kolom 30)
+11. Bimbingan dan Konseling (kolom 32)
+12. Bahasa Jawa (kolom 34)
+
+=== NILAI UJIAN SEKOLAH ===
+ 1. Pendidikan Agama Islam - Ujian Sekolah (kolom 83)
+ 2. Pendidikan Pancasila - Ujian Sekolah (kolom 84)
+ 3. Bahasa Indonesia - Ujian Sekolah (kolom 85)
+ 4. Matematika - Ujian Sekolah (kolom 86)
+ 5. Ilmu Pengetahuan Alam - Ujian Sekolah (kolom 87)
+ 6. Ilmu Pengetahuan Sosial - Ujian Sekolah (kolom 88)
+ 7. Bahasa Inggris - Ujian Sekolah (kolom 89)
+ 8. Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah (kolom 90)
+ 9. Informatika - Ujian Sekolah (kolom 91)
+10. Seni Budaya - Ujian Sekolah (kolom 92)
+11. Bimbingan dan Konseling - Ujian Sekolah (kolom 93)
+12. Bahasa Jawa - Ujian Sekolah (kolom 94)
+
+=== MAPPING UNTUK CODE.JS ===
+
+// Update initializeGradeColumnMap function:
+function initializeGradeColumnMap() {
+  return {
+    timestamp: ["Timestamp"],
+    nama: ["Nama Siswa"],
+    nis: ["NIS"],
+    nisn: ["NISN"],
+    kelas: ["Kelas"],
+    semester: ["Semester"],
+    tahunAjaran: ["Tahun Ajaran"],
+  };
+}
+
+// Mata pelajaran yang tersedia:
+const availableSubjects = [
+  "Pendidikan Agama Islam",
+  "Pendidikan Pancasila",
+  "Bahasa Indonesia",
+  "Matematika",
+  "Ilmu Pengetahuan Alam",
+  "Ilmu Pengetahuan Sosial",
+  "Bahasa Inggris",
+  "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+  "Informatika",
+  "Seni Budaya",
+  "Bimbingan dan Konseling",
+  "Bahasa Jawa",
+];
+
+// Mapping kolom mata pelajaran:
+const subjectColumnMapping = {
+  "Pendidikan_Agama_Islam": "Pendidikan Agama Islam",
+  "Pendidikan_Pancasila": "Pendidikan Pancasila",
+  "Bahasa_Indonesia": "Bahasa Indonesia",
+  "Matematika": "Matematika",
+  "Ilmu_Pengetahuan_Alam": "Ilmu Pengetahuan Alam",
+  "Ilmu_Pengetahuan_Sosial": "Ilmu Pengetahuan Sosial",
+  "Bahasa_Inggris": "Bahasa Inggris",
+  "Pendidikan_Jasmani_Olahraga_dan_Kesehatan": "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+  "Informatika": "Informatika",
+  "Seni_Budaya": "Seni Budaya",
+  "Bimbingan_dan_Konseling": "Bimbingan dan Konseling",
+  "Bahasa_Jawa": "Bahasa Jawa",
+};
+
+// Struktur data yang diharapkan:
+// Setiap baris data akan memiliki struktur:
+// {
+//   timestamp: "nilai dari kolom timestamp",
+//   nama: "nilai dari kolom nama",
+//   nis: "nilai dari kolom nis",
+//   nisn: "nilai dari kolom nisn",
+//   kelas: "nilai dari kolom kelas",
+//   semester: "nilai dari kolom semester",
+//   tahunAjaran: "nilai dari kolom tahunAjaran",
+//   Pendidikan_Agama_Islam: "nilai Pendidikan Agama Islam",
+//   Pendidikan_Pancasila: "nilai Pendidikan Pancasila",
+//   Bahasa_Indonesia: "nilai Bahasa Indonesia",
+//   Matematika: "nilai Matematika",
+//   Ilmu_Pengetahuan_Alam: "nilai Ilmu Pengetahuan Alam",
+//   ...
+// }

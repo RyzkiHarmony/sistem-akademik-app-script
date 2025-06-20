@@ -1,0 +1,456 @@
+<!-- JavaScript_Students_grades.html -->
+
+<script>
+  let searchResults = [];
+  let isSearching = false;
+  
+  // Real-time search variables
+  let searchTimeout = null;
+  let lastSearchQuery = "";
+  let allStudentsData = []; // Cache untuk data siswa
+
+  // Fungsi untuk toggle sidebar di tampilan mobile
+  function toggleSidebar() {
+    document.body.classList.toggle("sidebar-active");
+  }
+
+  // Fungsi untuk mengupdate tanggal
+  function updateDateTime() {
+    const now = new Date();
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    document.getElementById("current-date").textContent =
+      now.toLocaleDateString("id-ID", options);
+  }
+
+  // Get session ID
+  function getSessionId() {
+    const hiddenInput = document.getElementById("sessionId");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("sessionId");
+  }
+
+  // Fungsi untuk memuat semua data nilai siswa (cache)
+  function loadAllStudentsData() {
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      showError("Session tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    // Jika data sudah ada, tidak perlu load ulang
+    if (allStudentsData.length > 0) {
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function (data) {
+        if (data && data.grades) {
+          // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
+          allStudentsData = data.grades.map(grade => {
+            // Hitung jumlah mata pelajaran yang memiliki nilai
+            const subjectFields = [
+              'pendidikanAgamaIslam', 'pendidikanPancasila', 'bahasaIndonesia', 'matematika',
+              'ilmuPengetahuanAlam', 'ilmuPengetahuanSosial', 'bahasaInggris', 'pendidikanJasmani',
+              'informatika', 'seniBudaya', 'bimbinganKonseling', 'bahasaJawa'
+            ];
+            
+            let totalSubjects = 0;
+            let totalGrade = 0;
+            let validGrades = 0;
+            
+            subjectFields.forEach(subject => {
+              const nilai = parseFloat(grade[subject]);
+              if (!isNaN(nilai) && nilai > 0) {
+                totalSubjects++;
+                totalGrade += nilai;
+                validGrades++;
+              }
+            });
+            
+            const averageGrade = validGrades > 0 ? totalGrade / validGrades : 0;
+            
+            return {
+              nis: grade.nis,
+              nama: grade.nama,
+              kelas: grade.kelas,
+              nisn: grade.nisn,
+              semester: grade.semester,
+              tahunAjaran: grade.tahunAjaran,
+              status: "Aktif", // Default status
+              totalSubjects: totalSubjects,
+              averageGrade: averageGrade
+            };
+          });
+        }
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error loading student grades data:", error);
+      })
+      .getAllStudentGrades();
+  }
+
+  // Fungsi untuk mencari siswa berdasarkan NIS atau nama
+  function searchStudents() {
+    const searchTerm = document.getElementById("search-input").value.trim();
+    
+    if (!searchTerm) {
+      showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+      return;
+    }
+
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      showError("Session tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    showLoading();
+    isSearching = true;
+
+    // Jika data sudah ada di cache, gunakan cache
+    if (allStudentsData.length > 0) {
+      performSearch(searchTerm);
+    } else {
+      // Load data dari server
+      google.script.run
+        .withSuccessHandler(function (data) {
+          isSearching = false;
+          if (data && data.grades) {
+            // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
+            allStudentsData = data.grades.map(grade => {
+              // Hitung jumlah mata pelajaran yang memiliki nilai
+              const subjectFields = [
+                'pendidikanAgamaIslam', 'pendidikanPancasila', 'bahasaIndonesia', 'matematika',
+                'ilmuPengetahuanAlam', 'ilmuPengetahuanSosial', 'bahasaInggris', 'pendidikanJasmani',
+                'informatika', 'seniBudaya', 'bimbinganKonseling', 'bahasaJawa'
+              ];
+              
+              let totalSubjects = 0;
+              let totalGrade = 0;
+              let validGrades = 0;
+              
+              subjectFields.forEach(subject => {
+                const nilai = parseFloat(grade[subject]);
+                if (!isNaN(nilai) && nilai > 0) {
+                  totalSubjects++;
+                  totalGrade += nilai;
+                  validGrades++;
+                }
+              });
+              
+              const averageGrade = validGrades > 0 ? totalGrade / validGrades : 0;
+              
+              return {
+                nis: grade.nis,
+                nama: grade.nama,
+                kelas: grade.kelas,
+                nisn: grade.nisn,
+                semester: grade.semester,
+                tahunAjaran: grade.tahunAjaran,
+                status: "Aktif", // Default status
+                totalSubjects: totalSubjects,
+                averageGrade: averageGrade
+              };
+            });
+            
+            performSearch(searchTerm);
+          } else {
+            showError("Gagal memuat data nilai siswa");
+          }
+        })
+        .withFailureHandler(function (error) {
+          isSearching = false;
+          console.error("Error searching student grades:", error);
+          showError("Terjadi kesalahan saat mencari data nilai siswa");
+        })
+        .getAllStudentGrades();
+    }
+  }
+
+  // Fungsi untuk melakukan pencarian pada data yang sudah ada
+  function performSearch(searchTerm) {
+    const searchLower = searchTerm.toLowerCase();
+    const filteredResults = allStudentsData.filter(student => {
+      return student.nis.toLowerCase().includes(searchLower) || 
+             student.nama.toLowerCase().includes(searchLower);
+    });
+    
+    searchResults = filteredResults;
+    isSearching = false;
+    hideLoadingIndicator();
+    renderStudentCards();
+  }
+
+  // Real-time search dengan debouncing
+  function setupRealTimeSearch() {
+    const searchInput = document.getElementById("search-input");
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function (e) {
+        const query = e.target.value.trim();
+
+        // Clear previous timeout
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
+
+        // Only search if query changed
+        if (query === lastSearchQuery) {
+          return;
+        }
+
+        lastSearchQuery = query;
+
+        // Show real-time feedback
+        const searchBox = document.querySelector(".search-box");
+        if (searchBox) {
+          searchBox.classList.add("searching");
+        }
+
+        // Jika query kosong, reset
+        if (!query) {
+          showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+          if (searchBox) {
+            searchBox.classList.remove("searching");
+          }
+          return;
+        }
+
+        // Debounce search - wait 500ms after user stops typing
+        searchTimeout = setTimeout(() => {
+          searchStudents();
+
+          // Remove searching class after search completes
+          setTimeout(() => {
+            if (searchBox) {
+              searchBox.classList.remove("searching");
+            }
+          }, 300);
+        }, 500);
+      });
+
+      // Handle Enter key for immediate search
+      searchInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+          searchStudents();
+        }
+      });
+    }
+  }
+
+  // Fungsi untuk menampilkan loading indicator
+  function showLoadingIndicator() {
+    const searchBtn = document.getElementById("search-btn");
+    const searchInput = document.getElementById("search-input");
+    const searchBox = document.querySelector(".search-box");
+
+    if (searchBtn) {
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mencari...';
+    }
+
+    if (searchInput) {
+      searchInput.style.opacity = "0.7";
+    }
+
+    if (searchBox) {
+      searchBox.classList.add("searching");
+    }
+  }
+
+  // Fungsi untuk menyembunyikan loading indicator
+  function hideLoadingIndicator() {
+    const searchBtn = document.getElementById("search-btn");
+    const searchInput = document.getElementById("search-input");
+    const searchBox = document.querySelector(".search-box");
+
+    if (searchBtn) {
+      searchBtn.disabled = false;
+      searchBtn.innerHTML = '<i class="fas fa-search"></i> Cari';
+    }
+
+    if (searchInput) {
+      searchInput.style.opacity = "1";
+    }
+
+    if (searchBox) {
+      searchBox.classList.remove("searching");
+    }
+  }
+
+  // Fungsi untuk menampilkan loading
+  function showLoading() {
+    const searchInfo = document.getElementById("search-info");
+    const studentCards = document.getElementById("student-cards");
+    
+    searchInfo.style.display = "none";
+    studentCards.innerHTML = `
+      <div class="loading-results">
+        <div>⏳ Mencari data siswa...</div>
+      </div>
+    `;
+    
+    showLoadingIndicator();
+  }
+
+  // Fungsi untuk menampilkan error
+  function showError(message) {
+    const searchInfo = document.getElementById("search-info");
+    const studentCards = document.getElementById("student-cards");
+    
+    searchInfo.style.display = "none";
+    studentCards.innerHTML = `
+      <div class="no-results">
+        <div style="color: #dc3545;">❌ ${message}</div>
+      </div>
+    `;
+    
+    hideLoadingIndicator();
+  }
+
+  // Fungsi untuk menampilkan info pencarian
+  function showSearchInfo(message) {
+    const searchInfo = document.getElementById("search-info");
+    const studentCards = document.getElementById("student-cards");
+    
+    searchInfo.textContent = message;
+    searchInfo.style.display = "block";
+    studentCards.innerHTML = "";
+  }
+
+  // Fungsi untuk menampilkan card siswa
+  function renderStudentCards() {
+    const searchInfo = document.getElementById("search-info");
+    const studentCards = document.getElementById("student-cards");
+
+    searchInfo.style.display = "none";
+
+    if (searchResults.length === 0) {
+      studentCards.innerHTML = `
+        <div class="no-results">
+          <div>Tidak ada siswa yang ditemukan dengan kata kunci tersebut</div>
+        </div>
+      `;
+      return;
+    }
+
+    studentCards.innerHTML = searchResults
+      .map((student) => {
+        const statusClass = `status-${(student.status || "Aktif")
+          .toLowerCase()
+          .replace(/\s+/g, "-")}`;
+
+        // Format rata-rata nilai
+        const avgGrade = student.averageGrade ? student.averageGrade.toFixed(1) : "0.0";
+        const gradeColor = student.averageGrade >= 75 ? "#28a745" : student.averageGrade >= 60 ? "#ffc107" : "#dc3545";
+
+        return `
+          <div class="student-card">
+            <div class="student-card-header">
+              <div class="student-info">
+                <div class="student-name">${student.nama}</div>
+                <div class="student-nis">NIS: ${student.nis}</div>
+              </div>
+              <span class="status-badge ${statusClass}">${student.status || "Aktif"}</span>
+            </div>
+            
+            <div class="student-card-body">
+              <div class="student-detail">
+                <div class="detail-label">Kelas</div>
+                <div class="detail-value">${student.kelas || "-"}</div>
+              </div>
+              <div class="student-detail">
+                <div class="detail-label">NISN</div>
+                <div class="detail-value">${student.nisn || "-"}</div>
+              </div>
+              <div class="student-detail">
+                <div class="detail-label">Semester</div>
+                <div class="detail-value">${student.semester || "-"}</div>
+              </div>
+              <div class="student-detail">
+                <div class="detail-label">Tahun Ajaran</div>
+                <div class="detail-value">${student.tahunAjaran || "-"}</div>
+              </div>
+              <div class="student-detail">
+                <div class="detail-label">Mata Pelajaran Dinilai</div>
+                <div class="detail-value">${student.totalSubjects || 0} dari 12</div>
+              </div>
+              <div class="student-detail">
+                <div class="detail-label">Rata-rata Nilai</div>
+                <div class="detail-value" style="color: ${gradeColor}; font-weight: bold;">${avgGrade}</div>
+              </div>
+            </div>
+            
+            <div class="student-card-footer">
+              <button class="card-action-btn" onclick="viewStudentGrades('${student.nis}')" title="Lihat Detail Nilai Siswa">
+                📝 Lihat Detail Nilai
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  // Fungsi untuk melihat nilai siswa
+  function viewStudentGrades(studentId) {
+    const sessionId = getSessionId();
+    const url = `<?= myURL() ?>?page=Student_grades_detail&sessionId=${encodeURIComponent(
+      sessionId
+    )}&id=${encodeURIComponent(studentId)}`;
+    window.location.href = url;
+  }
+
+  // Fungsi untuk reset pencarian
+  function resetSearch() {
+    // Clear timeout jika ada
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    document.getElementById("search-input").value = "";
+    lastSearchQuery = "";
+    searchResults = [];
+    hideLoadingIndicator();
+    showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data");
+  }
+
+  // Event listeners
+  document.addEventListener("DOMContentLoaded", function () {
+    updateDateTime();
+    
+    // Tampilkan pesan awal
+      showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+    
+    // Load data siswa untuk cache
+    loadAllStudentsData();
+    
+    // Setup real-time search
+    setupRealTimeSearch();
+
+    // Search button (untuk fallback)
+    document
+      .getElementById("search-btn")
+      .addEventListener("click", searchStudents);
+
+    // Reset button
+    document
+      .getElementById("reset-btn")
+      .addEventListener("click", resetSearch);
+  });
+
+  // Update time every minute
+  setInterval(updateDateTime, 60000);
+</script>

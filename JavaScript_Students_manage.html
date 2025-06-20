@@ -278,8 +278,11 @@
       const entryYear = student.tanggalDaftar
         ? new Date(student.tanggalDaftar).getFullYear()
         : "N/A";
-      
-      const genderText = student.gender === "Laki-laki" || student.gender === "L" ? "Laki-laki" : "Perempuan";
+
+      const genderText =
+        student.gender === "Laki-laki" || student.gender === "L"
+          ? "Laki-laki"
+          : "Perempuan";
       const statusText = student.status || "Aktif";
 
       html += `
@@ -615,8 +618,26 @@
     }
   }
 
+  // Event delegation handler removed - now handled directly in DOMContentLoaded
+
   // Setup action buttons
   function setupActionButtons() {
+    console.log("Setting up action buttons...");
+
+    // Debug: Check if delete buttons exist
+    const deleteButtons = document.querySelectorAll(".btn-delete");
+    console.log("Found delete buttons:", deleteButtons.length);
+    
+    // Remove any existing event listeners to prevent duplicates
+    deleteButtons.forEach((button) => {
+      // Clone the button to remove all event listeners
+      const newButton = button.cloneNode(true);
+      button.parentNode.replaceChild(newButton, button);
+    });
+    
+    // Re-query after cloning
+    const freshDeleteButtons = document.querySelectorAll(".btn-delete");
+
     // View student button - Setup both href and click handler
     document.querySelectorAll(".btn-view").forEach(function (button) {
       const studentId = button.getAttribute("data-id");
@@ -661,11 +682,33 @@
       });
     });
 
-    // Delete student button
-    document.querySelectorAll(".btn-delete").forEach(function (button) {
-      button.addEventListener("click", function () {
+    // Setup delete buttons with direct event listeners
+    freshDeleteButtons.forEach((button, index) => {
+      console.log(`Setting up delete button ${index + 1}:`, button);
+      
+      button.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
         const studentId = this.getAttribute("data-id");
+        console.log("Delete button clicked for student:", studentId);
+        console.log("Button element:", this);
+        
+        // Add visual feedback
+        this.style.transform = "scale(0.95)";
+        setTimeout(() => {
+          this.style.transform = "";
+        }, 150);
+        
         openDeleteModal(studentId);
+      });
+      
+      // Add additional debugging
+      button.addEventListener("mousedown", function() {
+        console.log("Delete button mousedown event");
+      });
+      
+      button.addEventListener("mouseup", function() {
+        console.log("Delete button mouseup event");
       });
     });
   }
@@ -758,6 +801,12 @@
 
   // Open delete confirmation modal
   function openDeleteModal(studentId) {
+    // Validate studentId
+    if (!studentId) {
+      showNotification("ID siswa tidak valid", "error");
+      return;
+    }
+
     const student = allStudents.find((s) => s.nis == studentId);
 
     if (!student) {
@@ -768,14 +817,30 @@
     // Store student to delete
     studentToDelete = student;
 
-    // Show student info
+    // Show student info with more details
     document.getElementById("student-to-delete-info").innerHTML = `
-      <div><strong>NIS:</strong> ${student.nis}</div>
-      <div><strong>Nama:</strong> ${student.nama}</div>
+      <div class="student-delete-details">
+        <div><strong>NIS:</strong> ${student.nis || "-"}</div>
+        <div><strong>Nama:</strong> ${student.nama || "-"}</div>
+        <div><strong>Status:</strong> ${student.status || "-"}</div>
+      </div>
+      <div class="delete-warning">
+        <i class="icon-warning"></i>
+        <small>Semua data terkait siswa ini akan dihapus permanen termasuk data nilai dan raport.</small>
+      </div>
     `;
+
+    // Reset modal state
+    document.getElementById("confirm-delete-btn").disabled = false;
+    document.getElementById("confirm-delete-btn").textContent = "Hapus Data";
 
     // Show modal
     document.getElementById("delete-modal").style.display = "flex";
+
+    // Focus on cancel button for better UX
+    setTimeout(() => {
+      document.getElementById("cancel-delete-btn").focus();
+    }, 100);
   }
 
   // Delete student data
@@ -785,34 +850,78 @@
       return;
     }
 
-    // Disable delete button
-    document.getElementById("confirm-delete-btn").disabled = true;
-    document.getElementById("confirm-delete-btn").textContent = "Menghapus...";
+    // Show loading state
+    const confirmBtn = document.getElementById("confirm-delete-btn");
+    const cancelBtn = document.getElementById("cancel-delete-btn");
+    const closeBtn = document.getElementById("close-delete-modal");
+
+    confirmBtn.disabled = true;
+    cancelBtn.disabled = true;
+    closeBtn.disabled = true;
+    confirmBtn.innerHTML =
+      '<i class="fas fa-spinner fa-spin"></i> Menghapus...';
+
+    // Store student info for success message
+    const studentName = studentToDelete.nama;
+    const studentNis = studentToDelete.nis;
 
     // Call server function to delete student
     google.script.run
       .withSuccessHandler(function (result) {
-        if (result.success) {
-          showNotification("Data siswa berhasil dihapus", "success");
-          closeDeleteModal();
-          loadStudents(); // Reload data
-        } else {
+        if (result && result.success) {
           showNotification(
-            result.message || "Gagal menghapus data siswa",
-            "error"
+            `Data siswa ${studentName} (NIS: ${studentNis}) berhasil dihapus`,
+            "success"
           );
-          document.getElementById("confirm-delete-btn").disabled = false;
-          document.getElementById("confirm-delete-btn").textContent =
-            "Hapus Data";
+          closeDeleteModal();
+
+          // Reload data and maintain current page if possible
+          const currentPageBackup = currentPage;
+          loadStudents();
+
+          // If current page becomes empty, go to previous page
+          setTimeout(() => {
+            if (filteredStudents.length === 0 && currentPageBackup > 1) {
+              currentPage = currentPageBackup - 1;
+              loadStudents();
+            }
+          }, 500);
+        } else {
+          const errorMessage =
+            result && result.message
+              ? result.message
+              : "Gagal menghapus data siswa";
+          showNotification(errorMessage, "error");
+          resetDeleteButton();
         }
       })
       .withFailureHandler(function (error) {
-        showNotification("Terjadi kesalahan: " + error, "error");
-        document.getElementById("confirm-delete-btn").disabled = false;
-        document.getElementById("confirm-delete-btn").textContent =
-          "Hapus Data";
+        console.error("Delete student error:", error);
+        showNotification(
+          "Terjadi kesalahan saat menghapus data siswa: " + error,
+          "error"
+        );
+        resetDeleteButton();
       })
       .deleteStudent(studentToDelete.nis);
+  }
+
+  // Helper function to reset delete button state
+  function resetDeleteButton() {
+    const confirmBtn = document.getElementById("confirm-delete-btn");
+    const cancelBtn = document.getElementById("cancel-delete-btn");
+    const closeBtn = document.getElementById("close-delete-modal");
+
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Hapus Data";
+    }
+    if (cancelBtn) {
+      cancelBtn.disabled = false;
+    }
+    if (closeBtn) {
+      closeBtn.disabled = false;
+    }
   }
 
   // Toggle form fields enabled/disabled
@@ -911,10 +1020,22 @@
   }
 
   function closeDeleteModal() {
-    document.getElementById("delete-modal").style.display = "none";
+    const modal = document.getElementById("delete-modal");
+    if (modal) {
+      modal.style.display = "none";
+    }
+
+    // Reset state
     studentToDelete = null;
-    document.getElementById("confirm-delete-btn").disabled = false;
-    document.getElementById("confirm-delete-btn").textContent = "Hapus Data";
+
+    // Reset all button states
+    resetDeleteButton();
+
+    // Clear student info
+    const studentInfo = document.getElementById("student-to-delete-info");
+    if (studentInfo) {
+      studentInfo.innerHTML = "";
+    }
   }
 
   // Function to close graduation batch modal - adapted from file_old
@@ -966,7 +1087,9 @@
     // Initialize sort indicators after a short delay
     setTimeout(() => {
       updateSortIndicators();
-    }, 200);
+      // Setup action buttons after table is rendered
+      setupActionButtons();
+    }, 500);
 
     // Setup event listeners for search and filter (mengadaptasi dari file_old)
     document
@@ -1310,11 +1433,12 @@
       const deleteModal = document.getElementById("delete-modal");
       const graduationModal = document.getElementById("graduation-batch-modal");
 
-      if (event.target === deleteModal) {
+      // Only close modal if it's currently visible and the click target is the modal overlay itself
+      if (event.target === deleteModal && deleteModal.style.display === "flex") {
         closeDeleteModal();
       }
 
-      if (event.target === graduationModal) {
+      if (event.target === graduationModal && graduationModal.style.display === "flex") {
         closeGraduationBatchModal();
       }
     };

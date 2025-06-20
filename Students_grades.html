@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kelola Nilai Siswa - Buku Induk</title>
+    <base target="_top" />
+    <?!= include('CSS_Students_grades') ?>
+  </head>
+  <body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <?!=includeNavbar();?>
+
+    <div class="main-content">
+      <div class="page-header">
+        <h1 class="page-title">Kelola Nilai Siswa</h1>
+        <input type="hidden" id="sessionId" value="<?= sessionId ?>" />
+        <div class="page-date" id="current-date">Memuat tanggal...</div>
+      </div>
+
+      <div class="search-section">
+        <div class="search-container">
+          <div class="search-box">
+            <div class="form-group">
+              <label class="form-label">Cari Siswa</label>
+              <input
+                type="text"
+                class="form-control"
+                id="search-input"
+                placeholder="Masukkan NIS atau nama siswa..."
+              />
+            </div>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-search" id="search-btn">
+            🔍 Cari Siswa
+          </button>
+          <button class="btn btn-secondary btn-reset" id="reset-btn">
+            🔄 Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="results-container" id="results-container">
+        <div class="search-info" id="search-info">
+          Masukkan NIS atau nama siswa untuk mencari data
+        </div>
+        <div class="student-cards" id="student-cards">
+          <!-- Student cards will be displayed here -->
+        </div>
+      </div>
+
+      <footer
+        style="
+          margin-top: 50px;
+          text-align: center;
+          padding: 20px;
+          border-top: 1px solid #e0e0e0;
+          color: #7f8c8d;
+          font-size: 14px;
+        "
+      >
+        &copy; 2025 SMP Negeri 03 Pekalongan.
+      </footer>
+    </div>
+
+    <?!= include('JavaScript_Students_grades') ?>
+  </body>
+</html>

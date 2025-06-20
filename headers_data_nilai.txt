@@ -1,0 +1,333 @@
+=== HEADERS SHEET DATA NILAI ===
+Total kolom: 146
+
+  1. Timestamp
+  2. Email address
+  3. NIP Wali Kelas
+  4. Nama Siswa
+  5. NIS
+  6. NISN
+  7. Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah)
+  8. Kelas
+  9. Jenis Kelas
+ 10. Semester
+ 11. Tahun Ajaran
+ 12. Pendidikan Agama Islam
+ 13. Capaian Pembelajaran (Pendidikan Agama Islam)
+ 14. Pendidikan Pancasila
+ 15. Capaian Pembelajaran (Pendidikan Pancasila)
+ 16. Bahasa Indonesia
+ 17. Capaian Pembelajaran (Bahasa Indonesia)
+ 18. Matematika
+ 19. Capaian Pembelajaran (Matematika)
+ 20. Ilmu Pengetahuan Alam
+ 21. Capaian Pembelajaran (Ilmu Pengetahuan Alam)
+ 22. Ilmu Pengetahuan Sosial
+ 23. Capaian Pembelajaran (Ilmu Pengetahuan Sosial)
+ 24. Bahasa Inggris
+ 25. Capaian Pembelajaran (Bahasa Inggris)
+ 26. Pendidikan Jasmani, Olahraga, dan Kesehatan
+ 27. Capaian Pembelajaran (PJOK)
+ 28. Informatika
+ 29. Capaian Pembelajaran (Informatika)
+ 30. Seni Budaya
+ 31. Capaian Pembelajaran (Seni Budaya)
+ 32. Bimbingan dan Konseling
+ 33. Capaian Pembelajaran (BK)
+ 34. Bahasa Jawa
+ 35. Capaian Pembelajaran (Bahasa Jawa)
+ 36. Sakit - SMT I
+ 37. Izin - SMT I
+ 38. Tanpa Keterangan - SMT I
+ 39. Sakit - SMT II
+ 40. Izin - SMT II
+ 41. Tanpa Keterangan - SMT II
+ 42. Naik / Tidak Naik
+ 43. Naik Ke Kelas
+ 44. Tanggal ditetapkan Naik Kelas
+ 45. Tema Projek 1
+ 46. Tema Projek 2
+ 47. Tema Projek 3
+ 48. Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia
+ 49. Sub-Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia
+ 50. Target Pencapaian - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia
+ 51. Elemen - Berkebhinekaan Global
+ 52. Sub-Elemen - Berkebhinekaan Global
+ 53. Target Pencapaian - Berkebhinekaan Global
+ 54. Elemen - Bergotong Royong
+ 55. Sub-Elemen - Bergotong Royong
+ 56. Target Pencapaian - Bergotong Royong
+ 57. Elemen - Mandiri
+ 58. Sub-Elemen - Mandiri
+ 59. Target Pencapaian - Mandiri
+ 60. Elemen - Bernalar Kritis
+ 61. Sub-Elemen - Bernalar Kritis
+ 62. Target Pencapaian - Bernalar Kritis
+ 63. Elemen - Kreatif
+ 64. Sub-Elemen - Kreatif
+ 65. Target Pencapaian - Kreatif
+ 66. Keterangan Ekstrakurikuler 1
+ 67. Ekstrakurikuler 2
+ 68. Keterangan Ekstrakurikuler 2
+ 69. Ekstrakurikuler 3
+ 70. Keterangan Ekstrakurikuler 3
+ 71. Ekstrakurikuler 4
+ 72. Keterangan Ekstrakurikuler 4
+ 73. Jenis Prestasi
+ 74. Tingkat Prestasi
+ 75. Nama Prestasi
+ 76. Tahun Prestasi
+ 77. Penyelenggara
+ 78. Peringkat
+ 79. Kelas_
+ 80. Jenis Kelas_
+ 81. Semester_
+ 82. Tahun_Ajaran
+ 83. Pendidikan Agama Islam - Ujian Sekolah
+ 84. Pendidikan Pancasila - Ujian Sekolah
+ 85. Bahasa Indonesia - Ujian Sekolah
+ 86. Matematika - Ujian Sekolah
+ 87. Ilmu Pengetahuan Alam - Ujian Sekolah
+ 88. Ilmu Pengetahuan Sosial - Ujian Sekolah
+ 89. Bahasa Inggris - Ujian Sekolah
+ 90. Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah
+ 91. Informatika - Ujian Sekolah
+ 92. Seni Budaya - Ujian Sekolah
+ 93. Bimbingan dan Konseling - Ujian Sekolah
+ 94. Bahasa Jawa - Ujian Sekolah
+ 95. Capaian Pembelajaran (PAI) - Nilai Sekolah
+ 96. Capaian Pembelajaran (Pendidikan Pancasila) - Nilai Sekolah
+ 97. Capaian Pembelajaran (Bahasa Indonesia) - Nilai Sekolah
+ 98. Capaian Pembelajaran (Matematika) - Nilai Sekolah
+ 99. Capaian Pembelajaran (IPA) - Nilai Sekolah
+100. Capaian Pembelajaran (IPS) - Nilai Sekolah
+101. Capaian Pembelajaran (Bahasa Inggris) - Nilai Sekolah
+102. Capaian Pembelajaran (PJOK) - Nilai Sekolah
+103. Capaian Pembelajaran (Informatika) - Nilai Sekolah
+104. Capaian Pembelajaran (Seni Budaya) - Nilai Sekolah
+105. Capaian Pembelajaran (BK) - Nilai Sekolah
+106. Capaian Pembelajaran (Bahasa Jawa) - Nilai Sekolah
+107. Jenis Prestasi (2)
+108. Tingkat Prestasi (2)
+109. Nama Prestasi (2)
+110. Tahun Prestasi (2)
+111. Penyelenggara (2)
+112. Peringkat (2)
+113. Lanjut Prestasi ke-2
+114. Jenis Prestasi (4)
+115. Tingkat Prestasi (4)
+116. Nama Prestasi (4)
+117. Tahun Prestasi (4)
+118. Penyelenggara (4)
+119. Peringkat (4)
+120. Jenis Prestasi (5)
+121. Tingkat Prestasi (5)
+122. Nama Prestasi (5)
+123. Tahun Prestasi (5)
+124. Penyelenggara (5)
+125. Peringkat (5)
+126. Jenis Prestasi (3)
+127. Tingkat Prestasi (3)
+128. Nama Prestasi (3)
+129. Tahun Prestasi (3)
+130. Penyelenggara (3)
+131. Peringkat (3)
+132. Lanjut Prestasi ke-3
+133. Lanjut Prestasi ke-4
+134. Lanjut Prestasi ke-5
+135. Lanjut Ekstrakurikuler ke-2
+136. Lanjut Ekstrakurikuler ke-3
+137. Lanjut Ekstrakurikuler ke-4
+138. LULUS / TIDAK LULUS
+139. Lanjutkan Mengisi Prestasi Peserta Didik?
+140. Tanggal Ditetapkan Lulus
+141. No. Ijazah
+142. No. SKHUS
+143. Jumlah Nilai per SMT
+144. Rata-Rata Nilai per SMT
+145. Jumlah Nilai US
+146. Rata-Rata Nilai US
+
+=== HEADERS DALAM FORMAT JSON ===
+[
+  "Timestamp",
+  "Email address",
+  "NIP Wali Kelas",
+  "Nama Siswa",
+  "NIS",
+  "NISN",
+  "Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah)",
+  "Kelas",
+  "Jenis Kelas",
+  "Semester",
+  "Tahun Ajaran",
+  "Pendidikan Agama Islam",
+  "Capaian Pembelajaran (Pendidikan Agama Islam)",
+  "Pendidikan Pancasila",
+  "Capaian Pembelajaran (Pendidikan Pancasila)",
+  "Bahasa Indonesia",
+  "Capaian Pembelajaran (Bahasa Indonesia)",
+  "Matematika",
+  "Capaian Pembelajaran (Matematika)",
+  "Ilmu Pengetahuan Alam",
+  "Capaian Pembelajaran (Ilmu Pengetahuan Alam)",
+  "Ilmu Pengetahuan Sosial",
+  "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)",
+  "Bahasa Inggris",
+  "Capaian Pembelajaran (Bahasa Inggris)",
+  "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+  "Capaian Pembelajaran (PJOK)",
+  "Informatika",
+  "Capaian Pembelajaran (Informatika)",
+  "Seni Budaya",
+  "Capaian Pembelajaran (Seni Budaya)",
+  "Bimbingan dan Konseling",
+  "Capaian Pembelajaran (BK)",
+  "Bahasa Jawa",
+  "Capaian Pembelajaran (Bahasa Jawa)",
+  "Sakit - SMT I",
+  "Izin - SMT I",
+  "Tanpa Keterangan - SMT I",
+  "Sakit - SMT II",
+  "Izin - SMT II",
+  "Tanpa Keterangan - SMT II",
+  "Naik / Tidak Naik",
+  "Naik Ke Kelas",
+  "Tanggal ditetapkan Naik Kelas",
+  "Tema Projek 1",
+  "Tema Projek 2",
+  "Tema Projek 3",
+  "Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia",
+  "Sub-Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia",
+  "Target Pencapaian - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia",
+  "Elemen - Berkebhinekaan Global",
+  "Sub-Elemen - Berkebhinekaan Global",
+  "Target Pencapaian - Berkebhinekaan Global",
+  "Elemen - Bergotong Royong",
+  "Sub-Elemen - Bergotong Royong",
+  "Target Pencapaian - Bergotong Royong",
+  "Elemen - Mandiri",
+  "Sub-Elemen - Mandiri",
+  "Target Pencapaian - Mandiri",
+  "Elemen - Bernalar Kritis",
+  "Sub-Elemen - Bernalar Kritis",
+  "Target Pencapaian - Bernalar Kritis",
+  "Elemen - Kreatif",
+  "Sub-Elemen - Kreatif",
+  "Target Pencapaian - Kreatif",
+  "Keterangan Ekstrakurikuler 1",
+  "Ekstrakurikuler 2",
+  "Keterangan Ekstrakurikuler 2",
+  "Ekstrakurikuler 3",
+  "Keterangan Ekstrakurikuler 3",
+  "Ekstrakurikuler 4",
+  "Keterangan Ekstrakurikuler 4",
+  "Jenis Prestasi",
+  "Tingkat Prestasi",
+  "Nama Prestasi",
+  "Tahun Prestasi",
+  "Penyelenggara",
+  "Peringkat",
+  "Kelas_",
+  "Jenis Kelas_",
+  "Semester_",
+  "Tahun_Ajaran",
+  "Pendidikan Agama Islam - Ujian Sekolah",
+  "Pendidikan Pancasila - Ujian Sekolah",
+  "Bahasa Indonesia - Ujian Sekolah",
+  "Matematika - Ujian Sekolah",
+  "Ilmu Pengetahuan Alam - Ujian Sekolah",
+  "Ilmu Pengetahuan Sosial - Ujian Sekolah",
+  "Bahasa Inggris - Ujian Sekolah",
+  "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah",
+  "Informatika - Ujian Sekolah",
+  "Seni Budaya - Ujian Sekolah",
+  "Bimbingan dan Konseling - Ujian Sekolah",
+  "Bahasa Jawa - Ujian Sekolah",
+  "Capaian Pembelajaran (PAI) - Nilai Sekolah",
+  "Capaian Pembelajaran (Pendidikan Pancasila) - Nilai Sekolah",
+  "Capaian Pembelajaran (Bahasa Indonesia) - Nilai Sekolah",
+  "Capaian Pembelajaran (Matematika) - Nilai Sekolah",
+  "Capaian Pembelajaran (IPA) - Nilai Sekolah",
+  "Capaian Pembelajaran (IPS) - Nilai Sekolah",
+  "Capaian Pembelajaran (Bahasa Inggris) - Nilai Sekolah",
+  "Capaian Pembelajaran (PJOK) - Nilai Sekolah",
+  "Capaian Pembelajaran (Informatika) - Nilai Sekolah",
+  "Capaian Pembelajaran (Seni Budaya) - Nilai Sekolah",
+  "Capaian Pembelajaran (BK) - Nilai Sekolah",
+  "Capaian Pembelajaran (Bahasa Jawa) - Nilai Sekolah",
+  "Jenis Prestasi (2)",
+  "Tingkat Prestasi (2)",
+  "Nama Prestasi (2)",
+  "Tahun Prestasi (2)",
+  "Penyelenggara (2)",
+  "Peringkat (2)",
+  "Lanjut Prestasi ke-2",
+  "Jenis Prestasi (4)",
+  "Tingkat Prestasi (4)",
+  "Nama Prestasi (4)",
+  "Tahun Prestasi (4)",
+  "Penyelenggara (4)",
+  "Peringkat (4)",
+  "Jenis Prestasi (5)",
+  "Tingkat Prestasi (5)",
+  "Nama Prestasi (5)",
+  "Tahun Prestasi (5)",
+  "Penyelenggara (5)",
+  "Peringkat (5)",
+  "Jenis Prestasi (3)",
+  "Tingkat Prestasi (3)",
+  "Nama Prestasi (3)",
+  "Tahun Prestasi (3)",
+  "Penyelenggara (3)",
+  "Peringkat (3)",
+  "Lanjut Prestasi ke-3",
+  "Lanjut Prestasi ke-4",
+  "Lanjut Prestasi ke-5",
+  "Lanjut Ekstrakurikuler ke-2",
+  "Lanjut Ekstrakurikuler ke-3",
+  "Lanjut Ekstrakurikuler ke-4",
+  "LULUS / TIDAK LULUS",
+  "Lanjutkan Mengisi Prestasi Peserta Didik?",
+  "Tanggal Ditetapkan Lulus",
+  "No. Ijazah",
+  "No. SKHUS",
+  "Jumlah Nilai per SMT",
+  "Rata-Rata Nilai per SMT",
+  "Jumlah Nilai US",
+  "Rata-Rata Nilai US"
+]
+
+=== HEADERS UNTUK MAPPING CODE.JS ===
+// Berdasarkan headers yang ditemukan:
+const gradeColumnMap = {
+  timestamp: ["Timestamp"],
+  nama: ["Nama Siswa"],
+  nis: ["Jenis Prestasi (3)"],
+  semester: ["Semester_"],
+  kelas: ["Kelas"],
+  tahunAjaran: ["Tahun Ajaran"],
+};
+
+// Mata pelajaran yang ditemukan:
+// Mata pelajaran:
+// - Pendidikan Agama Islam
+// - Pendidikan Pancasila
+// - Bahasa Indonesia
+// - Ilmu Pengetahuan Alam
+// - Ilmu Pengetahuan Sosial
+// - Bahasa Inggris
+// - Pendidikan Jasmani, Olahraga, dan Kesehatan
+// - Informatika
+// - Seni Budaya
+// - Bimbingan dan Konseling
+// - Bahasa Jawa
+// - Tingkat Prestasi
+// - Penyelenggara
+// - Peringkat
+// - Pendidikan Agama Islam - Ujian Sekolah
+// - Pendidikan Pancasila - Ujian Sekolah
+// - Bahasa Indonesia - Ujian Sekolah
+// - Ilmu Pengetahuan Alam - Ujian Sekolah
+// - Ilmu Pengetahuan Sosial - Ujian Sekolah
+// - Bahasa Inggris - Ujian Sekolah
