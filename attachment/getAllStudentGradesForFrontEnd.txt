@@ -1,0 +1,833 @@
+Versi 373	getAllStudentGradesForFrontend	Aplikasi Web	21 Jun 2025, 22.42.13	2.913 dtk	
+Selesai
+Log cloud
+21 Jun 2025, 22.42.14	Info	getAllStudentGradesForFrontend called
+21 Jun 2025, 22.42.14	Info	getAllStudentGrades called with options: {"limit":100,"page":1}
+21 Jun 2025, 22.42.14	Info	Final options: {"page":1,"limit":100,"sortField":"nis","sortDirection":"asc","searchQuery":"","nisFilter":"","classFilter":"","subjectFilter":""}
+21 Jun 2025, 22.42.14	Info	Accessing spreadsheet with ID: 1Xv8VGni724ljfMe1RW_0Io5bivzCOxgsZF-khqtoABc
+21 Jun 2025, 22.42.14	Info	Spreadsheet accessed successfully
+21 Jun 2025, 22.42.14	Info	Looking for sheet: DATA NILAI
+21 Jun 2025, 22.42.14	Info	Grades sheet found successfully
+21 Jun 2025, 22.42.14	Info	Getting data range from grades sheet
+21 Jun 2025, 22.42.14	Info	Data range: A1:EP98
+21 Jun 2025, 22.42.15	Info	Total rows retrieved: 98
+21 Jun 2025, 22.42.15	Info	Headers found: Timestamp, Email address, NIP Wali Kelas, Nama Siswa, NIS, NISN, Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah), Kelas, Jenis Kelas, Semester, Tahun Ajaran, Pendidikan Agama Islam, Capaian Pembelajaran (Pendidikan Agama Islam), Pendidikan Pancasila, Capaian Pembelajaran (Pendidikan Pancasila), Bahasa Indonesia, Capaian Pembelajaran (Bahasa Indonesia), Matematika, Capaian Pembelajaran (Matematika), Ilmu Pengetahuan Alam, Capaian Pembelajaran (Ilmu Pengetahuan Alam), Ilmu Pengetahuan Sosial, Capaian Pembelajaran (Ilmu Pengetahuan Sosial), Bahasa Inggris, Capaian Pembelajaran (Bahasa Inggris), Pendidikan Jasmani, Olahraga, dan Kesehatan, Capaian Pembelajaran (PJOK), Informatika, Capaian Pembelajaran (Informatika), Seni Budaya, Capaian Pembelajaran (Seni Budaya), Bimbingan dan Konseling, Capaian Pembelajaran (BK), Bahasa Jawa, Capaian Pembelajaran (Bahasa Jawa), Sakit - SMT I, Izin - SMT I, Tanpa Keterangan - SMT I, Sakit - SMT II, Izin - SMT II, Tanpa Keterangan - SMT II, Naik / Tidak Naik, Naik Ke Kelas, Tanggal ditetapkan Naik Kelas, Tema Projek 1, Tema Projek 2, Tema Projek 3, Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia, Sub-Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia, Target Pencapaian - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia, Elemen - Berkebhinekaan Global, Sub-Elemen - Berkebhinekaan Global, Target Pencapaian - Berkebhinekaan Global, Elemen - Bergotong Royong, Sub-Elemen - Bergotong Royong, Target Pencapaian - Bergotong Royong, Elemen - Mandiri, Sub-Elemen - Mandiri, Target Pencapaian - Mandiri, Elemen - Bernalar Kritis, Sub-Elemen - Bernalar Kritis, Target Pencapaian - Bernalar Kritis, Elemen - Kreatif, Sub-Elemen - Kreatif, Target Pencapaian - Kreatif, Keterangan Ekstrakurikuler 1, Ekstrakurikuler 2, Keterangan Ekstrakurikuler 2, Ekstrakurikuler 3, Keterangan Ekstrakurikuler 3, Ekstrakurikuler 4, Keterangan Ekstrakurikuler 4, Jenis Prestasi, Tingkat Prestasi, Nama Prestasi, Tahun Prestasi, Penyelenggara, Peringkat, Kelas_, Jenis Kelas_, Semester_, Tahun_Ajaran, Pendidikan Agama Islam - Ujian Sekolah, Pendidikan Pancasila - Ujian Sekolah, Bahasa Indonesia - Ujian Sekolah, Matematika - Ujian Sekolah, Ilmu Pengetahuan Alam - Ujian Sekolah, Ilmu Pengetahuan Sosial - Ujian Sekolah, Bahasa Inggris - Ujian Sekolah, Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah, Informatika - Ujian Sekolah, Seni Budaya - Ujian Sekolah, Bimbingan dan Konseling - Ujian Sekolah, Bahasa Jawa - Ujian Sekolah, Capaian Pembelajaran (PAI) - Nilai Sekolah, Capaian Pembelajaran (Pendidikan Pancasila) - Nilai Sekolah, Capaian Pembelajaran (Bahasa Indonesia) - Nilai Sekolah, Capaian Pembelajaran (Matematika) - Nilai Sekolah, Capaian Pembelajaran (IPA) - Nilai Sekolah, Capaian Pembelajaran (IPS) - Nilai Sekolah, Capaian Pembelajaran (Bahasa Inggris) - Nilai Sekolah, Capaian Pembelajaran (PJOK) - Nilai Sekolah, Capaian Pembelajaran (Informatika) - Nilai Sekolah, Capaian Pembelajaran (Seni Budaya) - Nilai Sekolah, Capaian Pembelajaran (BK) - Nilai Sekolah, Capaian Pembelajaran (Bahasa Jawa) - Nilai Sekolah, Jenis Prestasi (2), Tingkat Prestasi (2), Nama Prestasi (2), Tahun Prestasi (2), Penyelenggara (2), Peringkat (2), Lanjut Prestasi ke-2, Jenis Prestasi (4), Tingkat Prestasi (4), Nama Prestasi (4), Tahun Prestasi (4), Penyelenggara (4), Peringkat (4), Jenis Prestasi (5), Tingkat Prestasi (5), Nama Prestasi (5), Tahun Prestasi (5), Penyelenggara (5), Peringkat (5), Jenis Prestasi (3), Tingkat Prestasi (3), Nama Prestasi (3), Tahun Prestasi (3), Penyelenggara (3), Peringkat (3), Lanjut Prestasi ke-3, Lanjut Prestasi ke-4, Lanjut Prestasi ke-5, Lanjut Ekstrakurikuler ke-2, Lanjut Ekstrakurikuler ke-3, Lanjut Ekstrakurikuler ke-4, LULUS / TIDAK LULUS, Lanjutkan Mengisi Prestasi Peserta Didik?, Tanggal Ditetapkan Lulus, No. Ijazah, No. SKHUS, Jumlah Nilai per SMT, Rata-Rata Nilai per SMT, Jumlah Nilai US, Rata-Rata Nilai US
+21 Jun 2025, 22.42.15	Info	Initializing grade column map
+21 Jun 2025, 22.42.15	Info	initializeGradeColumnMap called with 146 headers
+21 Jun 2025, 22.42.15	Info	Starting column mapping process
+21 Jun 2025, 22.42.15	Info	Grade column map initialized successfully
+21 Jun 2025, 22.42.15	Info	Grade column map: {"timestamp":0,"nama":3,"nis":4,"nisn":5,"kelas":7,"semester":9,"tahunAjaran":10,"kelas_":78,"semester_":80,"tahunAjaran_":81,"pendidikanAgamaIslam":11,"pendidikanPancasila":13,"bahasaIndonesia":15,"matematika":17,"ilmuPengetahuanAlam":19,"ilmuPengetahuanSosial":21,"bahasaInggris":23,"pendidikanJasmani":25,"informatika":27,"seniBudaya":29,"bimbinganKonseling":31,"bahasaJawa":33,"ujianPendidikanAgamaIslam":82,"ujianPendidikanPancasila":83,"ujianBahasaIndonesia":84,"ujianMatematika":85,"ujianIlmuPengetahuanAlam":86,"ujianIlmuPengetahuanSosial":87,"ujianBahasaInggris":88,"ujianPendidikanJasmani":89,"ujianInformatika":90,"ujianSeniBudaya":91,"ujianBimbinganKonseling":92,"ujianBahasaJawa":93,"rataRataNilaiPerSMT":143,"rataRataNilaiUS":145}
+21 Jun 2025, 22.42.15	Info	Grade column map initialized successfully
+21 Jun 2025, 22.42.15	Info	Starting to process 97 data rows
+21 Jun 2025, 22.42.15	Info	Skipping row 97 - no NIS found
+21 Jun 2025, 22.42.15	Info	Total raw grades processed: 96
+21 Jun 2025, 22.42.15	Info	=== BACKEND GROUPING VERIFICATION ===
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2037
+21 Jun 2025, 22.42.15	Info	Raw grade 1: NIS=2037, Semester=I (Ganjil), Kelas=IX, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	Raw grade 2: NIS=2037, Semester=II (Genap), Kelas=IX, IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	Raw grade 3: NIS=2037, Semester=I (Ganjil), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	Raw grade 4: NIS=2037, Semester=II (Genap), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	Raw grade 5: NIS=2037, Semester=I (Ganjil), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2038
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2039
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2040
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2041
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2042
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2043
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2044
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2045
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2046
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2047
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2048
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2049
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2050
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2052
+21 Jun 2025, 22.42.15	Info	Creating new group for NIS: 2053
+21 Jun 2025, 22.42.15	Info	Total unique NIS found: 16
+21 Jun 2025, 22.42.15	Info	=== Student 1 Grouping Detail ===
+21 Jun 2025, 22.42.15	Info	NIS: 2037
+21 Jun 2025, 22.42.15	Info	Total records: 6
+21 Jun 2025, 22.42.15	Info	  Record 1: Semester=I (Ganjil), Kelas=IX, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 2: Semester=II (Genap), Kelas=IX, IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Record 3: Semester=I (Ganjil), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 4: Semester=II (Genap), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 5: Semester=I (Ganjil), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 6: Semester=II (Genap), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 76.25
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.92
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 79.08
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 76.50
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 76.33
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 76.50
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5575, Count=72, Average=77.43
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	Student card created:
+21 Jun 2025, 22.42.15	Info	  NIS: 2037
+21 Jun 2025, 22.42.15	Info	  Nama: Dika Pratama
+21 Jun 2025, 22.42.15	Info	  Kelas: IX
+21 Jun 2025, 22.42.15	Info	  Semester data count: 6
+21 Jun 2025, 22.42.15	Info	  Average grade: 77.43
+21 Jun 2025, 22.42.15	Info	  Total subjects: 22
+21 Jun 2025, 22.42.15	Info	=== Student 2 Grouping Detail ===
+21 Jun 2025, 22.42.15	Info	NIS: 2038
+21 Jun 2025, 22.42.15	Info	Total records: 6
+21 Jun 2025, 22.42.15	Info	  Record 1: Semester=I (Ganjil), Kelas=IX, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 2: Semester=II (Genap), Kelas=IX, IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Record 3: Semester=I (Ganjil), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 4: Semester=II (Genap), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 5: Semester=I (Ganjil), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 6: Semester=II (Genap), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 78.33
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.92
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 75.75
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 76.67
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 74.33
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 78.17
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5558, Count=72, Average=77.19
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	Student card created:
+21 Jun 2025, 22.42.15	Info	  NIS: 2038
+21 Jun 2025, 22.42.15	Info	  Nama: Rina Wulandari
+21 Jun 2025, 22.42.15	Info	  Kelas: IX
+21 Jun 2025, 22.42.15	Info	  Semester data count: 6
+21 Jun 2025, 22.42.15	Info	  Average grade: 77.19
+21 Jun 2025, 22.42.15	Info	  Total subjects: 22
+21 Jun 2025, 22.42.15	Info	=== Student 3 Grouping Detail ===
+21 Jun 2025, 22.42.15	Info	NIS: 2039
+21 Jun 2025, 22.42.15	Info	Total records: 6
+21 Jun 2025, 22.42.15	Info	  Record 1: Semester=I (Ganjil), Kelas=IX, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 2: Semester=II (Genap), Kelas=IX, IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Record 3: Semester=I (Ganjil), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 4: Semester=II (Genap), Kelas=VII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 5: Semester=I (Ganjil), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Record 6: Semester=II (Genap), Kelas=VIII, IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 76.08
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.17
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 75.17
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 77.00
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 76.67
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 76.92
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5532, Count=72, Average=76.83
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	Student card created:
+21 Jun 2025, 22.42.15	Info	  NIS: 2039
+21 Jun 2025, 22.42.15	Info	  Nama: Eko Susanto
+21 Jun 2025, 22.42.15	Info	  Kelas: IX
+21 Jun 2025, 22.42.15	Info	  Semester data count: 6
+21 Jun 2025, 22.42.15	Info	  Average grade: 76.83
+21 Jun 2025, 22.42.15	Info	  Total subjects: 22
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 77.50
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 76.17
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 75.75
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 78.08
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 77.42
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5572, Count=72, Average=77.39
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 79.17
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 76.25
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 76.83
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 79.83
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5651, Count=72, Average=78.49
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 78.08
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 75.83
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 75.33
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 78.42
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 78.08
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5582, Count=72, Average=77.53
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 78.50
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 77.92
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 74.58
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 74.67
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 77.33
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5549, Count=72, Average=77.07
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 78.50
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 75.58
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 78.58
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 76.58
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 75.67
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5572, Count=72, Average=77.39
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 77.67
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 76.50
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 75.58
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 78.25
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 77.75
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5582, Count=72, Average=77.53
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 76.75
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 77.33
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 77.25
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 77.25
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 74.42
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5549, Count=72, Average=77.07
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 74.75
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 75.92
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 76.58
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 77.33
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 78.42
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5549, Count=72, Average=77.07
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 78.83
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 79.00
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 76.50
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 74.58
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 77.58
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5591, Count=72, Average=77.65
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 77.83
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 74.17
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 75.42
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 79.00
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 78.00
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5566, Count=72, Average=77.31
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 78.33
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 74.42
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 76.42
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 76.83
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 79.08
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5574, Count=72, Average=77.42
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 75.67
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 78.08
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 77.58
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 78.50
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 76.25
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5586, Count=72, Average=77.58
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	=== CALCULATE STUDENT AVERAGE ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 1 valid grades: 12, average: 76.33
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Using ujian sekolah fields
+21 Jun 2025, 22.42.15	Info	  Semester 2 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 3 valid grades: 12, average: 78.58
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 4 valid grades: 12, average: 77.33
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 5 valid grades: 12, average: 75.08
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Using regular subject fields
+21 Jun 2025, 22.42.15	Info	  Semester 6 valid grades: 12, average: 79.42
+21 Jun 2025, 22.42.15	Info	Final calculation: Total=5594, Count=72, Average=77.69
+21 Jun 2025, 22.42.15	Info	=== COUNT TOTAL SUBJECTS ===
+21 Jun 2025, 22.42.15	Info	Input student grades count: 6
+21 Jun 2025, 22.42.15	Info	Processing semester 1: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 1 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 2: Semester=II (Genap), IsUjianSekolah=II (Genap)
+21 Jun 2025, 22.42.15	Info	  Counting ujian sekolah subjects
+21 Jun 2025, 22.42.15	Info	  Semester 2 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 3: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 3 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 4: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 4 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 5: Semester=I (Ganjil), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 5 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Processing semester 6: Semester=II (Genap), IsUjianSekolah=
+21 Jun 2025, 22.42.15	Info	  Counting regular subjects
+21 Jun 2025, 22.42.15	Info	  Semester 6 subjects with grades: 12
+21 Jun 2025, 22.42.15	Info	Total unique subjects across all semesters: 22
+21 Jun 2025, 22.42.15	Info	Unique subjects list: pendidikanAgamaIslam, pendidikanPancasila, bahasaIndonesia, matematika, ilmuPengetahuanAlam, ilmuPengetahuanSosial, bahasaInggris, pendidikanJasmani, informatika, seniBudaya, bimbinganKonseling, bahasaJawa, pendidikanagamaislam, pendidikanpancasila, bahasaindonesia, ilmupengetahuanalam, ilmupengetahuansosial, bahasainggris, pendidikanjasmani, senibudaya, bimbingankonseling, bahasajawa
+21 Jun 2025, 22.42.15	Info	Total student cards created: 16
+21 Jun 2025, 22.42.15	Info	=== GRADE 9 STUDENTS VERIFICATION ===
+21 Jun 2025, 22.42.15	Info	Total Grade 9 students: 16
+21 Jun 2025, 22.42.15	Info	Grade 9 Student 1:
+21 Jun 2025, 22.42.15	Info	  NIS: 2037
+21 Jun 2025, 22.42.15	Info	  Nama: Dika Pratama
+21 Jun 2025, 22.42.15	Info	  Kelas: IX
+21 Jun 2025, 22.42.15	Info	  Semester data count: 6
+21 Jun 2025, 22.42.15	Info	    Semester 1: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 2: II (Genap) (Ujian Sekolah)
+21 Jun 2025, 22.42.15	Info	    Semester 3: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 4: II (Genap) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 5: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 6: II (Genap) (Regular)
+21 Jun 2025, 22.42.15	Info	  Average grade: 77.43
+21 Jun 2025, 22.42.15	Info	  Total subjects: 22
+21 Jun 2025, 22.42.15	Info	Grade 9 Student 2:
+21 Jun 2025, 22.42.15	Info	  NIS: 2038
+21 Jun 2025, 22.42.15	Info	  Nama: Rina Wulandari
+21 Jun 2025, 22.42.15	Info	  Kelas: IX
+21 Jun 2025, 22.42.15	Info	  Semester data count: 6
+21 Jun 2025, 22.42.15	Info	    Semester 1: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 2: II (Genap) (Ujian Sekolah)
+21 Jun 2025, 22.42.15	Info	    Semester 3: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 4: II (Genap) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 5: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 6: II (Genap) (Regular)
+21 Jun 2025, 22.42.15	Info	  Average grade: 77.19
+21 Jun 2025, 22.42.15	Info	  Total subjects: 22
+21 Jun 2025, 22.42.15	Info	Grade 9 Student 3:
+21 Jun 2025, 22.42.15	Info	  NIS: 2039
+21 Jun 2025, 22.42.15	Info	  Nama: Eko Susanto
+21 Jun 2025, 22.42.15	Info	  Kelas: IX
+21 Jun 2025, 22.42.15	Info	  Semester data count: 6
+21 Jun 2025, 22.42.15	Info	    Semester 1: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 2: II (Genap) (Ujian Sekolah)
+21 Jun 2025, 22.42.15	Info	    Semester 3: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 4: II (Genap) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 5: I (Ganjil) (Regular)
+21 Jun 2025, 22.42.15	Info	    Semester 6: II (Genap) (Regular)
+21 Jun 2025, 22.42.15	Info	  Average grade: 76.83
+21 Jun 2025, 22.42.15	Info	  Total subjects: 22
+21 Jun 2025, 22.42.15	Info	=== BACKEND GROUPING COMPLETE ===
+21 Jun 2025, 22.42.15	Info	Sorting grades by nis (asc)
+21 Jun 2025, 22.42.15	Info	Sorting completed
+21 Jun 2025, 22.42.15	Info	Total count: 16, Total pages: 1
+21 Jun 2025, 22.42.15	Info	Applied pagination: showing 16 grades (0 to 100)
+21 Jun 2025, 22.42.15	Info	Preparing to return optimized result: grades=16, totalCount=16, totalPages=1, currentPage=1
+21 Jun 2025, 22.42.15	Info	Result JSON size: 2097 characters
+21 Jun 2025, 22.42.15	Info	getAllStudentGrades function completed successfully
+21 Jun 2025, 22.42.15	Info	getAllStudentGradesForFrontend completed: 16 records

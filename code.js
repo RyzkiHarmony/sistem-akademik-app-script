@@ -18,6 +18,9 @@ function doGet(e) {
   let sessionId = e.parameter.sessionId;
   let studentId = e.parameter.id; // Add student ID parameter
   let editId = e.parameter.edit; // Add edit ID parameter
+  let nis = e.parameter.nis; // Add NIS parameter for grades detail
+  let kelas = e.parameter.kelas; // Add kelas parameter for grades detail
+  let semester = e.parameter.semester; // Add semester parameter for grades detail
 
   if (page == null) page = "Login"; //Default page
 
@@ -28,6 +31,8 @@ function doGet(e) {
     "Student_detail",
     "Student_edit",
     "Student_form",
+    "Student_grades_detail", // Add Student_grades_detail to protected pages
+    "Students_grades",
   ];
 
   // Check if the requested page requires authentication
@@ -61,6 +66,21 @@ function doGet(e) {
   // Add edit ID to the template if available
   if (editId) {
     output.editId = editId;
+  }
+
+  // Add NIS to the template if available (for Student_grades_detail)
+  if (nis) {
+    output.nis = nis;
+  }
+
+  // Add kelas to the template if available (for Student_grades_detail)
+  if (kelas) {
+    output.kelas = kelas;
+  }
+
+  // Add semester to the template if available (for Student_grades_detail)
+  if (semester) {
+    output.semester = semester;
   }
 
   return output
@@ -1002,7 +1022,15 @@ function findStudentByNIS(nisId) {
       );
 
       if (rowNIS === searchNIS) {
-        Logger.log("✓ Student found at row " + i);
+        Logger.log(
+          "✓ Student found at row " +
+            i +
+            " (NIS: " +
+            rowNIS +
+            ", Kelas: " +
+            rowKelas +
+            ")"
+        );
 
         // Buat object siswa dengan semua data
         const student = {};
@@ -2689,20 +2717,20 @@ function getAllStudentGrades(options = {}) {
 
     // Merge options dengan default
     options = Object.assign(defaultOptions, options);
-    
+
     // Override limit if explicitly set to 0 (for frontend compatibility)
     if (options.limit === 0) {
       options.limit = 100; // Maximum safe limit for Google Apps Script
       Logger.log("Limit override applied: changed from 0 to 100 for safety");
     }
-    
+
     Logger.log("Final options: " + JSON.stringify(options));
 
     // Akses spreadsheet DATA NILAI
     Logger.log("Accessing spreadsheet with ID: " + BUKU_INDUK_SPREADSHEET_ID);
     const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
     Logger.log("Spreadsheet accessed successfully");
-    
+
     Logger.log("Looking for sheet: " + STUDENTS_GRADE_NAME);
     const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
 
@@ -2716,7 +2744,7 @@ function getAllStudentGrades(options = {}) {
     Logger.log("Getting data range from grades sheet");
     const dataRange = gradesSheet.getDataRange();
     Logger.log("Data range: " + dataRange.getA1Notation());
-    
+
     const values = dataRange.getValues();
     Logger.log("Total rows retrieved: " + values.length);
 
@@ -2738,6 +2766,13 @@ function getAllStudentGrades(options = {}) {
     Logger.log("Initializing grade column map");
     const gradeColumnMap = initializeGradeColumnMap(headers);
     Logger.log("Grade column map initialized successfully");
+
+    // Log header information for debugging
+    Logger.log("Available headers: " + headers.join(", "));
+    const kelasIndex = headers.findIndex((h) => h === "Kelas_");
+    const semesterIndex = headers.findIndex((h) => h === "Semester_");
+    Logger.log("Kelas_ column index: " + kelasIndex);
+    Logger.log("Semester_ column index: " + semesterIndex);
 
     let grades = [];
     Logger.log("Starting to process " + (values.length - 1) + " data rows");
@@ -2761,6 +2796,7 @@ function getAllStudentGrades(options = {}) {
         kelas: row[gradeColumnMap.kelas] || "",
         semester: row[gradeColumnMap.semester] || "",
         tahunAjaran: row[gradeColumnMap.tahunAjaran] || "",
+        semesterKelulusan: row[gradeColumnMap.semesterKelulusan] || "",
         rataRataNilaiPerSMT: row[gradeColumnMap.rataRataNilaiPerSMT] || "",
         rataRataNilaiUS: row[gradeColumnMap.rataRataNilaiUS] || "",
       };
@@ -2781,30 +2817,55 @@ function getAllStudentGrades(options = {}) {
         bahasaJawa: row[gradeColumnMap.bahasaJawa] || "",
       };
 
-      // Tambahkan nilai ujian sekolah
+      // Tambahkan nilai ujian sekolah dengan nama kolom yang benar
       const ujianSekolah = {
-        ujianPendidikanAgamaIslam:
+        "Pendidikan Agama Islam - Ujian Sekolah":
           row[gradeColumnMap.ujianPendidikanAgamaIslam] || "",
-        ujianPendidikanPancasila:
+        "Pendidikan Pancasila - Ujian Sekolah":
           row[gradeColumnMap.ujianPendidikanPancasila] || "",
-        ujianBahasaIndonesia: row[gradeColumnMap.ujianBahasaIndonesia] || "",
-        ujianMatematika: row[gradeColumnMap.ujianMatematika] || "",
-        ujianIlmuPengetahuanAlam:
+        "Bahasa Indonesia - Ujian Sekolah":
+          row[gradeColumnMap.ujianBahasaIndonesia] || "",
+        "Matematika - Ujian Sekolah": row[gradeColumnMap.ujianMatematika] || "",
+        "Ilmu Pengetahuan Alam - Ujian Sekolah":
           row[gradeColumnMap.ujianIlmuPengetahuanAlam] || "",
-        ujianIlmuPengetahuanSosial:
+        "Ilmu Pengetahuan Sosial - Ujian Sekolah":
           row[gradeColumnMap.ujianIlmuPengetahuanSosial] || "",
-        ujianBahasaInggris: row[gradeColumnMap.ujianBahasaInggris] || "",
-        ujianPendidikanJasmani:
+        "Bahasa Inggris - Ujian Sekolah":
+          row[gradeColumnMap.ujianBahasaInggris] || "",
+        "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah":
           row[gradeColumnMap.ujianPendidikanJasmani] || "",
-        ujianInformatika: row[gradeColumnMap.ujianInformatika] || "",
-        ujianSeniBudaya: row[gradeColumnMap.ujianSeniBudaya] || "",
-        ujianBimbinganKonseling:
+        "Informatika - Ujian Sekolah":
+          row[gradeColumnMap.ujianInformatika] || "",
+        "Seni Budaya - Ujian Sekolah":
+          row[gradeColumnMap.ujianSeniBudaya] || "",
+        "Bimbingan dan Konseling - Ujian Sekolah":
           row[gradeColumnMap.ujianBimbinganKonseling] || "",
-        ujianBahasaJawa: row[gradeColumnMap.ujianBahasaJawa] || "",
+        "Bahasa Jawa - Ujian Sekolah":
+          row[gradeColumnMap.ujianBahasaJawa] || "",
       };
 
+      // Tambahkan kolom kelas_ dan semester_ untuk data ujian sekolah
+      const examData = {};
+
+      // Cari kolom Kelas_ dan Semester_ berdasarkan header
+      const kelasIndex = headers.findIndex((h) => h === "Kelas_");
+      const semesterIndex = headers.findIndex((h) => h === "Semester_");
+
+      if (kelasIndex !== -1) {
+        examData.kelas_ = row[kelasIndex] || "";
+      }
+      if (semesterIndex !== -1) {
+        examData.semester_ = row[semesterIndex] || "";
+      }
+
       // Gabungkan semua data
-      const grade = Object.assign({}, studentData, subjects, ujianSekolah);
+      const grade = Object.assign(
+        {},
+        studentData,
+        subjects,
+        ujianSekolah,
+        examData
+      );
 
       grades.push(grade);
     }
@@ -2843,7 +2904,13 @@ function getAllStudentGrades(options = {}) {
     }
 
     // Sort the results
-    Logger.log("Sorting grades by " + options.sortField + " (" + options.sortDirection + ")");
+    Logger.log(
+      "Sorting grades by " +
+        options.sortField +
+        " (" +
+        options.sortDirection +
+        ")"
+    );
     grades.sort((a, b) => {
       let valA = a[options.sortField] || "";
       let valB = b[options.sortField] || "";
@@ -2872,35 +2939,59 @@ function getAllStudentGrades(options = {}) {
       const startIndex = (options.page - 1) * options.limit;
       const endIndex = startIndex + options.limit;
       grades = grades.slice(startIndex, endIndex);
-      Logger.log("Applied pagination: showing " + grades.length + " grades (" + startIndex + " to " + endIndex + ")");
+      Logger.log(
+        "Applied pagination: showing " +
+          grades.length +
+          " grades (" +
+          startIndex +
+          " to " +
+          endIndex +
+          ")"
+      );
     }
 
     // Return data dengan informasi pagination
     // Reduce data size by removing empty fields and optimizing structure
-    const optimizedGrades = grades.map(grade => {
+    const optimizedGrades = grades.map((grade) => {
       const optimized = {};
-      
+
       // Only include non-empty essential fields
-      const essentialFields = ['nis', 'nama', 'kelas', 'nisn', 'semester', 'tahunAjaran'];
-      essentialFields.forEach(field => {
-        if (grade[field] && grade[field].toString().trim() !== '') {
+      const essentialFields = [
+        "nis",
+        "nama",
+        "kelas",
+        "nisn",
+        "semester",
+        "tahunAjaran",
+      ];
+      essentialFields.forEach((field) => {
+        if (grade[field] && grade[field].toString().trim() !== "") {
           optimized[field] = grade[field];
         }
       });
-      
+
       // Only include non-empty subject grades
       const subjectFields = [
-        'pendidikanAgamaIslam', 'pendidikanPancasila', 'bahasaIndonesia', 'matematika',
-        'ilmuPengetahuanAlam', 'ilmuPengetahuanSosial', 'bahasaInggris', 'pendidikanJasmani',
-        'informatika', 'seniBudaya', 'bimbinganKonseling', 'bahasaJawa'
+        "pendidikanAgamaIslam",
+        "pendidikanPancasila",
+        "bahasaIndonesia",
+        "matematika",
+        "ilmuPengetahuanAlam",
+        "ilmuPengetahuanSosial",
+        "bahasaInggris",
+        "pendidikanJasmani",
+        "informatika",
+        "seniBudaya",
+        "bimbinganKonseling",
+        "bahasaJawa",
       ];
-      
-      subjectFields.forEach(field => {
-        if (grade[field] && grade[field].toString().trim() !== '') {
+
+      subjectFields.forEach((field) => {
+        if (grade[field] && grade[field].toString().trim() !== "") {
           optimized[field] = grade[field];
         }
       });
-      
+
       return optimized;
     });
 
@@ -2921,17 +3012,17 @@ function getAllStudentGrades(options = {}) {
         ", currentPage=" +
         options.page
     );
-    
+
     // Log the size of the result to check if it's too large
     const resultString = JSON.stringify(result);
     Logger.log("Result JSON size: " + resultString.length + " characters");
-    
+
     Logger.log("getAllStudentGrades function completed successfully");
     return result;
   } catch (error) {
     Logger.log("ERROR in getAllStudentGrades: " + error.message);
     Logger.log("Error stack: " + error.stack);
-    
+
     // Return null explicitly to match what frontend is receiving
     Logger.log("Returning null due to error");
     return null;
@@ -2942,20 +3033,20 @@ function getAllStudentGrades(options = {}) {
 function getAllStudentGradesForFrontend() {
   try {
     Logger.log("getAllStudentGradesForFrontend called");
-    
+
     // Get data with a reasonable limit for frontend
     const allData = getAllStudentGrades({ limit: 100, page: 1 });
-    
+
     if (!allData || !allData.grades) {
       Logger.log("No data returned from getAllStudentGrades");
       return {
         grades: [],
         totalCount: 0,
         success: false,
-        message: "No data available"
+        message: "No data available",
       };
     }
-    
+
     // Return optimized data structure for frontend
     const result = {
       grades: allData.grades,
@@ -2963,12 +3054,15 @@ function getAllStudentGradesForFrontend() {
       totalPages: allData.totalPages,
       currentPage: allData.currentPage,
       success: true,
-      message: "Data loaded successfully"
+      message: "Data loaded successfully",
     };
-    
-    Logger.log("getAllStudentGradesForFrontend completed: " + result.grades.length + " records");
+
+    Logger.log(
+      "getAllStudentGradesForFrontend completed: " +
+        result.grades.length +
+        " records"
+    );
     return result;
-    
   } catch (error) {
     Logger.log("ERROR in getAllStudentGradesForFrontend: " + error.message);
     return {
@@ -2977,7 +3071,7 @@ function getAllStudentGradesForFrontend() {
       totalPages: 0,
       currentPage: 1,
       success: false,
-      message: "Error loading data: " + error.message
+      message: "Error loading data: " + error.message,
     };
   }
 }
@@ -3080,7 +3174,9 @@ function generateGradeSummary(grades) {
 // Fungsi untuk inisialisasi column map untuk sheet DATA NILAI
 function initializeGradeColumnMap(headers) {
   try {
-    Logger.log("initializeGradeColumnMap called with " + headers.length + " headers");
+    Logger.log(
+      "initializeGradeColumnMap called with " + headers.length + " headers"
+    );
     const gradeColumnMap = {};
 
     // Mapping kolom berdasarkan analisis struktur sheet DATA NILAI
@@ -3089,9 +3185,12 @@ function initializeGradeColumnMap(headers) {
       nama: ["Nama Siswa"],
       nis: ["NIS"],
       nisn: ["NISN"],
-      kelas: ["Kelas"],
-      semester: ["Semester"],
+      kelas: ["Kelas", "Kelas_"], // Tambahan untuk kelas IX semester 2
+      semester: ["Semester", "Semester_"], // Tambahan untuk kelas IX semester 2
       tahunAjaran: ["Tahun Ajaran"],
+      semesterKelulusan: [
+        "Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah)",
+      ],
       // Mata pelajaran dengan nilai
       pendidikanAgamaIslam: ["Pendidikan Agama Islam"],
       pendidikanPancasila: ["Pendidikan Pancasila"],
@@ -3130,7 +3229,12 @@ function initializeGradeColumnMap(headers) {
     for (const [field, possibleNames] of Object.entries(columnMappings)) {
       gradeColumnMap[field] = findColumnIndex(headers, possibleNames);
       if (gradeColumnMap[field] === -1) {
-        Logger.log("WARNING: Column not found for field '" + field + "' with names: " + possibleNames.join(", "));
+        Logger.log(
+          "WARNING: Column not found for field '" +
+            field +
+            "' with names: " +
+            possibleNames.join(", ")
+        );
       }
     }
 
@@ -3204,5 +3308,397 @@ function getAvailableClasses() {
   } catch (error) {
     Logger.log("Error in getAvailableClasses: " + error.message);
     return [];
+  }
+}
+
+// Fungsi khusus untuk halaman Student_grades_detail - pencarian data siswa yang lebih robust
+function getStudentDetailForGrades(nisId, kelas, semester) {
+  try {
+    Logger.log("=== getStudentDetailForGrades START ===");
+    Logger.log(
+      'Searching for NIS: "' +
+        nisId +
+        '" (type: ' +
+        typeof nisId +
+        "), Kelas: " +
+        kelas +
+        ", Semester: " +
+        semester
+    );
+
+    if (!nisId) {
+      throw new Error("NIS tidak boleh kosong");
+    }
+
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
+
+    if (!studentsSheet) {
+      throw new Error('Sheet "' + STUDENTS_GRADE_NAME + '" tidak ditemukan');
+    }
+
+    const dataRange = studentsSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length === 0) {
+      throw new Error("Sheet kosong");
+    }
+
+    const headers = values[0];
+    const nisIndex = headers.indexOf("NIS");
+    const kelasIndex = headers.indexOf("Kelas");
+
+    if (nisIndex === -1) {
+      throw new Error("Kolom NIS tidak ditemukan");
+    }
+
+    Logger.log("Searching in " + (values.length - 1) + " student records...");
+    Logger.log("NIS column index: " + nisIndex);
+    Logger.log("Kelas column index: " + kelasIndex);
+
+    // Normalisasi NIS yang dicari
+    const searchNIS = String(nisId).trim();
+    Logger.log('Normalized search NIS: "' + searchNIS + '"');
+
+    // Cari siswa dengan berbagai format NIS dan pertimbangkan kelas jika tersedia
+    for (let i = 1; i < values.length; i++) {
+      const rowNIS = String(values[i][nisIndex] || "").trim();
+      const rowKelas =
+        kelasIndex !== -1 ? String(values[i][kelasIndex] || "").trim() : "";
+
+      Logger.log(
+        "Row " +
+          i +
+          ': comparing NIS "' +
+          rowNIS +
+          '" with "' +
+          searchNIS +
+          '", Kelas "' +
+          rowKelas +
+          '" with "' +
+          (kelas || "any") +
+          '"'
+      );
+
+      // Coba berbagai format perbandingan untuk NIS
+      const nisMatches = [
+        rowNIS === searchNIS, // Exact match
+        rowNIS === searchNIS.padStart(4, "0"), // Add leading zeros
+        rowNIS.padStart(4, "0") === searchNIS, // Add leading zeros to row
+        parseInt(rowNIS) === parseInt(searchNIS), // Numeric comparison
+      ];
+
+      // Cek apakah NIS cocok
+      const nisMatch = nisMatches.some((match) => match);
+
+      // Cek apakah kelas cocok (jika parameter kelas diberikan)
+      let kelasMatch = true; // Default true jika tidak ada filter kelas
+      if (kelas && kelasIndex !== -1) {
+        kelasMatch =
+          rowKelas === kelas ||
+          rowKelas.includes(kelas) ||
+          kelas.includes(rowKelas);
+      }
+
+      if (nisMatch && kelasMatch) {
+        Logger.log("✓ Student found at row " + i);
+
+        // Buat object siswa dengan semua data
+        const student = {};
+        for (let j = 0; j < headers.length; j++) {
+          let value = values[i][j];
+
+          // Format tanggal jika diperlukan
+          if (value instanceof Date) {
+            const options = { year: "numeric", month: "long", day: "numeric" };
+            value = value.toLocaleDateString("id-ID", options);
+          }
+
+          student[headers[j]] = value;
+        }
+
+        // Tambahkan mapping untuk kompatibilitas dengan frontend
+        student.nis = student.NIS || student.nis;
+        student.nama = student["Nama Siswa"] || student.nama;
+        student.nisn = student.NISN || student.nisn;
+        student.gender = student["Jenis Kelamin"] || student.gender;
+        student.birthplace = student["Tempat Lahir"] || student.birthplace;
+        student.birthdate = student["Tanggal Lahir"] || student.birthdate;
+        student.agama = student.Agama || student.agama;
+        student.kewarganegaraan =
+          student.Kewarganegaraan || student.kewarganegaraan;
+        student.alamat = student.Alamat || student.alamat;
+        student.kelas = student.Kelas || student.kelas;
+
+        Logger.log(
+          "Student data found: " +
+            JSON.stringify({
+              nis: student.nis,
+              nama: student.nama,
+              kelas: student.kelas,
+              searchedKelas: kelas,
+              searchedSemester: semester,
+            })
+        );
+
+        return {
+          success: true,
+          student: student,
+        };
+      }
+    }
+
+    // Jika tidak ditemukan, log beberapa contoh data untuk debugging
+    Logger.log("Student not found. Sample data from sheet:");
+    for (let i = 1; i < Math.min(6, values.length); i++) {
+      const rowNis = values[i][nisIndex];
+      const rowKelas = kelasIndex !== -1 ? values[i][kelasIndex] : "N/A";
+      Logger.log(
+        "Row " +
+          i +
+          ' NIS: "' +
+          rowNis +
+          '" (type: ' +
+          typeof rowNis +
+          "), Kelas: " +
+          rowKelas
+      );
+    }
+
+    const errorMsg =
+      "Siswa dengan NIS " +
+      nisId +
+      (kelas ? " di kelas " + kelas : "") +
+      " tidak ditemukan";
+    throw new Error(errorMsg);
+  } catch (error) {
+    Logger.log("Error in getStudentDetailForGrades: " + error.message);
+    Logger.log("Error stack: " + error.stack);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+// Fungsi khusus untuk mendapatkan data nilai siswa untuk halaman Student_grades_detail
+function getAllStudentGradesForDetail(nisId, kelas, semester) {
+  try {
+    Logger.log(
+      "getAllStudentGradesForDetail called with NIS: " +
+        nisId +
+        ", Kelas: " +
+        kelas +
+        ", Semester: " +
+        semester
+    );
+
+    // Akses spreadsheet DATA NILAI
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
+
+    if (!gradesSheet) {
+      throw new Error("Sheet DATA NILAI tidak ditemukan");
+    }
+
+    // Ambil semua data
+    const dataRange = gradesSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length <= 1) {
+      return { grades: [], totalCount: 0 };
+    }
+
+    // Header row
+    const headers = values[0];
+    Logger.log("Processing " + (values.length - 1) + " rows for grade detail");
+
+    // Cari index kolom langsung dari header tanpa mapping
+    const nisIndex = headers.findIndex((h) => h === "NIS");
+    const namaIndex = headers.findIndex((h) => h === "Nama Siswa");
+    const kelasIndex = headers.findIndex((h) => h === "Kelas");
+    const semesterIndex = headers.findIndex((h) => h === "Semester");
+
+    // Index untuk mata pelajaran
+    const pendidikanAgamaIslamIndex = headers.findIndex(
+      (h) => h === "Pendidikan Agama Islam"
+    );
+    const pendidikanPancasilaIndex = headers.findIndex(
+      (h) => h === "Pendidikan Pancasila"
+    );
+    const bahasaIndonesiaIndex = headers.findIndex(
+      (h) => h === "Bahasa Indonesia"
+    );
+    const matematikaIndex = headers.findIndex((h) => h === "Matematika");
+    const ilmuPengetahuanAlamIndex = headers.findIndex(
+      (h) => h === "Ilmu Pengetahuan Alam"
+    );
+    const ilmuPengetahuanSosialIndex = headers.findIndex(
+      (h) => h === "Ilmu Pengetahuan Sosial"
+    );
+    const bahasaInggrisIndex = headers.findIndex((h) => h === "Bahasa Inggris");
+    const pendidikanJasmaniIndex = headers.findIndex(
+      (h) => h === "Pendidikan Jasmani, Olahraga, dan Kesehatan"
+    );
+    const informatikaIndex = headers.findIndex((h) => h === "Informatika");
+    const seniBudayaIndex = headers.findIndex((h) => h === "Seni Budaya");
+    const bimbinganKonselingIndex = headers.findIndex((h) => h === "Bimbingan dan Konseling");
+    const bahasaJawaIndex = headers.findIndex((h) => h === "Bahasa Jawa");
+
+    Logger.log("Kelas column index: " + kelasIndex);
+    Logger.log("Semester column index: " + semesterIndex);
+
+    let matchingGrades = [];
+
+    // Proses setiap baris data
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+
+      // Skip rows yang tidak memiliki NIS
+      if (!row[nisIndex]) {
+        continue;
+      }
+
+      // Cek apakah NIS cocok
+      const rowNIS = String(row[nisIndex] || "").trim();
+      const searchNIS = String(nisId).trim();
+
+      const nisMatches = [
+        rowNIS === searchNIS,
+        rowNIS === searchNIS.padStart(4, "0"),
+        rowNIS.padStart(4, "0") === searchNIS,
+        parseInt(rowNIS) === parseInt(searchNIS),
+      ];
+
+      if (!nisMatches.some((match) => match)) {
+        continue;
+      }
+
+      // Ambil kelas dan semester dari kolom yang benar (nilai akademik biasa)
+      const rowKelas =
+        kelasIndex !== -1 ? String(row[kelasIndex] || "").trim() : "";
+      const rowSemester =
+        semesterIndex !== -1 ? String(row[semesterIndex] || "").trim() : "";
+
+      Logger.log(
+        "Row " +
+          i +
+          ": NIS=" +
+          rowNIS +
+          ", Kelas=" +
+          rowKelas +
+          ", Semester=" +
+          rowSemester
+      );
+
+      // Cek apakah kelas dan semester cocok dengan mekanisme sederhana
+      let kelasMatch = false;
+      let semesterMatch = false;
+
+      // Kelas harus cocok dan tidak boleh kosong
+      if (kelas && rowKelas) {
+        kelasMatch = rowKelas.trim() === kelas.trim();
+      } else if (!kelas) {
+        // Jika tidak ada filter kelas, anggap cocok
+        kelasMatch = true;
+      }
+
+      // Semester harus cocok dan tidak boleh kosong
+      if (semester && rowSemester) {
+        semesterMatch = rowSemester.trim() === semester.trim();
+      } else if (!semester) {
+        // Jika tidak ada filter semester, anggap cocok
+        semesterMatch = true;
+      }
+
+      if (kelasMatch && semesterMatch) {
+        Logger.log("✓ Matching grade record found at row " + i);
+
+        // Buat object grade dengan data langsung dari spreadsheet
+        const gradeData = {
+          nis: row[nisIndex] || "",
+          nama: row[namaIndex] || "",
+          kelas: rowKelas,
+          semester: rowSemester,
+
+          // Nilai mata pelajaran reguler
+          pendidikanAgamaIslam: row[pendidikanAgamaIslamIndex] || "",
+          pendidikanPancasila: row[pendidikanPancasilaIndex] || "",
+          bahasaIndonesia: row[bahasaIndonesiaIndex] || "",
+          matematika: row[matematikaIndex] || "",
+          ilmuPengetahuanAlam: row[ilmuPengetahuanAlamIndex] || "",
+          ilmuPengetahuanSosial: row[ilmuPengetahuanSosialIndex] || "",
+          bahasaInggris: row[bahasaInggrisIndex] || "",
+          pendidikanJasmani: row[pendidikanJasmaniIndex] || "",
+          informatika: row[informatikaIndex] || "",
+          seniBudaya: row[seniBudayaIndex] || "",
+          bimbinganKonseling: row[bimbinganKonselingIndex] || "",
+          bahasaJawa: row[bahasaJawaIndex] || "",
+        };
+
+        matchingGrades.push(gradeData);
+      }
+    }
+
+    Logger.log("Total matching grades found: " + matchingGrades.length);
+
+    return {
+      grades: matchingGrades,
+      totalCount: matchingGrades.length,
+    };
+  } catch (error) {
+    Logger.log("Error in getAllStudentGradesForDetail: " + error.message);
+    throw error;
+  }
+}
+
+// Fungsi untuk mendapatkan detail nilai siswa berdasarkan NIS, kelas, dan semester
+function getStudentGradeDetail(nisId, kelas, semester) {
+  try {
+    Logger.log(
+      "getStudentGradeDetail called with NIS: " +
+        nisId +
+        ", Kelas: " +
+        kelas +
+        ", Semester: " +
+        semester
+    );
+
+    if (!nisId) {
+      throw new Error("NIS tidak boleh kosong");
+    }
+
+    // Gunakan fungsi pencarian khusus untuk halaman grades detail dengan parameter kelas dan semester
+    const studentData = getStudentDetailForGrades(nisId, kelas, semester);
+    if (!studentData || !studentData.success) {
+      throw new Error(studentData.error || "Data siswa tidak ditemukan");
+    }
+
+    // Gunakan fungsi khusus untuk mendapatkan data nilai yang menggunakan kolom yang benar
+    const gradeData = getAllStudentGradesForDetail(nisId, kelas, semester);
+    const filteredGrades = gradeData.grades || [];
+
+    Logger.log("Filtered grades count: " + filteredGrades.length);
+
+    // Generate summary untuk data yang sudah difilter
+    const summary = generateGradeSummary(filteredGrades);
+
+    // Gabungkan data siswa dan nilai
+    const result = {
+      success: true,
+      student: studentData.student,
+      grades: filteredGrades,
+      summary: summary,
+    };
+
+    Logger.log("getStudentGradeDetail result: " + JSON.stringify(result));
+    return result;
+  } catch (error) {
+    Logger.log("Error in getStudentGradeDetail: " + error.message);
+    Logger.log("Error stack: " + error.stack);
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 }

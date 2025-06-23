@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Nilai Siswa - Admin Dashboard</title>
+    <base target="_top" />
+
+    <!-- Include CSS -->
+    <?!= include('CSS_Student_grades_detail'); ?>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <?!= includeNavbar() ?>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-title-section">
+          <button
+            class="back-btn"
+            onclick="goBack()"
+            title="Kembali ke Halaman Sebelumnya"
+          >
+            <i class="fas fa-arrow-left"></i>
+          </button>
+          <h1 class="page-title">Detail Nilai Siswa</h1>
+        </div>
+        <div class="page-date" id="current-date"></div>
+      </div>
+
+      <!-- Hidden Session ID -->
+      <input type="hidden" id="sessionId" value="<?= sessionId ?>" />
+      <input
+        type="hidden"
+        id="studentId"
+        value="<?= typeof nis !== 'undefined' ? nis : '' ?>"
+      />
+      <input
+        type="hidden"
+        id="kelas"
+        value="<?= typeof kelas !== 'undefined' ? kelas : '' ?>"
+      />
+      <input
+        type="hidden"
+        id="semester"
+        value="<?= typeof semester !== 'undefined' ? semester : '' ?>"
+      />
+
+      <!-- Student Info Section -->
+      <div class="student-info-section" id="student-info-section">
+        <div class="loading-info">
+          <i class="fas fa-spinner fa-spin"></i> Memuat data siswa...
+        </div>
+      </div>
+
+      <!-- Grades Section -->
+      <div class="grades-section" id="grades-section" style="display: none">
+        <!-- Academic Grades -->
+        <div
+          class="grades-card"
+          id="academic-grades-card"
+          style="display: none"
+        >
+          <div class="grades-card-header">
+            <h3><i class="fas fa-book"></i> Nilai Akademik</h3>
+            <div class="semester-info" id="academic-semester-info"></div>
+          </div>
+          <div class="grades-card-body">
+            <div class="grades-grid" id="academic-grades-grid"></div>
+            <div class="grades-summary" id="academic-grades-summary"></div>
+          </div>
+        </div>
+
+        <!-- Exam Grades -->
+        <div class="grades-card" id="exam-grades-card" style="display: none">
+          <div class="grades-card-header">
+            <h3><i class="fas fa-clipboard-check"></i> Nilai Ujian Sekolah</h3>
+            <div class="semester-info" id="exam-semester-info"></div>
+          </div>
+          <div class="grades-card-body">
+            <div class="grades-grid" id="exam-grades-grid"></div>
+            <div class="grades-summary" id="exam-grades-summary"></div>
+          </div>
+        </div>
+
+        <!-- No Data Message -->
+        <div class="no-data-message" id="no-data-message" style="display: none">
+          <div class="no-data-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Tidak Ada Data Nilai</h3>
+            <p>Data nilai untuk siswa ini belum tersedia atau belum diinput.</p>
+            <button class="btn-primary" onclick="goBack()">
+              <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Section -->
+      <div class="error-section" id="error-section" style="display: none">
+        <div class="error-content">
+          <i class="fas fa-exclamation-circle"></i>
+          <h3>Terjadi Kesalahan</h3>
+          <p id="error-message">Gagal memuat data siswa.</p>
+          <div class="error-actions">
+            <button class="btn-secondary" onclick="loadStudentData()">
+              <i class="fas fa-redo"></i> Coba Lagi
+            </button>
+            <button class="btn-primary" onclick="goBack()">
+              <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>&copy; 2024 Admin Dashboard. Semua hak dilindungi.</p>
+      </div>
+    </footer>
+
+    <!-- Include JavaScript -->
+    <?!= include('JavaScript_Student_grades_detail'); ?>
+  </body>
+</html>

@@ -1,0 +1,469 @@
+student: 
+Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah)
+: 
+""
+Bahasa Indonesia
+: 
+67
+Bahasa Indonesia - Ujian Sekolah
+: 
+""
+Bahasa Inggris
+: 
+77
+Bahasa Inggris - Ujian Sekolah
+: 
+""
+Bahasa Jawa
+: 
+87
+Bahasa Jawa - Ujian Sekolah
+: 
+""
+Bimbingan dan Konseling
+: 
+23
+Bimbingan dan Konseling - Ujian Sekolah
+: 
+""
+Capaian Pembelajaran (BK)
+: 
+"Nice"
+Capaian Pembelajaran (BK) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Bahasa Indonesia)
+: 
+"Baik dalam menguasai keterampilan"
+Capaian Pembelajaran (Bahasa Indonesia) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Bahasa Inggris)
+: 
+"Nice"
+Capaian Pembelajaran (Bahasa Inggris) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Bahasa Jawa)
+: 
+"Nice"
+Capaian Pembelajaran (Bahasa Jawa) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (IPA) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (IPS) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Ilmu Pengetahuan Alam)
+: 
+"Nice"
+Capaian Pembelajaran (Ilmu Pengetahuan Sosial)
+: 
+"Nice"
+Capaian Pembelajaran (Informatika)
+: 
+"Nice"
+Capaian Pembelajaran (Informatika) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Matematika)
+: 
+"Nice"
+Capaian Pembelajaran (Matematika) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (PAI) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (PJOK)
+: 
+"Nice"
+Capaian Pembelajaran (PJOK) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Pendidikan Agama Islam)
+: 
+"Cukup mampu dalam memahami konsep"
+Capaian Pembelajaran (Pendidikan Pancasila)
+: 
+"Baik dalam menguasai keterampilan"
+Capaian Pembelajaran (Pendidikan Pancasila) - Nilai Sekolah
+: 
+""
+Capaian Pembelajaran (Seni Budaya)
+: 
+"Nice"
+Capaian Pembelajaran (Seni Budaya) - Nilai Sekolah
+: 
+""
+Ekstrakurikuler 2
+: 
+""
+Ekstrakurikuler 3
+: 
+""
+Ekstrakurikuler 4
+: 
+""
+Elemen - Bergotong Royong
+: 
+""
+Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia
+: 
+""
+Elemen - Berkebhinekaan Global
+: 
+""
+Elemen - Bernalar Kritis
+: 
+""
+Elemen - Kreatif
+: 
+""
+Elemen - Mandiri
+: 
+""
+Email address
+: 
+"m.rizki00133@gmail.com"
+Ilmu Pengetahuan Alam
+: 
+78
+Ilmu Pengetahuan Alam - Ujian Sekolah
+: 
+""
+Ilmu Pengetahuan Sosial
+: 
+45
+Ilmu Pengetahuan Sosial - Ujian Sekolah
+: 
+""
+Informatika
+: 
+99
+Informatika - Ujian Sekolah
+: 
+""
+Izin - SMT I
+: 
+3
+Izin - SMT II
+: 
+3
+Jenis Kelas
+: 
+"MOLDAVITE"
+Jenis Kelas_
+: 
+""
+Jenis Prestasi
+: 
+""
+Jenis Prestasi (2)
+: 
+""
+Jenis Prestasi (3)
+: 
+""
+Jenis Prestasi (4)
+: 
+""
+Jenis Prestasi (5)
+: 
+""
+Jumlah Nilai US
+: 
+0
+Jumlah Nilai per SMT
+: 
+915
+Kelas
+: 
+"IX"
+Kelas_
+: 
+""
+Keterangan Ekstrakurikuler 1
+: 
+""
+Keterangan Ekstrakurikuler 2
+: 
+""
+Keterangan Ekstrakurikuler 3
+: 
+""
+Keterangan Ekstrakurikuler 4
+: 
+""
+LULUS / TIDAK LULUS
+: 
+"LULUS"
+Lanjut Ekstrakurikuler ke-2
+: 
+""
+Lanjut Ekstrakurikuler ke-3
+: 
+""
+Lanjut Ekstrakurikuler ke-4
+: 
+""
+Lanjut Prestasi ke-2
+: 
+""
+Lanjut Prestasi ke-3
+: 
+""
+Lanjut Prestasi ke-4
+: 
+""
+Lanjut Prestasi ke-5
+: 
+""
+Lanjutkan Mengisi Prestasi Peserta Didik?
+: 
+""
+Matematika
+: 
+68
+Matematika - Ujian Sekolah
+: 
+""
+NIP Wali Kelas
+: 
+1239088901
+NIS
+: 
+2037
+NISN
+: 
+"1111111111111111111"
+Naik / Tidak Naik
+: 
+"Naik"
+Naik Ke Kelas
+: 
+"IX"
+Nama Prestasi
+: 
+""
+Nama Prestasi (2)
+: 
+""
+Nama Prestasi (3)
+: 
+""
+Nama Prestasi (4)
+: 
+""
+Nama Prestasi (5)
+: 
+""
+Nama Siswa
+: 
+"Dika Pratama"
+No. Ijazah
+: 
+128930128903
+No. SKHUS
+: 
+3498598234
+Pendidikan Agama Islam
+: 
+94
+Pendidikan Agama Islam - Ujian Sekolah
+: 
+""
+Pendidikan Jasmani, Olahraga, dan Kesehatan
+: 
+99
+Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah
+: 
+""
+Pendidikan Pancasila
+: 
+78
+Pendidikan Pancasila - Ujian Sekolah
+: 
+""
+Penyelenggara
+: 
+""
+Penyelenggara (2)
+: 
+""
+Penyelenggara (3)
+: 
+""
+Penyelenggara (4)
+: 
+""
+Penyelenggara (5)
+: 
+""
+Peringkat
+: 
+""
+Peringkat (2)
+: 
+""
+Peringkat (3)
+: 
+""
+Peringkat (4)
+: 
+""
+Peringkat (5)
+: 
+""
+Rata-Rata Nilai US
+: 
+"#DIV/0!"
+Rata-Rata Nilai per SMT
+: 
+76
+Sakit - SMT I
+: 
+3
+Sakit - SMT II
+: 
+3
+Semester
+: 
+"I (Ganjil)"
+Semester_
+: 
+""
+Seni Budaya
+: 
+100
+Seni Budaya - Ujian Sekolah
+: 
+""
+Sub-Elemen - Bergotong Royong
+: 
+""
+Sub-Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia
+: 
+""
+Sub-Elemen - Berkebhinekaan Global
+: 
+""
+Sub-Elemen - Bernalar Kritis
+: 
+""
+Sub-Elemen - Kreatif
+: 
+""
+Sub-Elemen - Mandiri
+: 
+""
+Tahun Ajaran
+: 
+"2024/2025"
+Tahun Prestasi
+: 
+""
+Tahun Prestasi (2)
+: 
+""
+Tahun Prestasi (3)
+: 
+""
+Tahun Prestasi (4)
+: 
+""
+Tahun Prestasi (5)
+: 
+""
+Tahun_Ajaran
+: 
+""
+Tanggal Ditetapkan Lulus
+: 
+""
+Tanggal ditetapkan Naik Kelas
+: 
+""
+Tanpa Keterangan - SMT I
+: 
+3
+Tanpa Keterangan - SMT II
+: 
+3
+Target Pencapaian - Bergotong Royong
+: 
+""
+Target Pencapaian - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia
+: 
+""
+Target Pencapaian - Berkebhinekaan Global
+: 
+""
+Target Pencapaian - Bernalar Kritis
+: 
+""
+Target Pencapaian - Kreatif
+: 
+""
+Target Pencapaian - Mandiri
+: 
+""
+Tema Projek 1
+: 
+""
+Tema Projek 2
+: 
+""
+Tema Projek 3
+: 
+""
+Timestamp
+: 
+"4 Februari 2025"
+Tingkat Prestasi
+: 
+""
+Tingkat Prestasi (2)
+: 
+""
+Tingkat Prestasi (3)
+: 
+""
+Tingkat Prestasi (4)
+: 
+""
+Tingkat Prestasi (5)
+: 
+""
+agama
+: 
+null
+alamat
+: 
+null
+birthdate
+: 
+null
+birthplace
+: 
+null
+gender
+: 
+null
+kelas
+: 
+"IX"
+kewarganegaraan
+: 
+null
+nama
+: 
+"Dika Pratama"
+nis
+: 
+2037
+nisn
+: 
+"1111111111111111111"

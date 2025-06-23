@@ -1,0 +1,631 @@
+<!-- JavaScript_Student_grades_detail.html -->
+
+<script>
+  let studentData = null;
+  let academicGrades = [];
+  let examGrades = [];
+
+  // Fungsi untuk toggle sidebar di tampilan mobile
+  function toggleSidebar() {
+    document.body.classList.toggle("sidebar-active");
+  }
+
+  // Fungsi untuk mengupdate tanggal
+  function updateDateTime() {
+    const now = new Date();
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    };
+    document.getElementById("current-date").textContent =
+      now.toLocaleDateString("id-ID", options);
+  }
+
+  // Get session ID
+  function getSessionId() {
+    // First try to get from hidden input
+    const hiddenInput = document.getElementById("sessionId");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+
+    // Fallback to URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("sessionId");
+  }
+
+  // Get student ID (NIS)
+  function getStudentId() {
+    // First try to get from hidden input
+    const hiddenInput = document.getElementById("studentId");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+
+    // Fallback to URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("nis");
+  }
+
+  // Fungsi untuk mendapatkan kelas dari URL
+  function getKelas() {
+    // First try to get from hidden input
+    const hiddenInput = document.getElementById("kelas");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+
+    // Fallback to URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("kelas");
+  }
+
+  // Fungsi untuk mendapatkan semester dari URL
+  function getSemester() {
+    // First try to get from hidden input
+    const hiddenInput = document.getElementById("semester");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+
+    // Fallback to URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("semester");
+  }
+
+  // Go back to students grades list
+  function goBack() {
+    const sessionId = getSessionId();
+    window.location.href =
+      "<?= myURL() ?>?page=Students_grades&sessionId=" +
+      encodeURIComponent(sessionId);
+  }
+
+  // Fungsi helper untuk mengecek apakah siswa kelas 9
+  function isGrade9Student(kelas) {
+    if (!kelas) return false;
+    const kelasStr = String(kelas).toLowerCase();
+    return kelasStr.includes("9") || kelasStr.includes("ix");
+  }
+
+  // Fungsi untuk memuat data siswa
+  function loadStudentData() {
+    const sessionId = getSessionId();
+    const studentId = getStudentId();
+    const kelas = getKelas();
+    const semester = getSemester();
+
+    if (!sessionId) {
+      showError("Session tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    if (!studentId) {
+      showError("ID siswa tidak valid.");
+      return;
+    }
+
+    console.log(
+      "Loading student data for ID:",
+      studentId,
+      "Kelas:",
+      kelas,
+      "Semester:",
+      semester
+    );
+
+    // Show loading
+    showLoading();
+
+    // Tambahkan timeout untuk debugging
+    const startTime = new Date().getTime();
+
+    google.script.run
+      .withSuccessHandler(function (data) {
+        const endTime = new Date().getTime();
+        const duration = endTime - startTime;
+
+        console.log("=== SUCCESS HANDLER CALLED ===");
+        console.log("Request duration:", duration + "ms");
+        console.log("getStudentGradeDetail response:", data);
+
+        // Validasi lebih detail
+        if (data === null) {
+          console.error("Response data is null");
+          showError("Data tidak ditemukan (null). NIS: " + studentId);
+          return;
+        }
+
+        if (data === undefined) {
+          console.error("Response data is undefined");
+          showError("Data tidak ditemukan (undefined). NIS: " + studentId);
+          return;
+        }
+
+        if (!data) {
+          console.error("Response data is falsy:", data);
+          showError("Data tidak ditemukan (falsy). NIS: " + studentId);
+          return;
+        }
+
+        // Validate response object has required properties
+        if (typeof data !== "object") {
+          console.error("Invalid response data format:", typeof data);
+          showError("Format data tidak valid. Type: " + typeof data);
+          return;
+        }
+
+        if (data && data.success) {
+          if (data.student && data.grades) {
+            studentData = data.student;
+            allGrades = data.grades || [];
+            gradeSummary = data.summary || {};
+
+            console.log("Student data:", studentData);
+            console.log("All grades:", allGrades);
+            console.log("Grade summary:", gradeSummary);
+
+            // Validasi data siswa
+            const hasNIS = studentData.nis || studentData.NIS;
+            const hasName = studentData.nama || studentData["Nama Siswa"];
+
+            if (!hasNIS && !hasName) {
+              console.error("Student object missing essential data");
+              console.error("Available keys:", Object.keys(studentData));
+              showError("Data siswa tidak lengkap. Missing NIS and Name.");
+              return;
+            }
+
+            renderStudentInfo();
+            renderGrades();
+          } else {
+            console.log("No student or grades data found");
+            showNoData();
+          }
+        } else {
+          const errorMessage =
+            data && data.error ? data.error : "Gagal memuat data siswa";
+          console.error("Response indicates failure:", errorMessage);
+          showError(errorMessage);
+        }
+      })
+      .withFailureHandler(function (error) {
+        const endTime = new Date().getTime();
+        const duration = endTime - startTime;
+
+        console.error("=== FAILURE HANDLER CALLED ===");
+        console.error("Request duration:", duration + "ms");
+        console.error("Error loading student data:", error);
+        console.error("Error type:", typeof error);
+        console.error(
+          "Error constructor:",
+          error ? error.constructor.name : "No constructor"
+        );
+
+        let errorMessage = "Gagal memuat data nilai siswa";
+        let debugInfo = "";
+
+        if (error && error.message) {
+          errorMessage += ": " + error.message;
+          debugInfo += "Message: " + error.message + "\n";
+        } else if (typeof error === "string") {
+          errorMessage += ": " + error;
+          debugInfo += "String error: " + error + "\n";
+        } else {
+          debugInfo += "Unknown error type: " + typeof error + "\n";
+        }
+
+        debugInfo += "NIS: " + studentId + "\n";
+        debugInfo += "Session: " + sessionId + "\n";
+        debugInfo += "Kelas: " + kelas + "\n";
+        debugInfo += "Semester: " + semester + "\n";
+        debugInfo += "Duration: " + duration + "ms";
+
+        console.error("Debug info:", debugInfo);
+
+        showError(errorMessage);
+      })
+      .getStudentGradeDetail(studentId, kelas, semester);
+  }
+
+  // Fungsi untuk menampilkan loading
+  function showLoading() {
+    document.getElementById("student-info-section").style.display = "block";
+    document.getElementById("grades-section").style.display = "none";
+    document.getElementById("error-section").style.display = "none";
+
+    // Show loading indicator in student info section
+    const studentInfoSection = document.getElementById("student-info-section");
+    studentInfoSection.innerHTML = `
+      <div class="loading-container" style="text-align: center; padding: 50px;">
+        <div style="font-size: 18px; color: #666;">Memuat data nilai siswa...</div>
+      </div>
+    `;
+  }
+
+  // Fungsi untuk menampilkan error
+  function showError(message) {
+    document.getElementById("student-info-section").style.display = "none";
+    document.getElementById("grades-section").style.display = "none";
+    document.getElementById("error-section").style.display = "block";
+
+    const errorSection = document.getElementById("error-section");
+    errorSection.innerHTML = `
+      <div class="error-container">
+        <h3>❌ Error Memuat Data Nilai Siswa</h3>
+        <p><strong>Pesan:</strong> ${message}</p>
+        <div style="margin-top: 15px;">
+          <button class="btn btn-primary" onclick="loadStudentData()">🔄 Coba Lagi</button>
+          <button class="btn btn-secondary" onclick="goBack()">📋 Kembali ke Daftar Nilai</button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Fungsi untuk menampilkan pesan tidak ada data
+  function showNoData() {
+    document.getElementById("student-info-section").style.display = "none";
+    document.getElementById("error-section").style.display = "none";
+    document.getElementById("grades-section").style.display = "block";
+    document.getElementById("no-data-message").style.display = "block";
+    document.getElementById("academic-grades-card").style.display = "none";
+    document.getElementById("exam-grades-card").style.display = "none";
+  }
+
+  // Fungsi untuk menampilkan informasi siswa
+  function renderStudentInfo() {
+    const studentInfoSection = document.getElementById("student-info-section");
+
+    const statusClass = `status-${(studentData.status || "Aktif")
+      .toLowerCase()
+      .replace(/\s+/g, "-")}`;
+    const studentInitial = studentData.nama
+      ? studentData.nama.charAt(0).toUpperCase()
+      : "?";
+
+    studentInfoSection.innerHTML = `
+      <div class="student-info-card">
+        <div class="student-basic-info">
+          <div class="student-avatar">${studentInitial}</div>
+          <div class="student-name">${
+            studentData.nama || "Nama tidak tersedia"
+          }</div>
+          <div class="student-nis">NIS: ${studentData.nis || "-"}</div>
+          <div class="student-status ${statusClass}">${
+      studentData.status || "Aktif"
+    }</div>
+        </div>
+        
+        <div class="student-details-info">
+          <div class="detail-item">
+            <div class="detail-label">NISN</div>
+            <div class="detail-value">${studentData.nisn || "-"}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Jenis Kelamin</div>
+            <div class="detail-value">${studentData.jenisKelamin || "-"}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Tanggal Daftar</div>
+            <div class="detail-value">${studentData.tanggalDaftar || "-"}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Tempat Lahir</div>
+            <div class="detail-value">${studentData.tempatLahir || "-"}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Tanggal Lahir</div>
+            <div class="detail-value">${studentData.tanggalLahir || "-"}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Alamat</div>
+            <div class="detail-value">${studentData.alamat || "-"}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    studentInfoSection.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan nilai
+  function renderGrades() {
+    document.getElementById("grades-section").style.display = "block";
+    document.getElementById("no-data-message").style.display = "none";
+
+    // Check if we have grades data
+    if (!allGrades || allGrades.length === 0) {
+      showNoData();
+      return;
+    }
+
+    // Get the first grade record (since all records are for the same student/class/semester)
+    const gradeRecord = allGrades[0];
+    const kelas = getKelas();
+    const semester = getSemester();
+
+    // Determine if this is exam grades (kelas 9 semester 2)
+    const isExamGrades = kelas && kelas.includes("9") && semester === "2";
+
+    if (isExamGrades) {
+      // Show exam grades
+      renderExamGrades(gradeRecord);
+      document.getElementById("academic-grades-card").style.display = "none";
+    } else {
+      // Show academic grades
+      renderAcademicGrades(gradeRecord);
+      document.getElementById("exam-grades-card").style.display = "none";
+    }
+  }
+
+  // Fungsi untuk menampilkan nilai akademik
+  function renderAcademicGrades(gradeRecord) {
+    const academicCard = document.getElementById("academic-grades-card");
+    const semesterInfo = document.getElementById("academic-semester-info");
+    const gradesGrid = document.getElementById("academic-grades-grid");
+    const gradesSummary = document.getElementById("academic-grades-summary");
+
+    // Show semester info
+    const kelas = getKelas() || gradeRecord.kelas || "Tidak diketahui";
+    const semester = getSemester() || gradeRecord.semester || "Tidak diketahui";
+    const isGrade9 = isGrade9Student(kelas);
+
+    semesterInfo.textContent = `Kelas ${kelas} - Semester ${semester}${
+      isGrade9 ? " (Akademik)" : ""
+    }`;
+
+    // Define subject fields
+    const subjectFields = [
+      { key: "pendidikanAgamaIslam", name: "Pendidikan Agama Islam" },
+      { key: "pendidikanPancasila", name: "Pendidikan Pancasila" },
+      { key: "bahasaIndonesia", name: "Bahasa Indonesia" },
+      { key: "matematika", name: "Matematika" },
+      { key: "ilmuPengetahuanAlam", name: "Ilmu Pengetahuan Alam" },
+      { key: "ilmuPengetahuanSosial", name: "Ilmu Pengetahuan Sosial" },
+      { key: "bahasaInggris", name: "Bahasa Inggris" },
+      {
+        key: "pendidikanJasmani",
+        name: "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      },
+      { key: "informatika", name: "Informatika" },
+      { key: "seniBudaya", name: "Seni Budaya" },
+      { key: "bimbinganKonseling", name: "Bimbingan dan Konseling" },
+      { key: "bahasaJawa", name: "Bahasa Jawa" },
+    ];
+
+    // Render grades
+    let gradesHtml = "";
+
+    subjectFields.forEach((subject) => {
+      const nilai = gradeRecord[subject.key];
+      const nilaiDisplay =
+        nilai && nilai !== "" ? parseFloat(nilai).toFixed(0) : "-";
+      const gradeClass =
+        nilai && parseFloat(nilai) >= 75
+          ? "grade-pass"
+          : nilai && parseFloat(nilai) > 0
+          ? "grade-fail"
+          : "grade-empty";
+
+      gradesHtml += `
+        <div class="grade-item">
+          <div class="subject-name">${subject.name}</div>
+          <div class="grade-value ${gradeClass}">${nilaiDisplay}</div>
+        </div>
+      `;
+    });
+
+    gradesGrid.innerHTML = gradesHtml;
+
+    // Render summary
+    if (gradeSummary) {
+      gradesSummary.innerHTML = `
+        <div class="summary-item">
+          <div class="summary-label">Total Mata Pelajaran</div>
+          <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Rata-rata</div>
+          <div class="summary-value">${
+            gradeSummary.averageGrade
+              ? gradeSummary.averageGrade.toFixed(1)
+              : "0.0"
+          }</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Nilai Tertinggi</div>
+          <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Nilai Terendah</div>
+          <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Lulus</div>
+          <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Tidak Lulus</div>
+          <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
+        </div>
+      `;
+    }
+
+    academicCard.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan nilai ujian sekolah
+  function renderExamGrades(gradeRecord) {
+    const examCard = document.getElementById("exam-grades-card");
+    const semesterInfo = document.getElementById("exam-semester-info");
+    const gradesGrid = document.getElementById("exam-grades-grid");
+    const gradesSummary = document.getElementById("exam-grades-summary");
+
+    // Show semester info
+    const kelas = getKelas() || gradeRecord.kelas_ || "Tidak diketahui";
+    const semester =
+      getSemester() || gradeRecord.semester_ || "Tidak diketahui";
+
+    semesterInfo.textContent = `Kelas ${kelas} - Semester ${semester} (Ujian Sekolah)`;
+
+    // Define exam subject fields
+    const examSubjectFields = [
+      { key: "pendidikanAgamaIslam", name: "Pendidikan Agama Islam" },
+      { key: "pendidikanPancasila", name: "Pendidikan Pancasila" },
+      { key: "bahasaIndonesia", name: "Bahasa Indonesia" },
+      { key: "matematika", name: "Matematika" },
+      { key: "ilmuPengetahuanAlam", name: "Ilmu Pengetahuan Alam" },
+      { key: "ilmuPengetahuanSosial", name: "Ilmu Pengetahuan Sosial" },
+      { key: "bahasaInggris", name: "Bahasa Inggris" },
+      {
+        key: "pendidikanJasmani",
+        name: "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      },
+      { key: "informatika", name: "Informatika" },
+      { key: "seniBudaya", name: "Seni Budaya" },
+      { key: "bimbinganKonseling", name: "Bimbingan dan Konseling" },
+      { key: "bahasaJawa", name: "Bahasa Jawa" },
+    ];
+
+    // Render grades
+    let gradesHtml = "";
+
+    examSubjectFields.forEach((subject) => {
+      const nilai = gradeRecord[subject.key];
+      const nilaiDisplay =
+        nilai && nilai !== "" ? parseFloat(nilai).toFixed(0) : "-";
+      const gradeClass =
+        nilai && parseFloat(nilai) >= 75
+          ? "grade-pass"
+          : nilai && parseFloat(nilai) > 0
+          ? "grade-fail"
+          : "grade-empty";
+
+      gradesHtml += `
+        <div class="grade-item">
+          <div class="subject-name">${subject.name}</div>
+          <div class="grade-value ${gradeClass}">${nilaiDisplay}</div>
+        </div>
+      `;
+    });
+
+    gradesGrid.innerHTML = gradesHtml;
+
+    // Render summary
+    if (gradeSummary) {
+      gradesSummary.innerHTML = `
+        <div class="summary-item">
+          <div class="summary-label">Total Mata Pelajaran</div>
+          <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Rata-rata</div>
+          <div class="summary-value">${
+            gradeSummary.averageGrade
+              ? gradeSummary.averageGrade.toFixed(1)
+              : "0.0"
+          }</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Nilai Tertinggi</div>
+          <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Nilai Terendah</div>
+          <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Lulus</div>
+          <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Tidak Lulus</div>
+          <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
+        </div>
+      `;
+    }
+
+    examCard.style.display = "block";
+  }
+
+  // Initialize page
+  document.addEventListener("DOMContentLoaded", function () {
+    updateDateTime();
+
+    // Set up back button href like navbar approach
+    const sessionId = getSessionId();
+    const backButton = document.querySelector(".back-btn");
+    if (backButton && sessionId) {
+      backButton.onclick = function () {
+        goBack();
+      };
+    }
+
+    // Debug URL parameters
+    console.log("=== URL PARAMETER DEBUG ===");
+    console.log("Current URL:", window.location.href);
+    console.log("URL Search:", window.location.search);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    console.log("All URL parameters:");
+    for (const [key, value] of urlParams.entries()) {
+      console.log(`  ${key}: ${value}`);
+    }
+
+    // Get required parameters
+    const studentId = getStudentId();
+    const kelas = getKelas();
+    const semester = getSemester();
+
+    console.log("Retrieved parameters:");
+    console.log("  studentId:", studentId);
+    console.log("  kelas:", kelas);
+    console.log("  semester:", semester);
+
+    // Check hidden inputs
+    const hiddenStudentId = document.getElementById("studentId");
+    const hiddenKelas = document.getElementById("kelas");
+    const hiddenSemester = document.getElementById("semester");
+
+    console.log("Hidden inputs:");
+    console.log("  studentId element:", hiddenStudentId);
+    console.log(
+      "  studentId value:",
+      hiddenStudentId ? hiddenStudentId.value : "not found"
+    );
+    console.log("  kelas element:", hiddenKelas);
+    console.log(
+      "  kelas value:",
+      hiddenKelas ? hiddenKelas.value : "not found"
+    );
+    console.log("  semester element:", hiddenSemester);
+    console.log(
+      "  semester value:",
+      hiddenSemester ? hiddenSemester.value : "not found"
+    );
+
+    // Validate required parameters
+    if (!studentId) {
+      showError("NIS siswa tidak ditemukan dalam URL atau parameter");
+      return;
+    }
+
+    if (!kelas) {
+      showError("Kelas tidak ditemukan dalam URL atau parameter");
+      return;
+    }
+
+    if (!semester) {
+      showError("Semester tidak ditemukan dalam URL atau parameter");
+      return;
+    }
+
+    // Load student data if all parameters are available
+    loadStudentData();
+  });
+
+  // Update time every minute
+  setInterval(updateDateTime, 60000);
+</script>

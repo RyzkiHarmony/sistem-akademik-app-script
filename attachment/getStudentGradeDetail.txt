@@ -1,0 +1,70 @@
+23 Jun 2025, 14.25.50	Info	getStudentGradeDetail called with NIS: 2044, Kelas: IX, Semester: 1
+23 Jun 2025, 14.25.50	Info	=== getStudentDetailForGrades START ===
+23 Jun 2025, 14.25.50	Info	Searching for NIS: "2044" (type: string), Kelas: IX, Semester: 1
+23 Jun 2025, 14.25.51	Info	Searching in 97 student records...
+23 Jun 2025, 14.25.51	Info	NIS column index: 4
+23 Jun 2025, 14.25.51	Info	Kelas column index: 7
+23 Jun 2025, 14.25.51	Info	Normalized search NIS: "2044"
+23 Jun 2025, 14.25.51	Info	Row 1: comparing NIS "2037" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 2: comparing NIS "2037" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 3: comparing NIS "2037" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 4: comparing NIS "2037" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 5: comparing NIS "2037" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 6: comparing NIS "2037" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 7: comparing NIS "2038" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 8: comparing NIS "2038" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 9: comparing NIS "2038" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 10: comparing NIS "2038" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 11: comparing NIS "2038" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 12: comparing NIS "2038" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 13: comparing NIS "2039" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 14: comparing NIS "2039" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 15: comparing NIS "2039" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 16: comparing NIS "2039" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 17: comparing NIS "2039" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 18: comparing NIS "2039" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 19: comparing NIS "2040" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 20: comparing NIS "2040" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 21: comparing NIS "2040" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 22: comparing NIS "2040" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 23: comparing NIS "2040" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 24: comparing NIS "2040" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 25: comparing NIS "2041" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 26: comparing NIS "2041" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 27: comparing NIS "2041" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 28: comparing NIS "2041" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 29: comparing NIS "2041" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 30: comparing NIS "2041" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 31: comparing NIS "2042" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 32: comparing NIS "2042" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 33: comparing NIS "2042" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 34: comparing NIS "2042" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 35: comparing NIS "2042" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 36: comparing NIS "2042" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 37: comparing NIS "2043" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 38: comparing NIS "2043" with "2044", Kelas "" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 39: comparing NIS "2043" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 40: comparing NIS "2043" with "2044", Kelas "VII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 41: comparing NIS "2043" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 42: comparing NIS "2043" with "2044", Kelas "VIII" with "IX"
+23 Jun 2025, 14.25.51	Info	Row 43: comparing NIS "2044" with "2044", Kelas "IX" with "IX"
+23 Jun 2025, 14.25.51	Info	✓ Student found at row 43
+23 Jun 2025, 14.25.51	Info	Student data found: {"nis":2044,"nama":"Mila Anggraini","kelas":"IX","searchedKelas":"IX","searchedSemester":"1"}
+23 Jun 2025, 14.25.51	Info	getAllStudentGradesForDetail called with NIS: 2044, Kelas: IX, Semester: 1
+23 Jun 2025, 14.25.52	Info	Processing 97 rows for grade detail
+23 Jun 2025, 14.25.52	Info	initializeGradeColumnMap called with 146 headers
+23 Jun 2025, 14.25.52	Info	Starting column mapping process
+23 Jun 2025, 14.25.52	Info	Grade column map initialized successfully
+23 Jun 2025, 14.25.52	Info	Grade column map: {"timestamp":0,"nama":3,"nis":4,"nisn":5,"kelas":7,"semester":9,"tahunAjaran":10,"semesterKelulusan":6,"pendidikanAgamaIslam":11,"pendidikanPancasila":13,"bahasaIndonesia":15,"matematika":17,"ilmuPengetahuanAlam":19,"ilmuPengetahuanSosial":21,"bahasaInggris":23,"pendidikanJasmani":25,"informatika":27,"seniBudaya":29,"bimbinganKonseling":31,"bahasaJawa":33,"ujianPendidikanAgamaIslam":82,"ujianPendidikanPancasila":83,"ujianBahasaIndonesia":84,"ujianMatematika":85,"ujianIlmuPengetahuanAlam":86,"ujianIlmuPengetahuanSosial":87,"ujianBahasaInggris":88,"ujianPendidikanJasmani":89,"ujianInformatika":90,"ujianSeniBudaya":91,"ujianBimbinganKonseling":92,"ujianBahasaJawa":93,"rataRataNilaiPerSMT":143,"rataRataNilaiUS":145}
+23 Jun 2025, 14.25.52	Info	Kelas column index: 7
+23 Jun 2025, 14.25.52	Info	Semester column index: 9
+23 Jun 2025, 14.25.52	Info	Row 43: NIS=2044, Kelas=IX, Semester=I (Ganjil)
+23 Jun 2025, 14.25.52	Info	Row 44: NIS=2044, Kelas=, Semester=
+23 Jun 2025, 14.25.52	Info	✓ Matching grade record found at row 44
+23 Jun 2025, 14.25.52	Info	Row 45: NIS=2044, Kelas=VII, Semester=I (Ganjil)
+23 Jun 2025, 14.25.52	Info	Row 46: NIS=2044, Kelas=VII, Semester=II (Genap)
+23 Jun 2025, 14.25.52	Info	Row 47: NIS=2044, Kelas=VIII, Semester=I (Ganjil)
+23 Jun 2025, 14.25.52	Info	Row 48: NIS=2044, Kelas=VIII, Semester=II (Genap)
+23 Jun 2025, 14.25.52	Info	Total matching grades found: 1
+23 Jun 2025, 14.25.52	Info	Filtered grades count: 1
+23 Jun 2025, 14.25.52	Info	getStudentGradeDetail result: {"success":true,"student":{"Timestamp":"5 Februari 2025","Email address":"m.rizki00133@gmail.com","NIP Wali Kelas":1239088901,"Nama Siswa":"Mila Anggraini","NIS":2044,"NISN":"1111111111111111111","Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah)":"","Kelas":"IX","Jenis Kelas":"ZIRCON","Semester":"I (Ganjil)","Tahun Ajaran":"2024/2025","Pendidikan Agama Islam":80,"Capaian Pembelajaran (Pendidikan Agama Islam)":"Cukup mampu dalam memahami konsep","Pendidikan Pancasila":96,"Capaian Pembelajaran (Pendidikan Pancasila)":"Sangat Baik dalam memahami materi","Bahasa Indonesia":90,"Capaian Pembelajaran (Bahasa Indonesia)":"Kurang dalam menguasai materi","Matematika":68,"Capaian Pembelajaran (Matematika)":"Nice","Ilmu Pengetahuan Alam":78,"Capaian Pembelajaran (Ilmu Pengetahuan Alam)":"Nice","Ilmu Pengetahuan Sosial":45,"Capaian Pembelajaran (Ilmu Pengetahuan Sosial)":"Nice","Bahasa Inggris":77,"Capaian Pembelajaran (Bahasa Inggris)":"Nice","Pendidikan Jasmani, Olahraga, dan Kesehatan":99,"Capaian Pembelajaran (PJOK)":"Nice","Informatika":99,"Capaian Pembelajaran (Informatika)":"Nice","Seni Budaya":100,"Capaian Pembelajaran (Seni Budaya)":"Nice","Bimbingan dan Konseling":23,"Capaian Pembelajaran (BK)":"Nice","Bahasa Jawa":87,"Capaian Pembelajaran (Bahasa Jawa)":"Nice","Sakit - SMT I":3,"Izin - SMT I":3,"Tanpa Keterangan - SMT I":3,"Sakit - SMT II":3,"Izin - SMT II":3,"Tanpa Keterangan - SMT II":3,"Naik / Tidak Naik":"Naik","Naik Ke Kelas":"IX","Tanggal ditetapkan Naik Kelas":"","Tema Projek 1":"","Tema Projek 2":"","Tema Projek 3":"","Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia":"","Sub-Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia":"","Target Pencapaian - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia":"","Elemen - Berkebhinekaan Global":"","Sub-Elemen - Berkebhinekaan Global":"","Target Pencapaian - Berkebhinekaan Global":"","Elemen - Bergotong Royong":"","Sub-Elemen - Bergotong Royong":"","Target Pencapaian - Bergotong Royong":"","Elemen - Mandiri":"","Sub-Elemen - Mandiri":"","Target Pencapaian - Mandiri":"","Elemen - Bernalar Kritis":"","Sub-Elemen - Bernalar Kritis":"","Target Pencapaian - Bernalar Kritis":"","Elemen - Kreatif":"","Sub-Elemen - Kreatif":"","Target Pencapaian - Kreatif":"","Keterangan Ekstrakurikuler 1":"","Ekstrakurikuler 2":"","Keterangan Ekstrakurikuler 2":"","Ekstrakurikuler 3":"","Keterangan Ekstrakurikuler 3":"","Ekstrakurikuler 4":"","Keterangan Ekstrakurikuler 4":"","Jenis Prestasi":"","Tingkat Prestasi":"","Nama Prestasi":"","Tahun Prestasi":"","Penyelenggara":"","Peringkat":"","Kelas_":"","Jenis Kelas_":"","Semester_":"","Tahun_Ajaran":"","Pendidikan Agama Islam - Ujian Sekolah":"","Pendidikan Pancasila - Ujian Sekolah":"","Bahasa Indonesia - Ujian Sekolah":"","Matematika - Ujian Sekolah":"","Ilmu Pengetahuan Alam - Ujian Sekolah":"","Ilmu Pengetahuan Sosial - Ujian Sekolah":"","Bahasa Inggris - Ujian Sekolah":"","Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah":"","Informatika - Ujian Sekolah":"","Seni Budaya - Ujian Sekolah":"","Bimbingan dan Konseling - Ujian Sekolah":"","Bahasa Jawa - Ujian Sekolah":"","Capaian Pembelajaran (PAI) - Nilai Sekolah":"","Capaian Pembelajaran (Pendidikan Pancasila) - Nilai Sekolah":"","Capaian Pembelajaran (Bahasa Indonesia) - Nilai Sekolah":"","Capaian Pembelajaran (Matematika) - Nilai Sekolah":"","Capaian Pembelajaran (IPA) - Nilai Sekolah":"","Capaian Pembelajaran (IPS) - Nilai Sekolah":"","Capaian Pembelajaran (Bahasa Inggris) - Nilai Sekolah":"","Capaian Pembelajaran (PJOK) - Nilai Sekolah":"","Capaian Pembelajaran (Informatika) - Nilai Sekolah":"","Capaian Pembelajaran (Seni Budaya) - Nilai Sekolah":"","Capaian Pembelajaran (BK) - Nilai Sekolah":"","Capaian Pembelajaran (Bahasa Jawa) - Nilai Sekolah":"","Jenis Prestasi (2)":"","Tingkat Prestasi (2)":"","Nama Prestasi (2)":"","Tahun Prestasi (2)":"","Penyelenggara (2)":"","Peringkat (2)":"","Lanjut Prestasi ke-2":"","Jenis Prestasi (4)":"","Tingkat Prestasi (4)":"","Nama Prestasi (4)":"","Tahun Prestasi (4)":"","Penyelenggara (4)":"","Peringkat (4)":"","Jenis Prestasi (5)":"","Tingkat Prestasi (5)":"","Nama Prestasi (5)":"","Tahun Prestasi (5)":"","Penyelenggara (5)":"","Peringkat (5)":"","Jenis Prestasi (3)":"","Tingkat Prestasi (3)":"","Nama Prestasi (3)":"","Tahun Prestasi (3)":"","Penyelenggara (3)":"","Peringkat (3)":"","Lanjut Prestasi ke-3":"","Lanjut Prestasi ke-4":"","Lanjut Prestasi ke-5":"","Lanjut Ekstrakurikuler ke-2":"","Lanjut Ekstrakurikuler ke-3":"","Lanjut Ekstrakurikuler ke-4":"","LULUS / TIDAK LULUS":"LULUS","Lanjutkan Mengisi Prestasi Peserta Didik?":"","Tanggal Ditetapkan Lulus":"","No. Ijazah":128930128903,"No. SKHUS":3498598234,"Jumlah Nilai per SMT":942,"Rata-Rata Nilai per SMT":79,"Jumlah Nilai US":0,"Rata-Rata Nilai US":"#DIV/0!","nis":2044,"nama":"Mila Anggraini","nisn":"1111111111111111111","kelas":"IX"},"grades":[{"timestamp":"2025-02-15T12:48:27.030Z","nis":2044,"nama":"Mila Anggraini","nisn":"1111111111111111111","kelas":"","semester":"","tahunAjaran":"","kelas_":"","semester_":"","pendidikanAgamaIslam":"","pendidikanPancasila":"","bahasaIndonesia":"","matematika":"","ilmuPengetahuanAlam":"","ilmuPengetahuanSosial":"","bahasaInggris":"","pendidikanJasmani":"","informatika":"","seniBudaya":"","bimbinganKonseling":"","bahasaJawa":"","ujianPendidikanAgamaIslam":83,"ujianPendidikanPancasila":87,"ujianBahasaIndonesia":82,"ujianMatematika":77,"ujianIlmuPengetahuanAlam":78,"ujianIlmuPengetahuanSosial":78,"ujianBahasaInggris":78,"ujianPendidikanJasmani":78,"ujianInformatika":78,"ujianSeniBudaya":78,"ujianBimbinganKonseling":78,"ujianBahasaJawa":78,"rataRataNilaiPerSMT":"#DIV/0!","rataRataNilaiUS":79}],"summary":{"totalSubjects":0,"averageGrade":0,"highestGrade":0,"lowestGrade":0,"passedSubjects":0,"failedSubjects":0}}

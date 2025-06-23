@@ -3,7 +3,7 @@
 <script>
   let searchResults = [];
   let isSearching = false;
-  
+
   // Real-time search variables
   let searchTimeout = null;
   let lastSearchQuery = "";
@@ -37,6 +37,41 @@
     return urlParams.get("sessionId");
   }
 
+  // Fungsi helper untuk mengecek apakah siswa kelas 9
+  function isGrade9Student(kelas) {
+    if (!kelas) return false;
+    const kelasStr = String(kelas).toLowerCase();
+    return kelasStr.includes("9") || kelasStr.includes("ix");
+  }
+
+  // Fungsi helper untuk mapping nama kolom ujian sekolah
+  function getExamColumnName(subject) {
+    const examColumnMap = {
+      pendidikanAgamaIslam: "Pendidikan Agama Islam - Ujian Sekolah",
+      pendidikanPancasila: "Pendidikan Pancasila - Ujian Sekolah",
+      bahasaIndonesia: "Bahasa Indonesia - Ujian Sekolah",
+      matematika: "Matematika - Ujian Sekolah",
+      ilmuPengetahuanAlam: "Ilmu Pengetahuan Alam - Ujian Sekolah",
+      ilmuPengetahuanSosial: "Ilmu Pengetahuan Sosial - Ujian Sekolah",
+      bahasaInggris: "Bahasa Inggris - Ujian Sekolah",
+      pendidikanJasmani:
+        "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah",
+      informatika: "Informatika - Ujian Sekolah",
+      seniBudaya: "Seni Budaya - Ujian Sekolah",
+      bimbinganKonseling: "Bimbingan dan Konseling - Ujian Sekolah",
+      bahasaJawa: "Bahasa Jawa - Ujian Sekolah",
+    };
+    return examColumnMap[subject] || subject;
+  }
+
+  // Fungsi helper untuk memfilter data berdasarkan aturan kelas 9
+  function shouldIncludeStudentData(student) {
+    // Untuk semua kelas, tampilkan semua semester
+    // Kelas 9 semester 1: nilai akademik
+    // Kelas 9 semester 2: nilai ujian sekolah
+    return true;
+  }
+
   // Fungsi untuk memuat semua data nilai siswa (cache)
   function loadAllStudentsData() {
     const sessionId = getSessionId();
@@ -52,27 +87,143 @@
 
     google.script.run
       .withSuccessHandler(function (data) {
-        console.log('getAllStudentGradesForFrontend response (loadAllStudentsData):', data);
-        console.log('Data type:', typeof data);
-        console.log('Has grades property:', data && data.hasOwnProperty('grades'));
-        console.log('Has success property:', data && data.hasOwnProperty('success'));
-        
+        console.log(
+          "getAllStudentGradesForFrontend response (loadAllStudentsData):",
+          data
+        );
+        console.log("Data type:", typeof data);
+        console.log(
+          "Has grades property:",
+          data && data.hasOwnProperty("grades")
+        );
+        console.log(
+          "Has success property:",
+          data && data.hasOwnProperty("success")
+        );
+
         if (data && data.success && data.grades && data.grades.length > 0) {
-          console.log('Grades length:', data.grades.length);
+          console.log("Grades length:", data.grades.length);
+          // Log raw data untuk debugging
+          console.log(
+            "Raw data sample (first 10 records):",
+            data.grades.slice(0, 10).map((g) => ({
+              nama: g.nama,
+              kelas: g.kelas,
+              kelas_: g.kelas_,
+              semester: g.semester,
+              semester_: g.semester_,
+              semesterKelulusan: g.semesterKelulusan,
+              hasKelas: !!g.kelas,
+              hasKelas_: !!g.kelas_,
+              hasSemester: !!g.semester,
+              hasSemester_: !!g.semester_,
+              hasSemesterKelulusan: !!g.semesterKelulusan,
+            }))
+          );
+
+          // Count records with different column combinations
+          const withKelasOnly = data.grades.filter(
+            (g) => g.kelas && !g.kelas_
+          ).length;
+          const withKelas_Only = data.grades.filter(
+            (g) => g.kelas_ && !g.kelas
+          ).length;
+          const withBothKelas = data.grades.filter(
+            (g) => g.kelas && g.kelas_
+          ).length;
+          const withNeitherKelas = data.grades.filter(
+            (g) => !g.kelas && !g.kelas_
+          ).length;
+
+          console.log(`Kelas distribution:`);
+          console.log(`- Kelas only: ${withKelasOnly}`);
+          console.log(`- Kelas_ only: ${withKelas_Only}`);
+          console.log(`- Both Kelas & Kelas_: ${withBothKelas}`);
+          console.log(`- Neither: ${withNeitherKelas}`);
+
+          const withSemesterOnly = data.grades.filter(
+            (g) => g.semester && !g.semester_
+          ).length;
+          const withSemester_Only = data.grades.filter(
+            (g) => g.semester_ && !g.semester
+          ).length;
+          const withBothSemester = data.grades.filter(
+            (g) => g.semester && g.semester_
+          ).length;
+          const withNeitherSemester = data.grades.filter(
+            (g) => !g.semester && !g.semester_
+          ).length;
+
+          console.log(`Semester distribution:`);
+          console.log(`- Semester only: ${withSemesterOnly}`);
+          console.log(`- Semester_ only: ${withSemester_Only}`);
+          console.log(`- Both Semester & Semester_: ${withBothSemester}`);
+          console.log(`- Neither: ${withNeitherSemester}`);
+
+          // Log semesterKelulusan distribution
+          const withSemesterKelulusan = data.grades.filter(
+            (g) => g.semesterKelulusan && g.semesterKelulusan.trim() !== ""
+          ).length;
+          const semesterKelulusanYa = data.grades.filter(
+            (g) =>
+              g.semesterKelulusan &&
+              (g.semesterKelulusan.toLowerCase() === "ya" ||
+                g.semesterKelulusan.toLowerCase() === "yes" ||
+                g.semesterKelulusan === "1" ||
+                g.semesterKelulusan === 1)
+          ).length;
+          const semesterKelulusanTidak = data.grades.filter(
+            (g) =>
+              g.semesterKelulusan &&
+              (g.semesterKelulusan.toLowerCase() === "tidak" ||
+                g.semesterKelulusan.toLowerCase() === "no" ||
+                g.semesterKelulusan === "0" ||
+                g.semesterKelulusan === 0)
+          ).length;
+
+          console.log(`SemesterKelulusan distribution:`);
+          console.log(`- Has semesterKelulusan data: ${withSemesterKelulusan}`);
+          console.log(`- SemesterKelulusan = Ya/Yes/1: ${semesterKelulusanYa}`);
+          console.log(
+            `- SemesterKelulusan = Tidak/No/0: ${semesterKelulusanTidak}`
+          );
+
+          // Sample semesterKelulusan values
+          const uniqueSemesterKelulusan = [
+            ...new Set(
+              data.grades
+                .map((g) => g.semesterKelulusan)
+                .filter((s) => s && s.trim() !== "")
+            ),
+          ];
+          console.log(
+            `Unique semesterKelulusan values:`,
+            uniqueSemesterKelulusan
+          );
+
           // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
-          allStudentsData = data.grades.map(grade => {
+          const processedData = data.grades.map((grade) => {
             // Hitung jumlah mata pelajaran yang memiliki nilai
             const subjectFields = [
-              'pendidikanAgamaIslam', 'pendidikanPancasila', 'bahasaIndonesia', 'matematika',
-              'ilmuPengetahuanAlam', 'ilmuPengetahuanSosial', 'bahasaInggris', 'pendidikanJasmani',
-              'informatika', 'seniBudaya', 'bimbinganKonseling', 'bahasaJawa'
+              "pendidikanAgamaIslam",
+              "pendidikanPancasila",
+              "bahasaIndonesia",
+              "matematika",
+              "ilmuPengetahuanAlam",
+              "ilmuPengetahuanSosial",
+              "bahasaInggris",
+              "pendidikanJasmani",
+              "informatika",
+              "seniBudaya",
+              "bimbinganKonseling",
+              "bahasaJawa",
             ];
-            
+
             let totalSubjects = 0;
             let totalGrade = 0;
             let validGrades = 0;
-            
-            subjectFields.forEach(subject => {
+
+            subjectFields.forEach((subject) => {
               const nilai = parseFloat(grade[subject]);
               if (!isNaN(nilai) && nilai > 0) {
                 totalSubjects++;
@@ -80,37 +231,256 @@
                 validGrades++;
               }
             });
-            
+
             const averageGrade = validGrades > 0 ? totalGrade / validGrades : 0;
-            
-            return {
-              nis: grade.nis,
-              nama: grade.nama,
-              kelas: grade.kelas,
-              nisn: grade.nisn,
-              semester: grade.semester,
-              tahunAjaran: grade.tahunAjaran,
-              status: "Aktif", // Default status
-              totalSubjects: totalSubjects,
-              averageGrade: averageGrade
-            };
+
+            // Create separate records for academic and exam data
+            const records = [];
+
+            // Determine semester based on semesterKelulusan column for Grade 9
+            const isGrade9 = isGrade9Student(grade.kelas);
+            const isSemesterKelulusan =
+              grade.semesterKelulusan &&
+              (grade.semesterKelulusan.toLowerCase() === "ya" ||
+                grade.semesterKelulusan.toLowerCase() === "yes" ||
+                grade.semesterKelulusan === "1" ||
+                grade.semesterKelulusan === 1);
+
+            // For Grade 9: Use semesterKelulusan to determine semester
+            // If semesterKelulusan = "Ya", then it's semester 2 (graduation semester)
+            // If semesterKelulusan = "Tidak" or empty, then it's semester 1
+            let actualSemester = grade.semester;
+            if (isGrade9) {
+              actualSemester = isSemesterKelulusan ? "2" : "1";
+            }
+
+            // Academic data (using Kelas, Semester columns)
+            if (grade.kelas && grade.semester) {
+              records.push({
+                nis: grade.nis,
+                nama: grade.nama,
+                kelas: grade.kelas,
+                nisn: grade.nisn,
+                semester: actualSemester,
+                tahunAjaran: grade.tahunAjaran,
+                status: "Aktif",
+                totalSubjects: totalSubjects,
+                averageGrade: averageGrade,
+                dataType: "academic",
+                semesterKelulusan: grade.semesterKelulusan,
+              });
+            }
+
+            // Exam data (using Kelas_, Semester_ columns)
+            if (grade.kelas_ && grade.semester_) {
+              // Calculate exam grades
+              const examSubjectFields = [
+                "pendidikanAgamaIslam", // Will map to exam columns
+                "pendidikanPancasila",
+                "bahasaIndonesia",
+                "matematika",
+                "ilmuPengetahuanAlam",
+                "ilmuPengetahuanSosial",
+                "bahasaInggris",
+                "pendidikanJasmani",
+                "informatika",
+                "seniBudaya",
+                "bimbinganKonseling",
+                "bahasaJawa",
+              ];
+
+              let examTotalSubjects = 0;
+              let examTotalGrade = 0;
+              let examValidGrades = 0;
+
+              // Check for exam grade columns (with " - Ujian Sekolah" suffix)
+              examSubjectFields.forEach((subject) => {
+                const examColumnName = getExamColumnName(subject);
+                const nilai = parseFloat(grade[examColumnName]);
+                if (!isNaN(nilai) && nilai > 0) {
+                  examTotalSubjects++;
+                  examTotalGrade += nilai;
+                  examValidGrades++;
+                }
+              });
+
+              const examAverageGrade =
+                examValidGrades > 0 ? examTotalGrade / examValidGrades : 0;
+
+              // For exam data, also use the same semester logic
+              let examActualSemester = grade.semester_;
+              const isExamGrade9 = isGrade9Student(grade.kelas_);
+              if (isExamGrade9) {
+                examActualSemester = isSemesterKelulusan ? "2" : "1";
+              }
+
+              records.push({
+                nis: grade.nis,
+                nama: grade.nama,
+                kelas: grade.kelas_,
+                nisn: grade.nisn,
+                semester: examActualSemester,
+                tahunAjaran: grade.tahunAjaran,
+                status: "Aktif",
+                totalSubjects: examTotalSubjects,
+                averageGrade: examAverageGrade,
+                dataType: "exam",
+                semesterKelulusan: grade.semesterKelulusan,
+              });
+            }
+
+            return records;
           });
-          console.log('Processed allStudentsData length:', allStudentsData.length);
-          
+
+          // Flatten the array since each grade can produce multiple records
+          const flattenedData = processedData.flat();
+
+          // Proses semua data (tidak ada filtering berdasarkan semester)
+          allStudentsData = flattenedData.filter(shouldIncludeStudentData);
+
+          // Log data types distribution
+          const academicData = allStudentsData.filter(
+            (s) => s.dataType === "academic"
+          );
+          const examData = allStudentsData.filter((s) => s.dataType === "exam");
+          console.log(
+            `Data types: Academic: ${academicData.length}, Exam: ${examData.length}, Total: ${allStudentsData.length}`
+          );
+
+          // Debug: Log sample data untuk melihat struktur kelas dan semester
+          console.log(
+            "Sample student data:",
+            allStudentsData.slice(0, 5).map((s) => ({
+              nama: s.nama,
+              kelas: s.kelas,
+              semester: s.semester,
+              kelasType: typeof s.kelas,
+              semesterType: typeof s.semester,
+            }))
+          );
+
+          const grade9Students = allStudentsData.filter((student) => {
+            const isGrade9 = isGrade9Student(student.kelas);
+            if (isGrade9) {
+              console.log("Found Grade 9 student:", {
+                nama: student.nama,
+                kelas: student.kelas,
+                semester: student.semester,
+                dataType: student.dataType,
+                semesterKelulusan: student.semesterKelulusan,
+                kelasStr: String(student.kelas).toLowerCase(),
+              });
+            }
+            return isGrade9;
+          });
+
+          // Separate academic and exam data for Grade 9
+          const grade9Academic = grade9Students.filter(
+            (s) => s.dataType === "academic"
+          );
+          const grade9Exam = grade9Students.filter(
+            (s) => s.dataType === "exam"
+          );
+
+          // Log all unique semester values to understand the format
+          const uniqueSemesters = [
+            ...new Set(grade9Students.map((s) => s.semester)),
+          ];
+          console.log("Unique semester values found:", uniqueSemesters);
+
+          // Academic data semester breakdown
+          const grade9AcademicSem1 = grade9Academic.filter((student) => {
+            const semesterStr = String(student.semester).toLowerCase();
+            const isSem1 =
+              student.semester === "1" ||
+              student.semester === 1 ||
+              semesterStr.includes("1") ||
+              semesterStr.includes("semester 1") ||
+              semesterStr.includes("ganjil");
+            return isSem1;
+          });
+
+          const grade9AcademicSem2 = grade9Academic.filter((student) => {
+            const semesterStr = String(student.semester).toLowerCase();
+            const isSem2 =
+              student.semester === "2" ||
+              student.semester === 2 ||
+              semesterStr.includes("2") ||
+              semesterStr.includes("semester 2") ||
+              semesterStr.includes("genap");
+            return isSem2;
+          });
+
+          // Exam data semester breakdown
+          const grade9ExamSem1 = grade9Exam.filter((student) => {
+            const semesterStr = String(student.semester).toLowerCase();
+            const isSem1 =
+              student.semester === "1" ||
+              student.semester === 1 ||
+              semesterStr.includes("1") ||
+              semesterStr.includes("semester 1") ||
+              semesterStr.includes("ganjil");
+            return isSem1;
+          });
+
+          const grade9ExamSem2 = grade9Exam.filter((student) => {
+            const semesterStr = String(student.semester).toLowerCase();
+            const isSem2 =
+              student.semester === "2" ||
+              student.semester === 2 ||
+              semesterStr.includes("2") ||
+              semesterStr.includes("semester 2") ||
+              semesterStr.includes("genap");
+            return isSem2;
+          });
+
+          console.log("Data processing results:");
+          console.log("- Total students:", allStudentsData.length);
+          console.log("- Grade 9 students total:", grade9Students.length);
+          console.log("- Grade 9 Academic data:", grade9Academic.length);
+          console.log("  - Academic Semester 1:", grade9AcademicSem1.length);
+          console.log("  - Academic Semester 2:", grade9AcademicSem2.length);
+          console.log("- Grade 9 Exam data:", grade9Exam.length);
+          console.log("  - Exam Semester 1:", grade9ExamSem1.length);
+          console.log("  - Exam Semester 2:", grade9ExamSem2.length);
+
           // Show pagination info if there are more pages
           if (data.totalPages && data.totalPages > 1) {
-            console.log('Data pagination info: Page ' + data.currentPage + ' of ' + data.totalPages + ', Total records: ' + data.totalCount);
-            showInfo('Menampilkan ' + allStudentsData.length + ' dari ' + data.totalCount + ' total siswa (Halaman ' + data.currentPage + ' dari ' + data.totalPages + ')');
+            console.log(
+              "Data pagination info: Page " +
+                data.currentPage +
+                " of " +
+                data.totalPages +
+                ", Total records: " +
+                data.totalCount
+            );
+            showInfo(
+              "Menampilkan " +
+                allStudentsData.length +
+                " dari " +
+                data.totalCount +
+                " total siswa (Halaman " +
+                data.currentPage +
+                " dari " +
+                data.totalPages +
+                ")"
+            );
           }
         } else {
-          console.warn('No grades data received in loadAllStudentsData:', data);
-          const errorMessage = data && data.message ? data.message : 'Tidak ada data nilai siswa yang ditemukan';
+          console.warn("No grades data received in loadAllStudentsData:", data);
+          const errorMessage =
+            data && data.message
+              ? data.message
+              : "Tidak ada data nilai siswa yang ditemukan";
           showError(errorMessage);
         }
       })
       .withFailureHandler(function (error) {
         console.error("Error loading student grades data:", error);
-        showError('Gagal memuat data nilai siswa: ' + (error.message || error.toString()));
+        showError(
+          "Gagal memuat data nilai siswa: " +
+            (error.message || error.toString())
+        );
       })
       .getAllStudentGradesForFrontend();
   }
@@ -118,7 +488,7 @@
   // Fungsi untuk mencari siswa berdasarkan NIS atau nama
   function searchStudents() {
     const searchTerm = document.getElementById("search-input").value.trim();
-    
+
     if (!searchTerm) {
       showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
       return;
@@ -141,68 +511,308 @@
       google.script.run
         .withSuccessHandler(function (data) {
           isSearching = false;
-          console.log('getAllStudentGradesForFrontend response (searchStudents):', data);
-          console.log('Data type:', typeof data);
-          console.log('Has grades property:', data && data.hasOwnProperty('grades'));
-          console.log('Has success property:', data && data.hasOwnProperty('success'));
-          
+          console.log(
+            "getAllStudentGradesForFrontend response (searchStudents):",
+            data
+          );
+          console.log("Data type:", typeof data);
+          console.log(
+            "Has grades property:",
+            data && data.hasOwnProperty("grades")
+          );
+          console.log(
+            "Has success property:",
+            data && data.hasOwnProperty("success")
+          );
+
           if (data && data.success && data.grades && data.grades.length > 0) {
-            console.log('Grades length:', data.grades.length);
-            // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
-            allStudentsData = data.grades.map(grade => {
-              // Hitung jumlah mata pelajaran yang memiliki nilai
-              const subjectFields = [
-                'pendidikanAgamaIslam', 'pendidikanPancasila', 'bahasaIndonesia', 'matematika',
-                'ilmuPengetahuanAlam', 'ilmuPengetahuanSosial', 'bahasaInggris', 'pendidikanJasmani',
-                'informatika', 'seniBudaya', 'bimbinganKonseling', 'bahasaJawa'
-              ];
-              
-              let totalSubjects = 0;
-              let totalGrade = 0;
-              let validGrades = 0;
-              
-              subjectFields.forEach(subject => {
-                const nilai = parseFloat(grade[subject]);
-                if (!isNaN(nilai) && nilai > 0) {
-                  totalSubjects++;
-                  totalGrade += nilai;
-                  validGrades++;
-                }
-              });
-              
-              const averageGrade = validGrades > 0 ? totalGrade / validGrades : 0;
-              
-              return {
-                nis: grade.nis,
-                nama: grade.nama,
-                kelas: grade.kelas,
-                nisn: grade.nisn,
-                semester: grade.semester,
-                tahunAjaran: grade.tahunAjaran,
-                status: "Aktif", // Default status
-                totalSubjects: totalSubjects,
-                averageGrade: averageGrade
-              };
+            console.log("Grades length:", data.grades.length);
+
+            // Log raw data untuk debugging (searchStudents)
+            console.log(
+              "Raw data sample (searchStudents - first 5 records):",
+              data.grades.slice(0, 5).map((g) => ({
+                nama: g.nama,
+                kelas: g.kelas,
+                kelas_: g.kelas_,
+                semester: g.semester,
+                semester_: g.semester_,
+              }))
+            );
+
+            // Count records with kelas vs kelas_ (searchStudents)
+            const withKelas = data.grades.filter(
+              (g) => g.kelas && !g.kelas_
+            ).length;
+            const withKelas_ = data.grades.filter(
+              (g) => g.kelas_ && !g.kelas
+            ).length;
+            const withBoth = data.grades.filter(
+              (g) => g.kelas && g.kelas_
+            ).length;
+            console.log(
+              `Records distribution (searchStudents): kelas only: ${withKelas}, kelas_ only: ${withKelas_}, both: ${withBoth}`
+            );
+
+            // Process data - create separate records for academic and exam data (searchStudents)
+            const processedData = data.grades.map((grade) => {
+              const records = [];
+
+              // Academic data (using kelas, semester columns)
+              if (grade.kelas && grade.semester) {
+                const subjectFields = [
+                  "pendidikanAgamaIslam",
+                  "pendidikanPancasila",
+                  "bahasaIndonesia",
+                  "matematika",
+                  "ilmuPengetahuanAlam",
+                  "ilmuPengetahuanSosial",
+                  "bahasaInggris",
+                  "pendidikanJasmani",
+                  "informatika",
+                  "seniBudaya",
+                  "bimbinganKonseling",
+                  "bahasaJawa",
+                ];
+
+                let totalSubjects = 0;
+                let totalGrade = 0;
+                let validGrades = 0;
+
+                subjectFields.forEach((subject) => {
+                  const nilai = parseFloat(grade[subject]);
+                  if (!isNaN(nilai) && nilai > 0) {
+                    totalSubjects++;
+                    totalGrade += nilai;
+                    validGrades++;
+                  }
+                });
+
+                const averageGrade =
+                  validGrades > 0 ? totalGrade / validGrades : 0;
+
+                records.push({
+                  nis: grade.nis,
+                  nama: grade.nama,
+                  kelas: grade.kelas,
+                  nisn: grade.nisn,
+                  semester: grade.semester,
+                  tahunAjaran: grade.tahunAjaran,
+                  status: "Aktif",
+                  totalSubjects: totalSubjects,
+                  averageGrade: averageGrade,
+                  dataType: "academic",
+                });
+              }
+
+              // Exam data (using kelas_, semester_ columns)
+              if (grade.kelas_ && grade.semester_) {
+                const subjectFields = [
+                  "pendidikanAgamaIslam",
+                  "pendidikanPancasila",
+                  "bahasaIndonesia",
+                  "matematika",
+                  "ilmuPengetahuanAlam",
+                  "ilmuPengetahuanSosial",
+                  "bahasaInggris",
+                  "pendidikanJasmani",
+                  "informatika",
+                  "seniBudaya",
+                  "bimbinganKonseling",
+                  "bahasaJawa",
+                ];
+
+                let totalSubjects = 0;
+                let totalGrade = 0;
+                let validGrades = 0;
+
+                // For exam data, we might need to use different field names
+                // For now, using the same fields but marking as exam type
+                subjectFields.forEach((subject) => {
+                  const nilai = parseFloat(grade[subject]);
+                  if (!isNaN(nilai) && nilai > 0) {
+                    totalSubjects++;
+                    totalGrade += nilai;
+                    validGrades++;
+                  }
+                });
+
+                const averageGrade =
+                  validGrades > 0 ? totalGrade / validGrades : 0;
+
+                records.push({
+                  nis: grade.nis,
+                  nama: grade.nama,
+                  kelas: grade.kelas_,
+                  nisn: grade.nisn,
+                  semester: grade.semester_,
+                  tahunAjaran: grade.tahunAjaran,
+                  status: "Aktif",
+                  totalSubjects: totalSubjects,
+                  averageGrade: averageGrade,
+                  dataType: "exam",
+                });
+              }
+
+              return records;
             });
-            console.log('Processed allStudentsData length:', allStudentsData.length);
-            
+
+            // Flatten the array since each grade can produce multiple records
+            const flattenedData = processedData.flat();
+
+            // Proses semua data (tidak ada filtering berdasarkan semester)
+            allStudentsData = flattenedData.filter(shouldIncludeStudentData);
+
+            // Log data types distribution (searchStudents)
+            const academicData = allStudentsData.filter(
+              (s) => s.dataType === "academic"
+            );
+            const examData = allStudentsData.filter(
+              (s) => s.dataType === "exam"
+            );
+            console.log(
+              `Data types (searchStudents): Academic: ${academicData.length}, Exam: ${examData.length}, Total: ${allStudentsData.length}`
+            );
+
+            // Debug: Log sample data untuk melihat struktur kelas dan semester
+            console.log(
+              "Sample student data (searchStudents):",
+              allStudentsData.slice(0, 5).map((s) => ({
+                nama: s.nama,
+                kelas: s.kelas,
+                semester: s.semester,
+                kelasType: typeof s.kelas,
+                semesterType: typeof s.semester,
+              }))
+            );
+
+            const grade9Students = allStudentsData.filter((student) => {
+              const isGrade9 = isGrade9Student(student.kelas);
+              if (isGrade9) {
+                console.log("Found Grade 9 student (searchStudents):", {
+                  nama: student.nama,
+                  kelas: student.kelas,
+                  semester: student.semester,
+                  dataType: student.dataType,
+                  kelasStr: String(student.kelas).toLowerCase(),
+                });
+              }
+              return isGrade9;
+            });
+
+            // Separate academic and exam data for Grade 9 (searchStudents)
+            const grade9Academic = grade9Students.filter(
+              (s) => s.dataType === "academic"
+            );
+            const grade9Exam = grade9Students.filter(
+              (s) => s.dataType === "exam"
+            );
+
+            // Log all unique semester values to understand the format
+            const uniqueSemesters = [
+              ...new Set(grade9Students.map((s) => s.semester)),
+            ];
+            console.log(
+              "Unique semester values found (searchStudents):",
+              uniqueSemesters
+            );
+
+            // Academic data semester breakdown (searchStudents)
+            const grade9AcademicSem1 = grade9Academic.filter((student) => {
+              const semesterStr = String(student.semester).toLowerCase();
+              const isSem1 =
+                student.semester === "1" ||
+                student.semester === 1 ||
+                semesterStr.includes("1") ||
+                semesterStr.includes("semester 1") ||
+                semesterStr.includes("ganjil");
+              return isSem1;
+            });
+
+            const grade9AcademicSem2 = grade9Academic.filter((student) => {
+              const semesterStr = String(student.semester).toLowerCase();
+              const isSem2 =
+                student.semester === "2" ||
+                student.semester === 2 ||
+                semesterStr.includes("2") ||
+                semesterStr.includes("semester 2") ||
+                semesterStr.includes("genap");
+              return isSem2;
+            });
+
+            // Exam data semester breakdown (searchStudents)
+            const grade9ExamSem1 = grade9Exam.filter((student) => {
+              const semesterStr = String(student.semester).toLowerCase();
+              const isSem1 =
+                student.semester === "1" ||
+                student.semester === 1 ||
+                semesterStr.includes("1") ||
+                semesterStr.includes("semester 1") ||
+                semesterStr.includes("ganjil");
+              return isSem1;
+            });
+
+            const grade9ExamSem2 = grade9Exam.filter((student) => {
+              const semesterStr = String(student.semester).toLowerCase();
+              const isSem2 =
+                student.semester === "2" ||
+                student.semester === 2 ||
+                semesterStr.includes("2") ||
+                semesterStr.includes("semester 2") ||
+                semesterStr.includes("genap");
+              return isSem2;
+            });
+
+            console.log("Data processing results (searchStudents):");
+            console.log("- Total students:", allStudentsData.length);
+            console.log("- Grade 9 students total:", grade9Students.length);
+            console.log("- Grade 9 Academic data:", grade9Academic.length);
+            console.log("  - Academic Semester 1:", grade9AcademicSem1.length);
+            console.log("  - Academic Semester 2:", grade9AcademicSem2.length);
+            console.log("- Grade 9 Exam data:", grade9Exam.length);
+            console.log("  - Exam Semester 1:", grade9ExamSem1.length);
+            console.log("  - Exam Semester 2:", grade9ExamSem2.length);
+
             // Show pagination info if there are more pages
             if (data.totalPages && data.totalPages > 1) {
-              console.log('Data pagination info: Page ' + data.currentPage + ' of ' + data.totalPages + ', Total records: ' + data.totalCount);
-              showInfo('Menampilkan ' + allStudentsData.length + ' dari ' + data.totalCount + ' total siswa (Halaman ' + data.currentPage + ' dari ' + data.totalPages + ')');
+              console.log(
+                "Data pagination info: Page " +
+                  data.currentPage +
+                  " of " +
+                  data.totalPages +
+                  ", Total records: " +
+                  data.totalCount
+              );
+              showInfo(
+                "Menampilkan " +
+                  allStudentsData.length +
+                  " dari " +
+                  data.totalCount +
+                  " total siswa (Halaman " +
+                  data.currentPage +
+                  " dari " +
+                  data.totalPages +
+                  ")"
+              );
             }
-            
+
             performSearch(searchTerm);
           } else {
-            console.warn('No grades data received in searchStudents:', data);
-            const errorMessage = data && data.message ? data.message : 'Gagal memuat data nilai siswa - data kosong atau tidak valid';
+            console.warn("No grades data received in searchStudents:", data);
+            const errorMessage =
+              data && data.message
+                ? data.message
+                : "Gagal memuat data nilai siswa - data kosong atau tidak valid";
             showError(errorMessage);
           }
         })
         .withFailureHandler(function (error) {
           isSearching = false;
           console.error("Error searching student grades:", error);
-          showError("Terjadi kesalahan saat mencari data nilai siswa: " + (error.message || error.toString()));
+          showError(
+            "Terjadi kesalahan saat mencari data nilai siswa: " +
+              (error.message || error.toString())
+          );
         })
         .getAllStudentGradesForFrontend();
     }
@@ -211,14 +821,14 @@
   // Fungsi untuk melakukan pencarian pada data yang sudah ada
   function performSearch(searchTerm) {
     const searchLower = searchTerm.toLowerCase();
-    const filteredResults = allStudentsData.filter(student => {
+    const filteredResults = allStudentsData.filter((student) => {
       // Safely convert to string and check if the values exist
-      const nis = student.nis ? String(student.nis).toLowerCase() : '';
-      const nama = student.nama ? String(student.nama).toLowerCase() : '';
-      
+      const nis = student.nis ? String(student.nis).toLowerCase() : "";
+      const nama = student.nama ? String(student.nama).toLowerCase() : "";
+
       return nis.includes(searchLower) || nama.includes(searchLower);
     });
-    
+
     searchResults = filteredResults;
     isSearching = false;
     hideLoadingIndicator();
@@ -253,7 +863,9 @@
 
         // Jika query kosong, reset
         if (!query) {
-          showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+          showSearchInfo(
+            "Masukkan NIS atau nama siswa untuk mencari data nilai"
+          );
           if (searchBox) {
             searchBox.classList.remove("searching");
           }
@@ -330,14 +942,14 @@
   function showLoading() {
     const searchInfo = document.getElementById("search-info");
     const studentCards = document.getElementById("student-cards");
-    
+
     searchInfo.style.display = "none";
     studentCards.innerHTML = `
       <div class="loading-results">
         <div>⏳ Mencari data siswa...</div>
       </div>
     `;
-    
+
     showLoadingIndicator();
   }
 
@@ -345,21 +957,21 @@
   function showError(message) {
     const searchInfo = document.getElementById("search-info");
     const studentCards = document.getElementById("student-cards");
-    
+
     searchInfo.style.display = "none";
     studentCards.innerHTML = `
       <div class="no-results">
         <div style="color: #dc3545;">❌ ${message}</div>
       </div>
     `;
-    
+
     hideLoadingIndicator();
   }
 
   // Fungsi untuk menampilkan info
   function showInfo(message) {
     const searchInfo = document.getElementById("search-info");
-    
+
     searchInfo.innerHTML = `<div style="color: #007bff; font-weight: bold;">ℹ️ ${message}</div>`;
     searchInfo.style.display = "block";
   }
@@ -368,7 +980,7 @@
   function showSearchInfo(message) {
     const searchInfo = document.getElementById("search-info");
     const studentCards = document.getElementById("student-cards");
-    
+
     searchInfo.textContent = message;
     searchInfo.style.display = "block";
     studentCards.innerHTML = "";
@@ -390,6 +1002,16 @@
       return;
     }
 
+    // Tampilkan informasi tentang kelas 9
+    const hasGrade9Students = searchResults.some((student) =>
+      isGrade9Student(student.kelas)
+    );
+    if (hasGrade9Students) {
+      showInfo(
+        "Catatan: Untuk siswa kelas 9, semester 1 menampilkan nilai akademik dan semester 2 menampilkan nilai ujian sekolah."
+      );
+    }
+
     studentCards.innerHTML = searchResults
       .map((student) => {
         const statusClass = `status-${(student.status || "Aktif")
@@ -397,17 +1019,39 @@
           .replace(/\s+/g, "-")}`;
 
         // Format rata-rata nilai
-        const avgGrade = student.averageGrade ? student.averageGrade.toFixed(1) : "0.0";
-        const gradeColor = student.averageGrade >= 75 ? "#28a745" : student.averageGrade >= 60 ? "#ffc107" : "#dc3545";
+        const avgGrade = student.averageGrade
+          ? student.averageGrade.toFixed(1)
+          : "0.0";
+        const gradeColor =
+          student.averageGrade >= 75
+            ? "#28a745"
+            : student.averageGrade >= 60
+            ? "#ffc107"
+            : "#dc3545";
+
+        // Cek apakah siswa kelas 9 dan tentukan jenis semester
+        const isGrade9 = isGrade9Student(student.kelas);
+        let grade9Badge = "";
+        if (isGrade9) {
+          if (student.semester === "1" || student.semester === 1) {
+            grade9Badge =
+              '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.75em; margin-left: 5px;">Akademik</span>';
+          } else if (student.semester === "2" || student.semester === 2) {
+            grade9Badge =
+              '<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.75em; margin-left: 5px;">Ujian Sekolah</span>';
+          }
+        }
 
         return `
           <div class="student-card">
             <div class="student-card-header">
               <div class="student-info">
-                <div class="student-name">${student.nama}</div>
+                <div class="student-name">${student.nama}${grade9Badge}</div>
                 <div class="student-nis">NIS: ${student.nis}</div>
               </div>
-              <span class="status-badge ${statusClass}">${student.status || "Aktif"}</span>
+              <span class="status-badge ${statusClass}">${
+          student.status || "Aktif"
+        }</span>
             </div>
             
             <div class="student-card-body">
@@ -421,7 +1065,13 @@
               </div>
               <div class="student-detail">
                 <div class="detail-label">Semester</div>
-                <div class="detail-value">${student.semester || "-"}</div>
+                <div class="detail-value">${student.semester || "-"}${
+          isGrade9
+            ? student.semester === "1" || student.semester === 1
+              ? ' <span style="color: #28a745; font-size: 0.8em;">(Akademik)</span>'
+              : ' <span style="color: #dc3545; font-size: 0.8em;">(Ujian Sekolah)</span>'
+            : ""
+        }</div>
               </div>
               <div class="student-detail">
                 <div class="detail-label">Tahun Ajaran</div>
@@ -429,7 +1079,9 @@
               </div>
               <div class="student-detail">
                 <div class="detail-label">Mata Pelajaran Dinilai</div>
-                <div class="detail-value">${student.totalSubjects || 0} dari 12</div>
+                <div class="detail-value">${
+                  student.totalSubjects || 0
+                } dari 12</div>
               </div>
               <div class="student-detail">
                 <div class="detail-label">Rata-rata Nilai</div>
@@ -438,23 +1090,103 @@
             </div>
             
             <div class="student-card-footer">
-              <button class="card-action-btn" onclick="viewStudentGrades('${student.nis}')" title="Lihat Detail Nilai Siswa">
+              <a href="#" class="card-action-btn btn-view-grades" data-id="${
+                student.nis
+              }" data-kelas="${student.kelas}" data-semester="${
+          student.semester
+        }" title="Lihat Detail Nilai Siswa">
                 📝 Lihat Detail Nilai
-              </button>
+              </a>
             </div>
           </div>
         `;
       })
       .join("");
+
+    // Setup action buttons after rendering
+    setupActionButtons();
+  }
+
+  // Setup action buttons
+  function setupActionButtons() {
+    console.log("Setting up action buttons...");
+
+    // View student grades button - Setup both href and click handler
+    document.querySelectorAll(".btn-view-grades").forEach(function (button) {
+      const studentId = button.getAttribute("data-id");
+      const kelas = button.getAttribute("data-kelas");
+      const semester = button.getAttribute("data-semester");
+      const sessionId = getSessionId();
+
+      // Set href like navbar approach (Opsi 1)
+      if (sessionId && studentId && kelas && semester) {
+        button.href =
+          "<?= myURL() ?>?page=Student_grades_detail&sessionId=" +
+          encodeURIComponent(sessionId) +
+          "&nis=" +
+          encodeURIComponent(studentId) +
+          "&kelas=" +
+          encodeURIComponent(kelas) +
+          "&semester=" +
+          encodeURIComponent(semester);
+      }
+
+      // Keep click handler as backup (Opsi 2)
+      button.addEventListener("click", function (event) {
+        const studentId = this.getAttribute("data-id");
+        const kelas = this.getAttribute("data-kelas");
+        const semester = this.getAttribute("data-semester");
+
+        viewStudentGrades(studentId, kelas, semester, event);
+      });
+    });
   }
 
   // Fungsi untuk melihat nilai siswa
-  function viewStudentGrades(studentId) {
-    const sessionId = getSessionId();
-    const url = `<?= myURL() ?>?page=Student_grades_detail&sessionId=${encodeURIComponent(
-      sessionId
-    )}&id=${encodeURIComponent(studentId)}`;
-    window.location.href = url;
+  function viewStudentGrades(studentId, kelas, semester, event) {
+    // Only prevent default if href is not properly set (fallback mode)
+    const button = event ? event.target : null;
+    const hasValidHref =
+      button &&
+      button.href &&
+      button.href !== "#" &&
+      !button.href.endsWith("#");
+
+    if (event && !hasValidHref) {
+      event.preventDefault();
+    }
+
+    // If href is properly set, let the browser handle navigation naturally
+    if (hasValidHref) {
+      return; // Let the href handle navigation
+    }
+
+    // Fallback navigation for cases where href is not set
+    if (!studentId || !kelas || !semester) {
+      showError("Data siswa tidak lengkap");
+      return;
+    }
+
+    try {
+      // Get current session ID from URL
+      const sessionId = getSessionId();
+
+      // Navigate to student grades detail page with proper Google Apps Script URL format
+      const detailUrl =
+        "<?= myURL() ?>?page=Student_grades_detail&sessionId=" +
+        encodeURIComponent(sessionId) +
+        "&nis=" +
+        encodeURIComponent(studentId) +
+        "&kelas=" +
+        encodeURIComponent(kelas) +
+        "&semester=" +
+        encodeURIComponent(semester);
+
+      // Direct redirect without delay to ensure URL changes immediately
+      window.location.href = detailUrl;
+    } catch (error) {
+      showError("Terjadi kesalahan saat membuka detail nilai siswa");
+    }
   }
 
   // Fungsi untuk reset pencarian
@@ -463,7 +1195,7 @@
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
-    
+
     document.getElementById("search-input").value = "";
     lastSearchQuery = "";
     searchResults = [];
@@ -474,13 +1206,13 @@
   // Event listeners
   document.addEventListener("DOMContentLoaded", function () {
     updateDateTime();
-    
+
     // Tampilkan pesan awal
-      showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
-    
+    showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+
     // Load data siswa untuk cache
     loadAllStudentsData();
-    
+
     // Setup real-time search
     setupRealTimeSearch();
 
@@ -490,9 +1222,7 @@
       .addEventListener("click", searchStudents);
 
     // Reset button
-    document
-      .getElementById("reset-btn")
-      .addEventListener("click", resetSearch);
+    document.getElementById("reset-btn").addEventListener("click", resetSearch);
   });
 
   // Update time every minute
