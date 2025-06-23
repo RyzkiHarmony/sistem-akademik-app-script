@@ -1,0 +1,137 @@
+Headers dari file: Data Peserta Didik SMPN 03 Pekalongan (3).xlsx
+==================================================
+
+0: Timestamp
+1: Email address
+2: NIS
+3: NISN
+4: Nama Siswa
+5: Jenis Kelamin
+6: NIK
+7: Tempat Lahir
+8: Tanggal Lahir
+9: Agama
+10: Kewarganegaraan
+11: Anak Ke-Berapa
+12: Jumlah Saudara Kandung
+13: Jumlah Saudara Tiri
+14: Jumlah Saudara Angkat
+15: Status Orang Tua
+16: Bahasa Sehari-hari Dirumah
+17: Tempat Tinggal Bersama
+18: Modal Transportasi ke Sekolah
+19: Jarak ke Sekolah
+20: Alamat Lengkap
+21: RT/RW
+22: Nama Dusun
+23: Nama Desa/Kelurahan
+24: Kecamatan
+25: Kode Pos
+26: No. Telp Rumah
+27: Kabupaten/Kota
+28: Provinsi
+29: Golongan Darah
+30: Penyakit Yang Pernah dI Derita
+31: Penyakit Yang Lain
+32: Kelainan Jasmani
+33: Tinggi Badan
+34: Berat Badan
+35: Asal Sekolah (SD/MI)
+36: Tanggal Lulus SD/MI
+37: Nomor Ijazah SD/MI
+38: Lama Belajar di SD/MI
+39: Apakah Kamu Siswa Pindahan?
+40: Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan
+41: Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan
+42: Asal Sekolah (SMP/MTS/Sederajat)
+43: Alasan Pindah Sekolah
+44: Nama Ayah Kandung
+45: NIK Ayah
+46: Tempat dan Tanggal Lahir Ayah
+47: Agama Ayah
+48: Kewarganegaraan Ayah
+49: Pendidikan Terakhir Ayah
+50: Pekerjaan Ayah
+51: Penghasilan Bulanan Ayah
+52: Alamat Lengkap Ayah
+53: Nomor Telepon Ayah
+54: Status Ayah
+55: Nama Ibu Kandung
+56: NIK Ibu
+57: Tempat dan Tanggal Lahir Ibu
+58: Agama Ibu
+59: Kewarganegaraan Ibu
+60: Pendidikan Terakhir Ibu
+61: Pekerjaan Ibu
+62: Penghasilan Bulanan Ibu
+63: Alamat Lengkap Ibu
+64: Nomor Telepon Ibu
+65: Status Ibu
+66: Nama Wali
+67: NIK Wali
+68: Tempat dan Tanggal Lahir Wali
+69: Agama Wali Murid
+70: Kewarganegaraan Wali
+71: Pendidikan Terakhir Wali
+72: Pekerjaan Wali
+73: Penghasilan Bulanan Wali
+74: Alamat Lengkap Wali
+75: Nomor Telepon Wali
+76: Status Wali
+77: Bidang Seni
+78: Bidang Olahraga
+79: Bidang Lain-Lain
+80: Apakah Peserta Didik Pernah Meraih Prestasi?
+81: Jenis Prestasi
+82: Tingkat Prestasi
+83: Nama Prestasi
+84: Tahun Prestasi
+85: Penyelenggara
+86: Peringkat
+87: Lanjut Ke-Prestasi 2
+88: Jenis Prestasi (2)
+89: Tingkat Prestasi (2)
+90: Nama Prestasi (2)
+91: Tahun Prestasi (2)
+92: Penyelenggara (2)
+93: Peringkat (2)
+94: Lanjut Ke-Prestasi 3
+95: Jenis Prestasi (3)
+96: Tingkat Prestasi (3)
+97: Nama Prestasi (3)
+98: Tahun Prestasi (3)
+99: Penyelenggara (3)
+100: Peringkat (3)
+101: Lanjut Ke-Prestasi 4
+102: Jenis Prestasi (4)
+103: Tingkat Prestasi (4)
+104: Nama Prestasi (4)
+105: Tahun Prestasi (4)
+106: Penyelenggara (4)
+107: Peringkat (4)
+108: Lanjut Ke-Prestasi 5
+109: Jenis Prestasi (5)
+110: Tingkat Prestasi (5)
+111: Nama Prestasi (5)
+112: Tahun Prestasi (5)
+113: Penyelenggara (5)
+114: Peringkat (5)
+115: Apakah Peserta Didik Memiliki Beasiswa
+116: Jenis Beasiswa
+117: Keterangan
+118: Tahun Mulai
+119: Tahun Selesai
+120: Lanjut Ke-Beasiswa 2
+121: Jenis Beasiswa (2)
+122: Keterangan (2)
+123: Tahun Mulai (2)
+124: Tahun Selesai (2)
+125: Lanjut Ke-Beasiswa 3
+126: Jenis Beasiswa (3)
+127: Keterangan (3)
+128: Tahun Mulai (3)
+129: Tahun Selesai (3)
+130: Status Akademik
+
+==================================================
+Total headers: 131

@@ -1,3 +1,15 @@
 {
-  "a-file-icon-vscode.folderColor": "#979fad"
+  "a-file-icon-vscode.folderColor": "#979fad",
+  "editor.formatOnSave": true,
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets": false,
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+  "prettier.quoteProps": "preserve",
+  "prettier.singleQuote": false,
+  "eslint.format.enable": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

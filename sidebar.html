@@ -28,14 +28,24 @@
       <a href="#" id="menu-grades" class="menu-grades">Kelola Nilai Siswa</a>
     </li>
     <li>
+      <a href="#" id="menu-kip" class="menu-kip">Analisis KIP</a>
+    </li>
+    <li>
       <a href="#" id="logout-link" class="menu-logout">Logout</a>
     </li>
   </ul>
 </div>
 
 <script>
-  // Get session ID from URL
+  // Get session ID from hidden input or URL
   function getSessionId() {
+    // First try to get from hidden input (preferred method)
+    const hiddenInput = document.getElementById("sessionId");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+    
+    // Fallback: get from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get("sessionId");
   }
@@ -64,6 +74,11 @@
     const menuGrades = document.getElementById("menu-grades");
     menuGrades.href =
       "<?= myURL() ?>?page=Students_grades&sessionId=" +
+      encodeURIComponent(sessionId);
+
+    const menuKip = document.getElementById("menu-kip");
+    menuKip.href =
+      "<?= myURL() ?>?page=KIP_Analysis&sessionId=" +
       encodeURIComponent(sessionId);
 
     // Get and display admin name

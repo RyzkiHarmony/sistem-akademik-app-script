@@ -33,6 +33,7 @@ function doGet(e) {
     "Student_form",
     "Student_grades_detail", // Add Student_grades_detail to protected pages
     "Students_grades",
+    "KIP_Analysis", // Add KIP Analysis to protected pages
   ];
 
   // Check if the requested page requires authentication
@@ -3542,7 +3543,9 @@ function getAllStudentGradesForDetail(nisId, kelas, semester) {
     );
     const informatikaIndex = headers.findIndex((h) => h === "Informatika");
     const seniBudayaIndex = headers.findIndex((h) => h === "Seni Budaya");
-    const bimbinganKonselingIndex = headers.findIndex((h) => h === "Bimbingan dan Konseling");
+    const bimbinganKonselingIndex = headers.findIndex(
+      (h) => h === "Bimbingan dan Konseling"
+    );
     const bahasaJawaIndex = headers.findIndex((h) => h === "Bahasa Jawa");
 
     Logger.log("Kelas column index: " + kelasIndex);

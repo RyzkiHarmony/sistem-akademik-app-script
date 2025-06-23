@@ -1,8 +1,16 @@
 <script>
   // JavaScript_Students.html
-  // Get session ID from hidden input
+  // Get session ID
   function getSessionId() {
-    return document.getElementById("sessionId").value;
+    // First try to get from hidden input
+    const hiddenInput = document.getElementById("sessionId");
+    if (hiddenInput && hiddenInput.value) {
+      return hiddenInput.value;
+    }
+
+    // Fallback to URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("sessionId");
   }
   // Variabel global
   let allStudents = [];

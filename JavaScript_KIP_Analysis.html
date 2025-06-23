@@ -1,0 +1,738 @@
+<script>
+  // KIP Analysis JavaScript Functions
+
+  // Global variables
+  let currentPage = 1;
+  let currentLimit = 50;
+  let currentFilters = {
+    category: "all",
+    status: "all",
+    search: "",
+  };
+  let isAnalysisRunning = false;
+  let currentStudentNIS = null;
+
+  /**
+   * Get session ID from hidden input
+   */
+  function getSessionId() {
+    const hiddenInput = document.getElementById("sessionId");
+    if (hiddenInput) {
+      return hiddenInput.value;
+    }
+
+    // Fallback: get from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("sessionId");
+  }
+
+  // Initialize page when DOM is loaded
+  document.addEventListener("DOMContentLoaded", function () {
+    initializePage();
+    setupEventListeners();
+    loadDashboardStats();
+    loadAnalysisResults();
+  });
+
+  /**
+   * Initialize page elements
+   */
+  function initializePage() {
+    // Check if session ID exists
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      alert("Session tidak valid. Silakan login kembali.");
+      window.location.href = "?page=Login";
+      return;
+    }
+
+    // Set current date
+    const currentDate = new Date().toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    document.getElementById("current-date").textContent = currentDate;
+
+    // Initialize filters
+    document.getElementById("kategori-filter").value = "all";
+    document.getElementById("status-filter").value = "all";
+    document.getElementById("search-input").value = "";
+  }
+
+  /**
+   * Setup event listeners
+   */
+  function setupEventListeners() {
+    // Analysis button
+    document
+      .getElementById("run-analysis-btn")
+      .addEventListener("click", runAnalysis);
+
+    // Export button
+    document
+      .getElementById("export-btn")
+      .addEventListener("click", exportReport);
+
+    // Filter changes
+    document
+      .getElementById("kategori-filter")
+      .addEventListener("change", handleFilterChange);
+    document
+      .getElementById("status-filter")
+      .addEventListener("change", handleFilterChange);
+
+    // Search input with debounce
+    let searchTimeout;
+    document
+      .getElementById("search-input")
+      .addEventListener("input", function () {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          handleFilterChange();
+        }, 500);
+      });
+
+    // Pagination
+    document
+      .getElementById("prev-page")
+      .addEventListener("click", () => changePage(currentPage - 1));
+    document
+      .getElementById("next-page")
+      .addEventListener("click", () => changePage(currentPage + 1));
+
+    // Modal close
+    document
+      .getElementById("close-modal")
+      .addEventListener("click", closeModal);
+    document
+      .getElementById("student-detail-modal")
+      .addEventListener("click", function (e) {
+        if (e.target === this) closeModal();
+      });
+
+    // Verification update
+    document
+      .getElementById("update-verification")
+      .addEventListener("click", updateVerificationStatus);
+
+    // Keyboard shortcuts
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeModal();
+    });
+  }
+
+  /**
+   * Load dashboard statistics
+   */
+  function loadDashboardStats() {
+    const sessionId = getSessionId();
+    if (!sessionId) return;
+
+    showLoading("Memuat statistik...");
+
+    google.script.run
+      .withSuccessHandler(function (stats) {
+        hideLoading();
+        updateDashboardStats(stats);
+      })
+      .withFailureHandler(function (error) {
+        hideLoading();
+        showError("Gagal memuat statistik: " + error.message);
+      })
+      .getKIPDashboardStats(sessionId);
+  }
+
+  /**
+   * Update dashboard statistics display
+   */
+  function updateDashboardStats(stats) {
+    document.getElementById("total-students").textContent =
+      stats.totalStudents || 0;
+    document.getElementById("sangat-layak-count").textContent =
+      stats.sangatLayak || 0;
+    document.getElementById("layak-count").textContent = stats.layak || 0;
+    document.getElementById("kurang-layak-count").textContent =
+      stats.kurangLayak || 0;
+
+    // Update last analysis info
+    if (stats.lastAnalysis) {
+      const lastAnalysisDate = new Date(stats.lastAnalysis).toLocaleDateString(
+        "id-ID"
+      );
+      document.getElementById("last-analysis-date").textContent =
+        lastAnalysisDate;
+    } else {
+      document.getElementById("last-analysis-date").textContent =
+        "Belum pernah";
+    }
+  }
+
+  /**
+   * Run KIP analysis
+   */
+  function runAnalysis() {
+    if (isAnalysisRunning) return;
+
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      alert("Session tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    if (
+      !confirm(
+        "Apakah Anda yakin ingin menjalankan analisis KIP? Proses ini mungkin memakan waktu beberapa menit."
+      )
+    ) {
+      return;
+    }
+
+    isAnalysisRunning = true;
+    const runButton = document.getElementById("run-analysis-btn");
+    runButton.disabled = true;
+    runButton.innerHTML = '<span class="btn-icon">⏳</span> Menganalisis...';
+
+    showLoadingOverlay("Sedang menganalisis data siswa...");
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        hideLoadingOverlay();
+        isAnalysisRunning = false;
+        runButton.disabled = false;
+        runButton.innerHTML =
+          '<span class="btn-icon">🔄</span> Jalankan Analisis';
+
+        if (result.success) {
+          showSuccess(result.message);
+          loadDashboardStats();
+          loadAnalysisResults();
+        } else {
+          showError(result.message || "Gagal menjalankan analisis");
+        }
+      })
+      .withFailureHandler(function (error) {
+        hideLoadingOverlay();
+        isAnalysisRunning = false;
+        runButton.disabled = false;
+        runButton.innerHTML =
+          '<span class="btn-icon">🔄</span> Jalankan Analisis';
+        showError("Gagal menjalankan analisis: " + error.message);
+      })
+      .performKIPAnalysis(sessionId);
+  }
+
+  /**
+   * Handle filter changes
+   */
+  function handleFilterChange() {
+    currentFilters.category = document.getElementById("kategori-filter").value;
+    currentFilters.status = document.getElementById("status-filter").value;
+    currentFilters.search = document
+      .getElementById("search-input")
+      .value.trim();
+
+    currentPage = 1; // Reset to first page
+    loadAnalysisResults();
+  }
+
+  /**
+   * Load analysis results with current filters and pagination
+   */
+  function loadAnalysisResults() {
+    const sessionId = getSessionId();
+    if (!sessionId) return;
+
+    const tbody = document.getElementById("kip-results-body");
+    tbody.innerHTML =
+      '<tr><td colspan="8" class="loading-row"><div class="loading-spinner"></div>Memuat data...</td></tr>';
+
+    const options = {
+      page: currentPage,
+      limit: currentLimit,
+      category:
+        currentFilters.category === "all" ? "" : currentFilters.category,
+      status: currentFilters.status === "all" ? "" : currentFilters.status,
+      search: currentFilters.search,
+      sessionId: sessionId,
+    };
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        if (result.success) {
+          displayAnalysisResults(result.data, result.pagination);
+        } else {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="loading-row">Tidak ada data ditemukan</td></tr>';
+          showError(result.message || "Gagal memuat data");
+        }
+      })
+      .withFailureHandler(function (error) {
+        tbody.innerHTML =
+          '<tr><td colspan="8" class="loading-row">Error memuat data</td></tr>';
+        showError("Gagal memuat data: " + error.message);
+      })
+      .getKIPAnalysisResults(options);
+  }
+
+  /**
+   * Display analysis results in table
+   */
+  function displayAnalysisResults(data, pagination) {
+    const tbody = document.getElementById("kip-results-body");
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML =
+        '<tr><td colspan="8" class="loading-row">Tidak ada data ditemukan</td></tr>';
+      updatePagination(pagination);
+      return;
+    }
+
+    let html = "";
+    data.forEach(function (student) {
+      const categoryClass = getCategoryClass(student.kategori);
+      const statusClass = getStatusClass(student.statusVerifikasi);
+
+      html += `
+        <tr>
+          <td>${student.ranking}</td>
+          <td>${student.nis}</td>
+          <td>${student.namaLengkap}</td>
+          <td>${student.kelas}</td>
+          <td>${student.skorTotal}</td>
+          <td><span class="category-badge ${categoryClass}">${student.kategori}</span></td>
+          <td><span class="status-badge ${statusClass}">${student.statusVerifikasi}</span></td>
+          <td>
+            <button class="action-btn action-detail" onclick="showStudentDetail('${student.nis}')">
+              Detail
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+    updatePagination(pagination);
+    updateShowingInfo(pagination);
+  }
+
+  /**
+   * Get CSS class for category badge
+   */
+  function getCategoryClass(category) {
+    switch (category) {
+      case "Sangat Layak":
+        return "category-sangat-layak";
+      case "Layak":
+        return "category-layak";
+      case "Kurang Layak":
+        return "category-kurang-layak";
+      default:
+        return "";
+    }
+  }
+
+  /**
+   * Get CSS class for status badge
+   */
+  function getStatusClass(status) {
+    switch (status) {
+      case "Pending":
+        return "status-pending";
+      case "Verified":
+        return "status-verified";
+      case "Rejected":
+        return "status-rejected";
+      default:
+        return "status-pending";
+    }
+  }
+
+  /**
+   * Update pagination controls
+   */
+  function updatePagination(pagination) {
+    const prevBtn = document.getElementById("prev-page");
+    const nextBtn = document.getElementById("next-page");
+    const pageNumbers = document.getElementById("page-numbers");
+    const paginationInfo = document.getElementById("pagination-info");
+
+    // Update buttons
+    prevBtn.disabled = pagination.page <= 1;
+    nextBtn.disabled = pagination.page >= pagination.totalPages;
+
+    // Update page numbers
+    let pageNumbersHtml = "";
+    const maxVisiblePages = 5;
+    let startPage = Math.max(
+      1,
+      pagination.page - Math.floor(maxVisiblePages / 2)
+    );
+    let endPage = Math.min(
+      pagination.totalPages,
+      startPage + maxVisiblePages - 1
+    );
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const activeClass = i === pagination.page ? "active" : "";
+      pageNumbersHtml += `<button class="page-number ${activeClass}" onclick="changePage(${i})">${i}</button>`;
+    }
+
+    pageNumbers.innerHTML = pageNumbersHtml;
+    paginationInfo.textContent = `Halaman ${pagination.page} dari ${pagination.totalPages}`;
+  }
+
+  /**
+   * Update showing info
+   */
+  function updateShowingInfo(pagination) {
+    const start = (pagination.page - 1) * pagination.limit + 1;
+    const end = Math.min(pagination.page * pagination.limit, pagination.total);
+    document.getElementById(
+      "showing-info"
+    ).textContent = `Menampilkan ${start}-${end} dari ${pagination.total} siswa`;
+  }
+
+  /**
+   * Change page
+   */
+  function changePage(page) {
+    if (page < 1) return;
+    currentPage = page;
+    loadAnalysisResults();
+  }
+
+  /**
+   * Show student detail modal
+   */
+  function showStudentDetail(nis) {
+    const sessionId = getSessionId();
+    if (!sessionId) return;
+
+    currentStudentNIS = nis;
+    const modal = document.getElementById("student-detail-modal");
+    const modalBody = document.getElementById("modal-body");
+
+    modalBody.innerHTML =
+      '<div class="loading-spinner"></div><p>Memuat detail siswa...</p>';
+    modal.style.display = "flex";
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        if (result.success) {
+          displayStudentDetail(result.data);
+        } else {
+          modalBody.innerHTML =
+            "<p>Gagal memuat detail siswa: " +
+            (result.message || "Unknown error") +
+            "</p>";
+        }
+      })
+      .withFailureHandler(function (error) {
+        modalBody.innerHTML =
+          "<p>Error memuat detail siswa: " + error.message + "</p>";
+      })
+      .getStudentKIPDetail(nis, sessionId);
+  }
+
+  /**
+   * Display student detail in modal
+   */
+  function displayStudentDetail(student) {
+    const modalBody = document.getElementById("modal-body");
+
+    const html = `
+      <div class="student-info">
+        <div class="info-item">
+          <div class="info-label">NIS</div>
+          <div class="info-value">${student.nis}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Nama Lengkap</div>
+          <div class="info-value">${student.namaLengkap}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Kelas</div>
+          <div class="info-value">${student.kelas}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Ranking</div>
+          <div class="info-value">#${student.ranking}</div>
+        </div>
+      </div>
+      
+      <div class="score-breakdown">
+        <div class="score-category">
+          <h4>💰 Skor Penghasilan Keluarga</h4>
+          <div class="score-details">
+            <div class="score-data">
+              Penghasilan Ayah: Rp ${formatCurrency(
+                student.penghasilanAyah || 0
+              )}<br>
+              Penghasilan Ibu: Rp ${formatCurrency(
+                student.penghasilanIbu || 0
+              )}<br>
+              Penghasilan Wali: Rp ${formatCurrency(
+                student.penghasilanWali || 0
+              )}<br>
+              <strong>Total: Rp ${formatCurrency(
+                student.penghasilanTotal || 0
+              )}</strong>
+            </div>
+            <div class="score-value">${student.skorPenghasilan}</div>
+            <div class="score-weight">Bobot: 40%</div>
+          </div>
+        </div>
+        
+        <div class="score-category">
+          <h4>👨‍👩‍👧‍👦 Skor Status Keluarga</h4>
+          <div class="score-details">
+            <div class="score-data">
+              Status Orang Tua: ${student.statusKeluarga || "Tidak diketahui"}
+            </div>
+            <div class="score-value">${student.skorStatus}</div>
+            <div class="score-weight">Bobot: 30%</div>
+          </div>
+        </div>
+        
+        <div class="score-category">
+          <h4>👶 Skor Jumlah Tanggungan</h4>
+          <div class="score-details">
+            <div class="score-data">
+              Jumlah Saudara Kandung: ${student.jumlahSaudara || 0} orang
+            </div>
+            <div class="score-value">${student.skorTanggungan}</div>
+            <div class="score-weight">Bobot: 20%</div>
+          </div>
+        </div>
+        
+        <div class="score-category">
+          <h4>🎓 Skor Riwayat Beasiswa</h4>
+          <div class="score-details">
+            <div class="score-data">
+              Status Beasiswa: ${student.statusBeasiswa || "Tidak diketahui"}
+            </div>
+            <div class="score-value">${student.skorBeasiswa}</div>
+            <div class="score-weight">Bobot: 10%</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="total-score">
+        <h3>Skor Total KIP</h3>
+        <div class="score">${student.skorTotal}</div>
+        <div class="category">${student.kategori}</div>
+      </div>
+    `;
+
+    modalBody.innerHTML = html;
+
+    // Set verification status
+    document.getElementById("verification-status").value =
+      student.statusVerifikasi || "Pending";
+    document.getElementById("verification-notes").value =
+      student.catatanAdmin || "";
+  }
+
+  /**
+   * Format currency
+   */
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat("id-ID").format(amount);
+  }
+
+  /**
+   * Close modal
+   */
+  function closeModal() {
+    document.getElementById("student-detail-modal").style.display = "none";
+    currentStudentNIS = null;
+  }
+
+  /**
+   * Update verification status
+   */
+  function updateVerificationStatus() {
+    if (!currentStudentNIS) return;
+
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      alert("Session tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    const status = document.getElementById("verification-status").value;
+    const notes = document.getElementById("verification-notes").value;
+
+    const updateBtn = document.getElementById("update-verification");
+    updateBtn.disabled = true;
+    updateBtn.textContent = "Menyimpan...";
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        updateBtn.disabled = false;
+        updateBtn.textContent = "Update Status";
+
+        if (result.success) {
+          showSuccess("Status verifikasi berhasil diperbarui");
+          closeModal();
+          loadAnalysisResults(); // Refresh table
+        } else {
+          showError(result.message || "Gagal memperbarui status");
+        }
+      })
+      .withFailureHandler(function (error) {
+        updateBtn.disabled = false;
+        updateBtn.textContent = "Update Status";
+        showError("Gagal memperbarui status: " + error.message);
+      })
+      .updateKIPVerificationStatus(currentStudentNIS, status, notes, sessionId);
+  }
+
+  /**
+   * Export report
+   */
+  function exportReport() {
+    const sessionId = getSessionId();
+    if (!sessionId) {
+      alert("Session tidak valid. Silakan login kembali.");
+      return;
+    }
+
+    const format = prompt(
+      "Pilih format export:\n1. Excel (ketik: excel)\n2. PDF (ketik: pdf)",
+      "excel"
+    );
+
+    if (!format || (format !== "excel" && format !== "pdf")) {
+      return;
+    }
+
+    showLoading("Menyiapkan laporan...");
+
+    const filters = {
+      category:
+        currentFilters.category === "all" ? "" : currentFilters.category,
+      status: currentFilters.status === "all" ? "" : currentFilters.status,
+      search: currentFilters.search,
+    };
+
+    google.script.run
+      .withSuccessHandler(function (result) {
+        hideLoading();
+        if (result.success) {
+          showSuccess(result.message);
+          // Open export URL in new tab
+          window.open(result.exportUrl, "_blank");
+        } else {
+          showError(result.message || "Gagal mengekspor laporan");
+        }
+      })
+      .withFailureHandler(function (error) {
+        hideLoading();
+        showError("Gagal mengekspor laporan: " + error.message);
+      })
+      .exportKIPAnalysisReport(format, filters, sessionId);
+  }
+
+  /**
+   * Show loading overlay
+   */
+  function showLoadingOverlay(message) {
+    const overlay = document.getElementById("loading-overlay");
+    const loadingText = overlay.querySelector(".loading-text");
+    const progressFill = document.getElementById("progress-fill");
+    const progressText = document.getElementById("progress-text");
+
+    loadingText.textContent = message || "Memproses...";
+    progressFill.style.width = "0%";
+    progressText.textContent = "0%";
+    overlay.style.display = "flex";
+
+    // Simulate progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 10;
+      if (progress > 90) progress = 90;
+
+      progressFill.style.width = progress + "%";
+      progressText.textContent = Math.round(progress) + "%";
+    }, 500);
+
+    // Store interval for cleanup
+    overlay.progressInterval = progressInterval;
+  }
+
+  /**
+   * Hide loading overlay
+   */
+  function hideLoadingOverlay() {
+    const overlay = document.getElementById("loading-overlay");
+    const progressFill = document.getElementById("progress-fill");
+    const progressText = document.getElementById("progress-text");
+
+    // Complete progress
+    progressFill.style.width = "100%";
+    progressText.textContent = "100%";
+
+    // Clear interval
+    if (overlay.progressInterval) {
+      clearInterval(overlay.progressInterval);
+    }
+
+    // Hide after short delay
+    setTimeout(() => {
+      overlay.style.display = "none";
+    }, 500);
+  }
+
+  /**
+   * Show loading message
+   */
+  function showLoading(message) {
+    // You can implement a simple loading indicator here
+    console.log("Loading: " + message);
+  }
+
+  /**
+   * Hide loading message
+   */
+  function hideLoading() {
+    // Hide loading indicator
+    console.log("Loading complete");
+  }
+
+  /**
+   * Show success message
+   */
+  function showSuccess(message) {
+    alert("✅ " + message);
+  }
+
+  /**
+   * Show error message
+   */
+  function showError(message) {
+    alert("❌ " + message);
+  }
+
+  /**
+   * Toggle sidebar (for mobile)
+   */
+  function toggleSidebar() {
+    const sidebar = document.querySelector(".sidebar");
+    if (sidebar) {
+      sidebar.classList.toggle("active");
+    }
+  }
+
+  // Make functions available globally
+  window.showStudentDetail = showStudentDetail;
+  window.changePage = changePage;
+  window.toggleSidebar = toggleSidebar;
+</script>
