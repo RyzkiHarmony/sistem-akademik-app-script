@@ -422,33 +422,36 @@
     // Render summary
     if (gradeSummary) {
       gradesSummary.innerHTML = `
-        <div class="summary-item">
-          <div class="summary-label">Total Mata Pelajaran</div>
-          <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Rata-rata</div>
-          <div class="summary-value">${
-            gradeSummary.averageGrade
-              ? gradeSummary.averageGrade.toFixed(1)
-              : "0.0"
-          }</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Nilai Tertinggi</div>
-          <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Nilai Terendah</div>
-          <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Lulus</div>
-          <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Tidak Lulus</div>
-          <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
+        <div class="summary-title">📊 Ringkasan Nilai</div>
+        <div class="summary-stats">
+          <div class="summary-item">
+            <div class="summary-label">Total Mata Pelajaran</div>
+            <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Rata-rata</div>
+            <div class="summary-value">${
+              gradeSummary.averageGrade
+                ? gradeSummary.averageGrade.toFixed(1)
+                : "0.0"
+            }</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Nilai Tertinggi</div>
+            <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Nilai Terendah</div>
+            <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Lulus</div>
+            <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Tidak Lulus</div>
+            <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
+          </div>
         </div>
       `;
     }
@@ -516,33 +519,36 @@
     // Render summary
     if (gradeSummary) {
       gradesSummary.innerHTML = `
-        <div class="summary-item">
-          <div class="summary-label">Total Mata Pelajaran</div>
-          <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Rata-rata</div>
-          <div class="summary-value">${
-            gradeSummary.averageGrade
-              ? gradeSummary.averageGrade.toFixed(1)
-              : "0.0"
-          }</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Nilai Tertinggi</div>
-          <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Nilai Terendah</div>
-          <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Lulus</div>
-          <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
-        </div>
-        <div class="summary-item">
-          <div class="summary-label">Tidak Lulus</div>
-          <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
+        <div class="summary-title">🎓 Ringkasan Ujian Sekolah</div>
+        <div class="summary-stats">
+          <div class="summary-item">
+            <div class="summary-label">Total Mata Pelajaran</div>
+            <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Rata-rata</div>
+            <div class="summary-value">${
+              gradeSummary.averageGrade
+                ? gradeSummary.averageGrade.toFixed(1)
+                : "0.0"
+            }</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Nilai Tertinggi</div>
+            <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Nilai Terendah</div>
+            <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Lulus</div>
+            <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-label">Tidak Lulus</div>
+            <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
+          </div>
         </div>
       `;
     }
