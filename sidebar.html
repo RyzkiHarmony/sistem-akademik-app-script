@@ -44,7 +44,7 @@
     if (hiddenInput && hiddenInput.value) {
       return hiddenInput.value;
     }
-    
+
     // Fallback: get from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get("sessionId");
