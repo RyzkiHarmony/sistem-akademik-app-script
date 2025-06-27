@@ -26,10 +26,148 @@
   let searchTimeout = null;
   let lastSearchQuery = "";
 
+  // Cache management variables
+  let studentsCache = new Map();
+  const CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 5 menit
+  const CACHE_KEY_PREFIX = "students_manage_";
+  const CACHE_VERSION = "1.0";
+
   // Progress tracking variables
   let progressModal = null;
   let progressBar = null;
   let progressText = null;
+
+  // Cache Management Functions
+  function generateCacheKey(options) {
+    const keyData = {
+      page: options.page || 1,
+      limit: options.limit || 10,
+      searchQuery: options.searchQuery || "",
+      statusFilter: options.statusFilter || "",
+      sortField: options.sortField || "nis",
+      sortDirection: options.sortDirection || "asc",
+    };
+    return CACHE_KEY_PREFIX + btoa(JSON.stringify(keyData));
+  }
+
+  function setCacheData(key, data) {
+    const cacheEntry = {
+      data: data,
+      timestamp: Date.now(),
+      version: CACHE_VERSION,
+    };
+
+    try {
+      // Store in memory cache
+      studentsCache.set(key, cacheEntry);
+
+      // Store in localStorage with expiry
+      localStorage.setItem(key, JSON.stringify(cacheEntry));
+
+      console.log("Data cached successfully:", key);
+    } catch (error) {
+      console.warn("Failed to cache data:", error);
+    }
+  }
+
+  function getCacheData(key) {
+    try {
+      // First check memory cache
+      let cacheEntry = studentsCache.get(key);
+
+      // If not in memory, check localStorage
+      if (!cacheEntry) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          cacheEntry = JSON.parse(stored);
+          // Restore to memory cache
+          studentsCache.set(key, cacheEntry);
+        }
+      }
+
+      if (!cacheEntry) return null;
+
+      // Check version compatibility
+      if (cacheEntry.version !== CACHE_VERSION) {
+        console.log("Cache version mismatch, invalidating:", key);
+        invalidateCache(key);
+        return null;
+      }
+
+      // Check expiry
+      const now = Date.now();
+      if (now - cacheEntry.timestamp > CACHE_EXPIRY_TIME) {
+        console.log("Cache expired, invalidating:", key);
+        invalidateCache(key);
+        return null;
+      }
+
+      console.log("Cache hit:", key);
+      return cacheEntry.data;
+    } catch (error) {
+      console.warn("Failed to retrieve cache:", error);
+      return null;
+    }
+  }
+
+  function invalidateCache(key = null) {
+    if (key) {
+      // Invalidate specific cache entry
+      studentsCache.delete(key);
+      localStorage.removeItem(key);
+      console.log("Cache invalidated:", key);
+    } else {
+      // Invalidate all cache entries
+      studentsCache.clear();
+
+      // Clear localStorage entries with our prefix
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(CACHE_KEY_PREFIX)) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      console.log("All cache invalidated");
+    }
+  }
+
+  function cleanExpiredCache() {
+    const now = Date.now();
+    const keysToRemove = [];
+
+    // Clean memory cache
+    for (const [key, entry] of studentsCache.entries()) {
+      if (now - entry.timestamp > CACHE_EXPIRY_TIME) {
+        keysToRemove.push(key);
+      }
+    }
+
+    keysToRemove.forEach((key) => studentsCache.delete(key));
+
+    // Clean localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(CACHE_KEY_PREFIX)) {
+        try {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const entry = JSON.parse(stored);
+            if (now - entry.timestamp > CACHE_EXPIRY_TIME) {
+              localStorage.removeItem(key);
+            }
+          }
+        } catch (error) {
+          // Remove corrupted entries
+          localStorage.removeItem(key);
+        }
+      }
+    }
+
+    console.log("Expired cache cleaned");
+  }
 
   // Fungsi untuk toggle sidebar di tampilan mobile
   function toggleSidebar() {
@@ -49,15 +187,8 @@
       now.toLocaleDateString("id-ID", options);
   }
 
-  // Fungsi untuk memuat data siswa dari server dengan pagination server-side
-  function loadStudents() {
-    // Tampilkan loading state
-    document.getElementById("students-table-body").innerHTML =
-      "<tr><td colspan='8' style='text-align: center;'><div style='padding: 20px;'><span style='color: #1a5276; font-weight: 600;'>⏳ Memuat data siswa...</span></div></td></tr>";
-
-    // Update pagination info dengan loading state
-    document.getElementById("pagination-info").textContent = "Memuat data...";
-
+  // Fungsi untuk memuat data siswa dari server dengan pagination server-side dan caching
+  function loadStudents(forceRefresh = false) {
     // Siapkan opsi untuk pagination dan optimasi data
     const options = {
       page: currentPage,
@@ -69,6 +200,46 @@
       fieldsToReturn: ["nis", "nama", "gender", "tanggalDaftar", "status"], // Terbatas
     };
 
+    // Generate cache key
+    const cacheKey = generateCacheKey(options);
+
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+      const cachedData = getCacheData(cacheKey);
+      if (cachedData) {
+        console.log("Loading from cache:", cacheKey);
+
+        // Use cached data
+        allStudents = cachedData.students || [];
+        filteredStudents = cachedData.students || [];
+        currentPage = cachedData.currentPage || 1;
+        const totalPages = cachedData.totalPages || 1;
+        const totalCount = cachedData.totalCount || 0;
+
+        // Render from cache
+        renderStudentsTable(
+          cachedData.students || [],
+          cachedData.currentPage || 1,
+          totalPages,
+          totalCount
+        );
+
+        updateSortIndicators();
+        enablePaginationControls();
+        return;
+      }
+    }
+
+    // If no cache or force refresh, load from server
+    console.log("Loading from server:", cacheKey);
+
+    // Tampilkan loading state
+    document.getElementById("students-table-body").innerHTML =
+      "<tr><td colspan='8' style='text-align: center;'><div style='padding: 20px;'><span style='color: #1a5276; font-weight: 600;'>⏳ Memuat data siswa...</span></div></td></tr>";
+
+    // Update pagination info dengan loading state
+    document.getElementById("pagination-info").textContent = "Memuat data...";
+
     // Panggil fungsi server untuk mendapatkan data siswa dengan pagination
     google.script.run
       .withSuccessHandler(function (result) {
@@ -77,6 +248,9 @@
           if (!result || typeof result !== "object") {
             throw new Error("Data tidak valid dari server");
           }
+
+          // Cache the result
+          setCacheData(cacheKey, result);
 
           // Simpan data siswa ke variabel global
           allStudents = result.students || [];
@@ -430,7 +604,7 @@
         <td class="action-buttons">
           <a href="#" class="btn btn-sm btn-primary btn-view" data-id="${
             student.nis
-          }">Lihat</a>
+          }">Detail</a>
           <a href="#" class="btn btn-sm btn-warning btn-edit" data-id="${
             student.nis
           }">Edit</a>
@@ -883,15 +1057,16 @@
           );
           closeDeleteModal();
 
-          // Reload data and maintain current page if possible
+          // Invalidate cache and reload data
+          invalidateCache();
           const currentPageBackup = currentPage;
-          loadStudents();
+          loadStudents(true); // Force refresh
 
           // If current page becomes empty, go to previous page
           setTimeout(() => {
             if (filteredStudents.length === 0 && currentPageBackup > 1) {
               currentPage = currentPageBackup - 1;
-              loadStudents();
+              loadStudents(true); // Force refresh
             }
           }, 500);
         } else {
@@ -1086,6 +1261,9 @@
 
   // Document ready
   document.addEventListener("DOMContentLoaded", function () {
+    // Clean expired cache on page load
+    cleanExpiredCache();
+
     // Update tanggal
     updateDateTime();
 
@@ -1126,6 +1304,15 @@
     document.getElementById("reset-btn").addEventListener("click", function () {
       resetFilters();
     });
+
+    // Refresh button event - force refresh from server
+    document
+      .getElementById("refresh-btn")
+      .addEventListener("click", function () {
+        showNotification("Memuat ulang data dari server...", "info");
+        invalidateCache();
+        loadStudents(true); // Force refresh
+      });
 
     // Setup delete modal events
     document

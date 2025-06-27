@@ -19,6 +19,33 @@
         <div class="page-date" id="current-date">Memuat tanggal...</div>
       </div>
 
+      <!-- Summary Cards Section -->
+      <div class="summary-section" id="summary-section" style="display: none">
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="summary-icon">📊</div>
+            <div class="summary-content">
+              <div class="summary-title">Rata-rata Keseluruhan</div>
+              <div class="summary-value" id="overall-average">0</div>
+            </div>
+          </div>
+          <div class="summary-card warning">
+            <div class="summary-icon">⚠️</div>
+            <div class="summary-content">
+              <div class="summary-title">Nilai di Bawah 75</div>
+              <div class="summary-value" id="below-75-count">0</div>
+            </div>
+          </div>
+          <div class="summary-card success">
+            <div class="summary-icon">✅</div>
+            <div class="summary-content">
+              <div class="summary-title">Nilai 75 ke Atas</div>
+              <div class="summary-value" id="above-75-count">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="search-section">
         <div class="search-container">
           <div class="search-box">
@@ -32,24 +59,61 @@
               />
             </div>
           </div>
+          <div class="filter-container">
+            <div class="form-group">
+              <label class="form-label">Filter Nilai</label>
+              <select class="form-control" id="grade-filter">
+                <option value="all">Semua Nilai</option>
+                <option value="below-75">Nilai di Bawah 75</option>
+                <option value="75-above">Nilai 75 ke Atas</option>
+                <option value="80-above">Nilai 80 ke Atas</option>
+                <option value="90-above">Nilai 90 ke Atas</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div class="btn-group">
           <button class="btn btn-primary btn-search" id="search-btn">
             🔍 Cari Siswa
           </button>
           <button class="btn btn-secondary btn-reset" id="reset-btn">
-            🔄 Reset
+            ↺ Reset
+          </button>
+          <button
+            class="btn btn-info btn-refresh"
+            id="refresh-grades-btn"
+            title="Refresh data dari server"
+          >
+            ↻ Refresh
           </button>
         </div>
       </div>
 
-      <div class="results-container" id="results-container">
+      <div class="table-container">
         <div class="search-info" id="search-info">
           Masukkan NIS atau nama siswa untuk mencari data
         </div>
-        <div class="student-cards" id="student-cards">
-          <!-- Student cards will be displayed here -->
-        </div>
+        <table class="student-table" id="student-table" style="display: none">
+          <thead>
+            <tr>
+              <th width="50px">NO.</th>
+              <th>NIS</th>
+              <th>Nama Siswa</th>
+              <th>Kelas</th>
+              <th>Semester</th>
+              <th>Tahun Ajaran</th>
+              <th>Rata-rata Nilai</th>
+              <th width="120px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="students-table-body">
+            <tr>
+              <td colspan="8" style="text-align: center">
+                Masukkan kata kunci pencarian untuk menampilkan data siswa
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <footer

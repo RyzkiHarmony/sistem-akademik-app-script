@@ -2770,10 +2770,6 @@ function getAllStudentGrades(options = {}) {
 
     // Log header information for debugging
     Logger.log("Available headers: " + headers.join(", "));
-    const kelasIndex = headers.findIndex((h) => h === "Kelas_");
-    const semesterIndex = headers.findIndex((h) => h === "Semester_");
-    Logger.log("Kelas_ column index: " + kelasIndex);
-    Logger.log("Semester_ column index: " + semesterIndex);
 
     let grades = [];
     Logger.log("Starting to process " + (values.length - 1) + " data rows");
@@ -2797,9 +2793,7 @@ function getAllStudentGrades(options = {}) {
         kelas: row[gradeColumnMap.kelas] || "",
         semester: row[gradeColumnMap.semester] || "",
         tahunAjaran: row[gradeColumnMap.tahunAjaran] || "",
-        semesterKelulusan: row[gradeColumnMap.semesterKelulusan] || "",
         rataRataNilaiPerSMT: row[gradeColumnMap.rataRataNilaiPerSMT] || "",
-        rataRataNilaiUS: row[gradeColumnMap.rataRataNilaiUS] || "",
       };
 
       // Tambahkan nilai mata pelajaran
@@ -2818,55 +2812,8 @@ function getAllStudentGrades(options = {}) {
         bahasaJawa: row[gradeColumnMap.bahasaJawa] || "",
       };
 
-      // Tambahkan nilai ujian sekolah dengan nama kolom yang benar
-      const ujianSekolah = {
-        "Pendidikan Agama Islam - Ujian Sekolah":
-          row[gradeColumnMap.ujianPendidikanAgamaIslam] || "",
-        "Pendidikan Pancasila - Ujian Sekolah":
-          row[gradeColumnMap.ujianPendidikanPancasila] || "",
-        "Bahasa Indonesia - Ujian Sekolah":
-          row[gradeColumnMap.ujianBahasaIndonesia] || "",
-        "Matematika - Ujian Sekolah": row[gradeColumnMap.ujianMatematika] || "",
-        "Ilmu Pengetahuan Alam - Ujian Sekolah":
-          row[gradeColumnMap.ujianIlmuPengetahuanAlam] || "",
-        "Ilmu Pengetahuan Sosial - Ujian Sekolah":
-          row[gradeColumnMap.ujianIlmuPengetahuanSosial] || "",
-        "Bahasa Inggris - Ujian Sekolah":
-          row[gradeColumnMap.ujianBahasaInggris] || "",
-        "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah":
-          row[gradeColumnMap.ujianPendidikanJasmani] || "",
-        "Informatika - Ujian Sekolah":
-          row[gradeColumnMap.ujianInformatika] || "",
-        "Seni Budaya - Ujian Sekolah":
-          row[gradeColumnMap.ujianSeniBudaya] || "",
-        "Bimbingan dan Konseling - Ujian Sekolah":
-          row[gradeColumnMap.ujianBimbinganKonseling] || "",
-        "Bahasa Jawa - Ujian Sekolah":
-          row[gradeColumnMap.ujianBahasaJawa] || "",
-      };
-
-      // Tambahkan kolom kelas_ dan semester_ untuk data ujian sekolah
-      const examData = {};
-
-      // Cari kolom Kelas_ dan Semester_ berdasarkan header
-      const kelasIndex = headers.findIndex((h) => h === "Kelas_");
-      const semesterIndex = headers.findIndex((h) => h === "Semester_");
-
-      if (kelasIndex !== -1) {
-        examData.kelas_ = row[kelasIndex] || "";
-      }
-      if (semesterIndex !== -1) {
-        examData.semester_ = row[semesterIndex] || "";
-      }
-
       // Gabungkan semua data
-      const grade = Object.assign(
-        {},
-        studentData,
-        subjects,
-        ujianSekolah,
-        examData
-      );
+      const grade = Object.assign({}, studentData, subjects);
 
       grades.push(grade);
     }
@@ -3186,12 +3133,9 @@ function initializeGradeColumnMap(headers) {
       nama: ["Nama Siswa"],
       nis: ["NIS"],
       nisn: ["NISN"],
-      kelas: ["Kelas", "Kelas_"], // Tambahan untuk kelas IX semester 2
-      semester: ["Semester", "Semester_"], // Tambahan untuk kelas IX semester 2
+      kelas: ["Kelas"],
+      semester: ["Semester"],
       tahunAjaran: ["Tahun Ajaran"],
-      semesterKelulusan: [
-        "Apakah sedang ingin menginputkan nilai Semester Kelulusan? (Ujian Sekolah)",
-      ],
       // Mata pelajaran dengan nilai
       pendidikanAgamaIslam: ["Pendidikan Agama Islam"],
       pendidikanPancasila: ["Pendidikan Pancasila"],
@@ -3205,24 +3149,8 @@ function initializeGradeColumnMap(headers) {
       seniBudaya: ["Seni Budaya"],
       bimbinganKonseling: ["Bimbingan dan Konseling"],
       bahasaJawa: ["Bahasa Jawa"],
-      // Nilai ujian sekolah
-      ujianPendidikanAgamaIslam: ["Pendidikan Agama Islam - Ujian Sekolah"],
-      ujianPendidikanPancasila: ["Pendidikan Pancasila - Ujian Sekolah"],
-      ujianBahasaIndonesia: ["Bahasa Indonesia - Ujian Sekolah"],
-      ujianMatematika: ["Matematika - Ujian Sekolah"],
-      ujianIlmuPengetahuanAlam: ["Ilmu Pengetahuan Alam - Ujian Sekolah"],
-      ujianIlmuPengetahuanSosial: ["Ilmu Pengetahuan Sosial - Ujian Sekolah"],
-      ujianBahasaInggris: ["Bahasa Inggris - Ujian Sekolah"],
-      ujianPendidikanJasmani: [
-        "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah",
-      ],
-      ujianInformatika: ["Informatika - Ujian Sekolah"],
-      ujianSeniBudaya: ["Seni Budaya - Ujian Sekolah"],
-      ujianBimbinganKonseling: ["Bimbingan dan Konseling - Ujian Sekolah"],
-      ujianBahasaJawa: ["Bahasa Jawa - Ujian Sekolah"],
       // Field tambahan
       rataRataNilaiPerSMT: ["Rata-Rata Nilai per SMT"],
-      rataRataNilaiUS: ["Rata-Rata Nilai US"],
     };
 
     Logger.log("Starting column mapping process");

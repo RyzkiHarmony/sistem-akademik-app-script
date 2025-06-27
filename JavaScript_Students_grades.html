@@ -9,6 +9,78 @@
   let lastSearchQuery = "";
   let allStudentsData = []; // Cache untuk data siswa
 
+  // Pagination variables
+  let currentPage = 1;
+  let studentsPerPage = 5;
+  let filteredStudentsData = []; // Data yang sudah difilter
+
+  // Sorting variables
+  let currentSortField = "";
+  let currentSortDirection = "asc";
+
+  // Enhanced cache management
+  const GRADES_CACHE_EXPIRY_TIME = 10 * 60 * 1000; // 10 minutes
+  const GRADES_CACHE_KEY = "students_grades_cache";
+  const GRADES_CACHE_VERSION = "1.0";
+  let cacheTimestamp = null;
+
+  // Cache management functions
+  function isGradesCacheValid() {
+    if (!cacheTimestamp || allStudentsData.length === 0) {
+      return false;
+    }
+    const now = Date.now();
+    return now - cacheTimestamp < GRADES_CACHE_EXPIRY_TIME;
+  }
+
+  function invalidateGradesCache() {
+    allStudentsData = [];
+    cacheTimestamp = null;
+    localStorage.removeItem(GRADES_CACHE_KEY);
+    localStorage.removeItem(GRADES_CACHE_KEY + "_timestamp");
+    localStorage.removeItem(GRADES_CACHE_KEY + "_version");
+  }
+
+  function saveGradesToLocalStorage() {
+    try {
+      const cacheData = {
+        data: allStudentsData,
+        timestamp: cacheTimestamp,
+        version: GRADES_CACHE_VERSION,
+      };
+      localStorage.setItem(GRADES_CACHE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn("Failed to save grades to localStorage:", e);
+    }
+  }
+
+  function loadGradesFromLocalStorage() {
+    try {
+      const cached = localStorage.getItem(GRADES_CACHE_KEY);
+      if (!cached) return false;
+
+      const cacheData = JSON.parse(cached);
+      if (cacheData.version !== GRADES_CACHE_VERSION) {
+        invalidateGradesCache();
+        return false;
+      }
+
+      const now = Date.now();
+      if (now - cacheData.timestamp >= GRADES_CACHE_EXPIRY_TIME) {
+        invalidateGradesCache();
+        return false;
+      }
+
+      allStudentsData = cacheData.data || [];
+      cacheTimestamp = cacheData.timestamp;
+      return true;
+    } catch (e) {
+      console.warn("Failed to load grades from localStorage:", e);
+      invalidateGradesCache();
+      return false;
+    }
+  }
+
   // Fungsi untuk toggle sidebar di tampilan mobile
   function toggleSidebar() {
     document.body.classList.toggle("sidebar-active");
@@ -37,53 +109,53 @@
     return urlParams.get("sessionId");
   }
 
-  // Fungsi helper untuk mengecek apakah siswa kelas 9
-  function isGrade9Student(kelas) {
-    if (!kelas) return false;
-    const kelasStr = String(kelas).toLowerCase();
-    return kelasStr.includes("9") || kelasStr.includes("ix");
-  }
-
-  // Fungsi helper untuk mapping nama kolom ujian sekolah
-  function getExamColumnName(subject) {
-    const examColumnMap = {
-      pendidikanAgamaIslam: "Pendidikan Agama Islam - Ujian Sekolah",
-      pendidikanPancasila: "Pendidikan Pancasila - Ujian Sekolah",
-      bahasaIndonesia: "Bahasa Indonesia - Ujian Sekolah",
-      matematika: "Matematika - Ujian Sekolah",
-      ilmuPengetahuanAlam: "Ilmu Pengetahuan Alam - Ujian Sekolah",
-      ilmuPengetahuanSosial: "Ilmu Pengetahuan Sosial - Ujian Sekolah",
-      bahasaInggris: "Bahasa Inggris - Ujian Sekolah",
-      pendidikanJasmani:
-        "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah",
-      informatika: "Informatika - Ujian Sekolah",
-      seniBudaya: "Seni Budaya - Ujian Sekolah",
-      bimbinganKonseling: "Bimbingan dan Konseling - Ujian Sekolah",
-      bahasaJawa: "Bahasa Jawa - Ujian Sekolah",
-    };
-    return examColumnMap[subject] || subject;
-  }
-
-  // Fungsi helper untuk memfilter data berdasarkan aturan kelas 9
+  // Fungsi helper untuk memfilter data siswa
   function shouldIncludeStudentData(student) {
-    // Untuk semua kelas, tampilkan semua semester
-    // Kelas 9 semester 1: nilai akademik
-    // Kelas 9 semester 2: nilai ujian sekolah
-    return true;
+    // Hanya tampilkan data yang memiliki nilai pada kolom kelas dan semester
+    return (
+      student.kelas &&
+      student.kelas.trim() !== "" &&
+      student.semester &&
+      student.semester.toString().trim() !== ""
+    );
   }
 
   // Fungsi untuk memuat semua data nilai siswa (cache)
-  function loadAllStudentsData() {
+  function loadAllStudentsData(forceRefresh = false) {
     const sessionId = getSessionId();
     if (!sessionId) {
       showError("Session tidak valid. Silakan login kembali.");
       return;
     }
 
-    // Jika data sudah ada, tidak perlu load ulang
-    if (allStudentsData.length > 0) {
-      return;
+    // Check if we should use cached data
+    if (!forceRefresh) {
+      // Try to load from localStorage first
+      if (loadGradesFromLocalStorage() && isGradesCacheValid()) {
+        console.log("Using cached grades data from localStorage");
+        // Update UI with cached data
+        filteredStudentsData = allStudentsData;
+        currentPage = 1;
+        updatePaginatedResults();
+        renderStudentTable();
+        updateSummaryCards(allStudentsData);
+        return;
+      }
+
+      // Check in-memory cache
+      if (allStudentsData.length > 0 && isGradesCacheValid()) {
+        console.log("Using cached grades data from memory");
+        // Update UI with cached data
+        filteredStudentsData = allStudentsData;
+        currentPage = 1;
+        updatePaginatedResults();
+        renderStudentTable();
+        updateSummaryCards(allStudentsData);
+        return;
+      }
     }
+
+    console.log("Loading fresh grades data from server");
 
     google.script.run
       .withSuccessHandler(function (data) {
@@ -234,215 +306,40 @@
 
             const averageGrade = validGrades > 0 ? totalGrade / validGrades : 0;
 
-            // Create separate records for academic and exam data
-            const records = [];
+            // Create student record
+            const record = {
+              nis: grade.nis,
+              nama: grade.nama,
+              kelas: grade.kelas,
+              nisn: grade.nisn,
+              semester: grade.semester,
+              tahunAjaran: grade.tahunAjaran,
+              totalSubjects: totalSubjects,
+              averageGrade: averageGrade,
+            };
 
-            // Determine semester based on semesterKelulusan column for Grade 9
-            const isGrade9 = isGrade9Student(grade.kelas);
-            const isSemesterKelulusan =
-              grade.semesterKelulusan &&
-              (grade.semesterKelulusan.toLowerCase() === "ya" ||
-                grade.semesterKelulusan.toLowerCase() === "yes" ||
-                grade.semesterKelulusan === "1" ||
-                grade.semesterKelulusan === 1);
-
-            // For Grade 9: Use semesterKelulusan to determine semester
-            // If semesterKelulusan = "Ya", then it's semester 2 (graduation semester)
-            // If semesterKelulusan = "Tidak" or empty, then it's semester 1
-            let actualSemester = grade.semester;
-            if (isGrade9) {
-              actualSemester = isSemesterKelulusan ? "2" : "1";
-            }
-
-            // Academic data (using Kelas, Semester columns)
-            if (grade.kelas && grade.semester) {
-              records.push({
-                nis: grade.nis,
-                nama: grade.nama,
-                kelas: grade.kelas,
-                nisn: grade.nisn,
-                semester: actualSemester,
-                tahunAjaran: grade.tahunAjaran,
-                status: "Aktif",
-                totalSubjects: totalSubjects,
-                averageGrade: averageGrade,
-                dataType: "academic",
-                semesterKelulusan: grade.semesterKelulusan,
-              });
-            }
-
-            // Exam data (using Kelas_, Semester_ columns)
-            if (grade.kelas_ && grade.semester_) {
-              // Calculate exam grades
-              const examSubjectFields = [
-                "pendidikanAgamaIslam", // Will map to exam columns
-                "pendidikanPancasila",
-                "bahasaIndonesia",
-                "matematika",
-                "ilmuPengetahuanAlam",
-                "ilmuPengetahuanSosial",
-                "bahasaInggris",
-                "pendidikanJasmani",
-                "informatika",
-                "seniBudaya",
-                "bimbinganKonseling",
-                "bahasaJawa",
-              ];
-
-              let examTotalSubjects = 0;
-              let examTotalGrade = 0;
-              let examValidGrades = 0;
-
-              // Check for exam grade columns (with " - Ujian Sekolah" suffix)
-              examSubjectFields.forEach((subject) => {
-                const examColumnName = getExamColumnName(subject);
-                const nilai = parseFloat(grade[examColumnName]);
-                if (!isNaN(nilai) && nilai > 0) {
-                  examTotalSubjects++;
-                  examTotalGrade += nilai;
-                  examValidGrades++;
-                }
-              });
-
-              const examAverageGrade =
-                examValidGrades > 0 ? examTotalGrade / examValidGrades : 0;
-
-              // For exam data, also use the same semester logic
-              let examActualSemester = grade.semester_;
-              const isExamGrade9 = isGrade9Student(grade.kelas_);
-              if (isExamGrade9) {
-                examActualSemester = isSemesterKelulusan ? "2" : "1";
-              }
-
-              records.push({
-                nis: grade.nis,
-                nama: grade.nama,
-                kelas: grade.kelas_,
-                nisn: grade.nisn,
-                semester: examActualSemester,
-                tahunAjaran: grade.tahunAjaran,
-                status: "Aktif",
-                totalSubjects: examTotalSubjects,
-                averageGrade: examAverageGrade,
-                dataType: "exam",
-                semesterKelulusan: grade.semesterKelulusan,
-              });
-            }
-
-            return records;
+            return record;
           });
-
-          // Flatten the array since each grade can produce multiple records
-          const flattenedData = processedData.flat();
 
           // Proses semua data (tidak ada filtering berdasarkan semester)
-          allStudentsData = flattenedData.filter(shouldIncludeStudentData);
+          allStudentsData = processedData.filter(shouldIncludeStudentData);
 
-          // Log data types distribution
-          const academicData = allStudentsData.filter(
-            (s) => s.dataType === "academic"
-          );
-          const examData = allStudentsData.filter((s) => s.dataType === "exam");
-          console.log(
-            `Data types: Academic: ${academicData.length}, Exam: ${examData.length}, Total: ${allStudentsData.length}`
-          );
-
-          // Debug: Log sample data untuk melihat struktur kelas dan semester
-          console.log(
-            "Sample student data:",
-            allStudentsData.slice(0, 5).map((s) => ({
-              nama: s.nama,
-              kelas: s.kelas,
-              semester: s.semester,
-              kelasType: typeof s.kelas,
-              semesterType: typeof s.semester,
-            }))
-          );
-
-          const grade9Students = allStudentsData.filter((student) => {
-            const isGrade9 = isGrade9Student(student.kelas);
-            if (isGrade9) {
-              console.log("Found Grade 9 student:", {
-                nama: student.nama,
-                kelas: student.kelas,
-                semester: student.semester,
-                dataType: student.dataType,
-                semesterKelulusan: student.semesterKelulusan,
-                kelasStr: String(student.kelas).toLowerCase(),
-              });
-            }
-            return isGrade9;
-          });
-
-          // Separate academic and exam data for Grade 9
-          const grade9Academic = grade9Students.filter(
-            (s) => s.dataType === "academic"
-          );
-          const grade9Exam = grade9Students.filter(
-            (s) => s.dataType === "exam"
-          );
-
-          // Log all unique semester values to understand the format
-          const uniqueSemesters = [
-            ...new Set(grade9Students.map((s) => s.semester)),
-          ];
-          console.log("Unique semester values found:", uniqueSemesters);
-
-          // Academic data semester breakdown
-          const grade9AcademicSem1 = grade9Academic.filter((student) => {
-            const semesterStr = String(student.semester).toLowerCase();
-            const isSem1 =
-              student.semester === "1" ||
-              student.semester === 1 ||
-              semesterStr.includes("1") ||
-              semesterStr.includes("semester 1") ||
-              semesterStr.includes("ganjil");
-            return isSem1;
-          });
-
-          const grade9AcademicSem2 = grade9Academic.filter((student) => {
-            const semesterStr = String(student.semester).toLowerCase();
-            const isSem2 =
-              student.semester === "2" ||
-              student.semester === 2 ||
-              semesterStr.includes("2") ||
-              semesterStr.includes("semester 2") ||
-              semesterStr.includes("genap");
-            return isSem2;
-          });
-
-          // Exam data semester breakdown
-          const grade9ExamSem1 = grade9Exam.filter((student) => {
-            const semesterStr = String(student.semester).toLowerCase();
-            const isSem1 =
-              student.semester === "1" ||
-              student.semester === 1 ||
-              semesterStr.includes("1") ||
-              semesterStr.includes("semester 1") ||
-              semesterStr.includes("ganjil");
-            return isSem1;
-          });
-
-          const grade9ExamSem2 = grade9Exam.filter((student) => {
-            const semesterStr = String(student.semester).toLowerCase();
-            const isSem2 =
-              student.semester === "2" ||
-              student.semester === 2 ||
-              semesterStr.includes("2") ||
-              semesterStr.includes("semester 2") ||
-              semesterStr.includes("genap");
-            return isSem2;
-          });
+          // Set cache timestamp and save to localStorage
+          cacheTimestamp = Date.now();
+          saveGradesToLocalStorage();
+          console.log("Grades data cached successfully");
 
           console.log("Data processing results:");
           console.log("- Total students:", allStudentsData.length);
-          console.log("- Grade 9 students total:", grade9Students.length);
-          console.log("- Grade 9 Academic data:", grade9Academic.length);
-          console.log("  - Academic Semester 1:", grade9AcademicSem1.length);
-          console.log("  - Academic Semester 2:", grade9AcademicSem2.length);
-          console.log("- Grade 9 Exam data:", grade9Exam.length);
-          console.log("  - Exam Semester 1:", grade9ExamSem1.length);
-          console.log("  - Exam Semester 2:", grade9ExamSem2.length);
+
+          // Tampilkan semua data yang sudah difilter dengan pagination
+          filteredStudentsData = allStudentsData;
+          currentPage = 1;
+          updatePaginatedResults();
+          renderStudentTable();
+
+          // Update summary cards with all data
+          updateSummaryCards(allStudentsData);
 
           // Show pagination info if there are more pages
           if (data.totalPages && data.totalPages > 1) {
@@ -490,7 +387,15 @@
     const searchTerm = document.getElementById("search-input").value.trim();
 
     if (!searchTerm) {
-      showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+      // Jika tidak ada pencarian, tampilkan semua data dengan pagination
+      if (allStudentsData.length > 0) {
+        filteredStudentsData = allStudentsData;
+        currentPage = 1;
+        updatePaginatedResults();
+        renderStudentTable();
+      } else {
+        showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
+      }
       return;
     }
 
@@ -598,7 +503,6 @@
                   nisn: grade.nisn,
                   semester: grade.semester,
                   tahunAjaran: grade.tahunAjaran,
-                  status: "Aktif",
                   totalSubjects: totalSubjects,
                   averageGrade: averageGrade,
                   dataType: "academic",
@@ -647,7 +551,6 @@
                   nisn: grade.nisn,
                   semester: grade.semester_,
                   tahunAjaran: grade.tahunAjaran,
-                  status: "Aktif",
                   totalSubjects: totalSubjects,
                   averageGrade: averageGrade,
                   dataType: "exam",
@@ -685,93 +588,6 @@
                 semesterType: typeof s.semester,
               }))
             );
-
-            const grade9Students = allStudentsData.filter((student) => {
-              const isGrade9 = isGrade9Student(student.kelas);
-              if (isGrade9) {
-                console.log("Found Grade 9 student (searchStudents):", {
-                  nama: student.nama,
-                  kelas: student.kelas,
-                  semester: student.semester,
-                  dataType: student.dataType,
-                  kelasStr: String(student.kelas).toLowerCase(),
-                });
-              }
-              return isGrade9;
-            });
-
-            // Separate academic and exam data for Grade 9 (searchStudents)
-            const grade9Academic = grade9Students.filter(
-              (s) => s.dataType === "academic"
-            );
-            const grade9Exam = grade9Students.filter(
-              (s) => s.dataType === "exam"
-            );
-
-            // Log all unique semester values to understand the format
-            const uniqueSemesters = [
-              ...new Set(grade9Students.map((s) => s.semester)),
-            ];
-            console.log(
-              "Unique semester values found (searchStudents):",
-              uniqueSemesters
-            );
-
-            // Academic data semester breakdown (searchStudents)
-            const grade9AcademicSem1 = grade9Academic.filter((student) => {
-              const semesterStr = String(student.semester).toLowerCase();
-              const isSem1 =
-                student.semester === "1" ||
-                student.semester === 1 ||
-                semesterStr.includes("1") ||
-                semesterStr.includes("semester 1") ||
-                semesterStr.includes("ganjil");
-              return isSem1;
-            });
-
-            const grade9AcademicSem2 = grade9Academic.filter((student) => {
-              const semesterStr = String(student.semester).toLowerCase();
-              const isSem2 =
-                student.semester === "2" ||
-                student.semester === 2 ||
-                semesterStr.includes("2") ||
-                semesterStr.includes("semester 2") ||
-                semesterStr.includes("genap");
-              return isSem2;
-            });
-
-            // Exam data semester breakdown (searchStudents)
-            const grade9ExamSem1 = grade9Exam.filter((student) => {
-              const semesterStr = String(student.semester).toLowerCase();
-              const isSem1 =
-                student.semester === "1" ||
-                student.semester === 1 ||
-                semesterStr.includes("1") ||
-                semesterStr.includes("semester 1") ||
-                semesterStr.includes("ganjil");
-              return isSem1;
-            });
-
-            const grade9ExamSem2 = grade9Exam.filter((student) => {
-              const semesterStr = String(student.semester).toLowerCase();
-              const isSem2 =
-                student.semester === "2" ||
-                student.semester === 2 ||
-                semesterStr.includes("2") ||
-                semesterStr.includes("semester 2") ||
-                semesterStr.includes("genap");
-              return isSem2;
-            });
-
-            console.log("Data processing results (searchStudents):");
-            console.log("- Total students:", allStudentsData.length);
-            console.log("- Grade 9 students total:", grade9Students.length);
-            console.log("- Grade 9 Academic data:", grade9Academic.length);
-            console.log("  - Academic Semester 1:", grade9AcademicSem1.length);
-            console.log("  - Academic Semester 2:", grade9AcademicSem2.length);
-            console.log("- Grade 9 Exam data:", grade9Exam.length);
-            console.log("  - Exam Semester 1:", grade9ExamSem1.length);
-            console.log("  - Exam Semester 2:", grade9ExamSem2.length);
 
             // Show pagination info if there are more pages
             if (data.totalPages && data.totalPages > 1) {
@@ -821,7 +637,7 @@
   // Fungsi untuk melakukan pencarian pada data yang sudah ada
   function performSearch(searchTerm) {
     const searchLower = searchTerm.toLowerCase();
-    const filteredResults = allStudentsData.filter((student) => {
+    filteredStudentsData = allStudentsData.filter((student) => {
       // Safely convert to string and check if the values exist
       const nis = student.nis ? String(student.nis).toLowerCase() : "";
       const nama = student.nama ? String(student.nama).toLowerCase() : "";
@@ -829,10 +645,47 @@
       return nis.includes(searchLower) || nama.includes(searchLower);
     });
 
-    searchResults = filteredResults;
+    // Reset ke halaman pertama setelah pencarian
+    currentPage = 1;
+    updatePaginatedResults();
     isSearching = false;
     hideLoadingIndicator();
-    renderStudentCards();
+    renderStudentTable();
+
+    // Update summary cards with filtered data
+    updateSummaryCards(filteredStudentsData);
+  }
+
+  // Fungsi untuk mengupdate hasil dengan pagination
+  function updatePaginatedResults() {
+    const startIndex = (currentPage - 1) * studentsPerPage;
+    const endIndex = startIndex + studentsPerPage;
+    searchResults = filteredStudentsData.slice(startIndex, endIndex);
+  }
+
+  // Fungsi untuk navigasi pagination
+  function goToPage(page) {
+    const totalPages = Math.ceil(filteredStudentsData.length / studentsPerPage);
+    if (page >= 1 && page <= totalPages) {
+      currentPage = page;
+      updatePaginatedResults();
+      renderStudentTable();
+    }
+  }
+
+  // Fungsi untuk halaman sebelumnya
+  function previousPage() {
+    if (currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  }
+
+  // Fungsi untuk halaman selanjutnya
+  function nextPage() {
+    const totalPages = Math.ceil(filteredStudentsData.length / studentsPerPage);
+    if (currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
   }
 
   // Real-time search dengan debouncing
@@ -861,11 +714,15 @@
           searchBox.classList.add("searching");
         }
 
-        // Jika query kosong, reset
+        // Jika query kosong, terapkan filter saja
         if (!query) {
-          showSearchInfo(
-            "Masukkan NIS atau nama siswa untuk mencari data nilai"
-          );
+          if (allStudentsData.length > 0) {
+            applyFiltersAndSearch();
+          } else {
+            showSearchInfo(
+              "Masukkan NIS atau nama siswa untuk mencari data nilai"
+            );
+          }
           if (searchBox) {
             searchBox.classList.remove("searching");
           }
@@ -874,7 +731,7 @@
 
         // Debounce search - wait 500ms after user stops typing
         searchTimeout = setTimeout(() => {
-          searchStudents();
+          applyFiltersAndSearch();
 
           // Remove searching class after search completes
           setTimeout(() => {
@@ -892,7 +749,7 @@
           if (searchTimeout) {
             clearTimeout(searchTimeout);
           }
-          searchStudents();
+          applyFiltersAndSearch();
         }
       });
     }
@@ -941,13 +798,17 @@
   // Fungsi untuk menampilkan loading
   function showLoading() {
     const searchInfo = document.getElementById("search-info");
-    const studentCards = document.getElementById("student-cards");
+    const studentTable = document.getElementById("student-table");
+    const tableBody = document.getElementById("students-table-body");
 
     searchInfo.style.display = "none";
-    studentCards.innerHTML = `
-      <div class="loading-results">
-        <div>⏳ Mencari data siswa...</div>
-      </div>
+    studentTable.style.display = "table";
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 40px;">
+          ⏳ Mencari data siswa...
+        </td>
+      </tr>
     `;
 
     showLoadingIndicator();
@@ -956,13 +817,17 @@
   // Fungsi untuk menampilkan error
   function showError(message) {
     const searchInfo = document.getElementById("search-info");
-    const studentCards = document.getElementById("student-cards");
+    const studentTable = document.getElementById("student-table");
+    const tableBody = document.getElementById("students-table-body");
 
     searchInfo.style.display = "none";
-    studentCards.innerHTML = `
-      <div class="no-results">
-        <div style="color: #dc3545;">❌ ${message}</div>
-      </div>
+    studentTable.style.display = "table";
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 40px; color: #dc3545;">
+          ❌ ${message}
+        </td>
+      </tr>
     `;
 
     hideLoadingIndicator();
@@ -979,45 +844,88 @@
   // Fungsi untuk menampilkan info pencarian
   function showSearchInfo(message) {
     const searchInfo = document.getElementById("search-info");
-    const studentCards = document.getElementById("student-cards");
+    const studentTable = document.getElementById("student-table");
 
     searchInfo.textContent = message;
     searchInfo.style.display = "block";
-    studentCards.innerHTML = "";
+    studentTable.style.display = "none";
   }
 
-  // Fungsi untuk menampilkan card siswa
-  function renderStudentCards() {
-    const searchInfo = document.getElementById("search-info");
-    const studentCards = document.getElementById("student-cards");
+  // Fungsi untuk menghitung dan menampilkan summary statistics
+  function updateSummaryCards(students) {
+    const summarySection = document.getElementById("summary-section");
 
-    searchInfo.style.display = "none";
-
-    if (searchResults.length === 0) {
-      studentCards.innerHTML = `
-        <div class="no-results">
-          <div>Tidak ada siswa yang ditemukan dengan kata kunci tersebut</div>
-        </div>
-      `;
+    if (!students || students.length === 0) {
+      summarySection.style.display = "none";
       return;
     }
 
-    // Tampilkan informasi tentang kelas 9
-    const hasGrade9Students = searchResults.some((student) =>
-      isGrade9Student(student.kelas)
-    );
-    if (hasGrade9Students) {
-      showInfo(
-        "Catatan: Untuk siswa kelas 9, semester 1 menampilkan nilai akademik dan semester 2 menampilkan nilai ujian sekolah."
-      );
+    // Calculate statistics
+    const totalStudents = students.length;
+    let totalGrades = 0;
+    let validGradeCount = 0;
+    let below75Count = 0;
+    let above75Count = 0;
+
+    students.forEach((student) => {
+      const avgGrade = parseFloat(student.averageGrade);
+      if (!isNaN(avgGrade) && avgGrade > 0) {
+        totalGrades += avgGrade;
+        validGradeCount++;
+
+        if (avgGrade < 75) {
+          below75Count++;
+        } else {
+          above75Count++;
+        }
+      }
+    });
+
+    const overallAverage =
+      validGradeCount > 0 ? (totalGrades / validGradeCount).toFixed(1) : 0;
+
+    // Update summary card values
+    document.getElementById("overall-average").textContent = overallAverage;
+    document.getElementById("below-75-count").textContent = below75Count;
+    document.getElementById("above-75-count").textContent = above75Count;
+
+    // Show summary section
+    summarySection.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan table siswa
+  function renderStudentTable() {
+    const searchInfo = document.getElementById("search-info");
+    const studentTable = document.getElementById("student-table");
+    const tableBody = document.getElementById("students-table-body");
+
+    if (filteredStudentsData.length === 0) {
+      searchInfo.style.display = "block";
+      searchInfo.innerHTML =
+        "Tidak ada siswa yang ditemukan dengan kata kunci tersebut";
+      studentTable.style.display = "none";
+      hidePaginationControls();
+      updateSummaryCards([]);
+      return;
     }
 
-    studentCards.innerHTML = searchResults
-      .map((student) => {
-        const statusClass = `status-${(student.status || "Aktif")
-          .toLowerCase()
-          .replace(/\s+/g, "-")}`;
+    if (searchResults.length === 0) {
+      searchInfo.style.display = "block";
+      searchInfo.innerHTML = "Tidak ada data pada halaman ini";
+      studentTable.style.display = "none";
+      showPaginationControls();
+      updateSummaryCards(filteredStudentsData);
+      return;
+    }
 
+    searchInfo.style.display = "none";
+    studentTable.style.display = "table";
+
+    // Hitung nomor urut berdasarkan halaman
+    const startNumber = (currentPage - 1) * studentsPerPage;
+
+    tableBody.innerHTML = searchResults
+      .map((student, index) => {
         // Format rata-rata nilai
         const avgGrade = student.averageGrade
           ? student.averageGrade.toFixed(1)
@@ -1029,82 +937,41 @@
             ? "#ffc107"
             : "#dc3545";
 
-        // Cek apakah siswa kelas 9 dan tentukan jenis semester
-        const isGrade9 = isGrade9Student(student.kelas);
-        let grade9Badge = "";
-        if (isGrade9) {
-          if (student.semester === "1" || student.semester === 1) {
-            grade9Badge =
-              '<span style="background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.75em; margin-left: 5px;">Akademik</span>';
-          } else if (student.semester === "2" || student.semester === 2) {
-            grade9Badge =
-              '<span style="background: #dc3545; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.75em; margin-left: 5px;">Ujian Sekolah</span>';
-          }
-        }
+        let semesterDisplay = student.semester || "-";
 
         return `
-          <div class="student-card">
-            <div class="student-card-header">
-              <div class="student-info">
-                <div class="student-name">${student.nama}${grade9Badge}</div>
-                <div class="student-nis">NIS: ${student.nis}</div>
+          <tr>
+            <td>${startNumber + index + 1}</td>
+            <td>${student.nis}</td>
+            <td class="student-name">${student.nama}</td>
+            <td>${student.kelas || "-"}</td>
+            <td>${semesterDisplay}</td>
+            <td>${student.tahunAjaran || "-"}</td>
+            <td style="color: ${gradeColor}; font-weight: bold;">${avgGrade}</td>
+            <td>
+              <div class="action-buttons">
+                <a href="#" class="btn btn-primary btn-sm btn-view-grades" 
+                   data-id="${student.nis}" 
+                   data-kelas="${student.kelas}" 
+                   data-semester="${student.semester}" 
+                   title="Lihat Detail Nilai Siswa">
+                  📝 Detail Nilai
+                </a>
               </div>
-              <span class="status-badge ${statusClass}">${
-          student.status || "Aktif"
-        }</span>
-            </div>
-            
-            <div class="student-card-body">
-              <div class="student-detail">
-                <div class="detail-label">Kelas</div>
-                <div class="detail-value">${student.kelas || "-"}</div>
-              </div>
-              <div class="student-detail">
-                <div class="detail-label">NISN</div>
-                <div class="detail-value">${student.nisn || "-"}</div>
-              </div>
-              <div class="student-detail">
-                <div class="detail-label">Semester</div>
-                <div class="detail-value">${student.semester || "-"}${
-          isGrade9
-            ? student.semester === "1" || student.semester === 1
-              ? ' <span style="color: #28a745; font-size: 0.8em;">(Akademik)</span>'
-              : ' <span style="color: #dc3545; font-size: 0.8em;">(Ujian Sekolah)</span>'
-            : ""
-        }</div>
-              </div>
-              <div class="student-detail">
-                <div class="detail-label">Tahun Ajaran</div>
-                <div class="detail-value">${student.tahunAjaran || "-"}</div>
-              </div>
-              <div class="student-detail">
-                <div class="detail-label">Mata Pelajaran Dinilai</div>
-                <div class="detail-value">${
-                  student.totalSubjects || 0
-                } dari 12</div>
-              </div>
-              <div class="student-detail">
-                <div class="detail-label">Rata-rata Nilai</div>
-                <div class="detail-value" style="color: ${gradeColor}; font-weight: bold;">${avgGrade}</div>
-              </div>
-            </div>
-            
-            <div class="student-card-footer">
-              <a href="#" class="card-action-btn btn-view-grades" data-id="${
-                student.nis
-              }" data-kelas="${student.kelas}" data-semester="${
-          student.semester
-        }" title="Lihat Detail Nilai Siswa">
-                📝 Lihat Detail Nilai
-              </a>
-            </div>
-          </div>
-        `;
+            </td>
+           </tr>
+         `;
       })
       .join("");
 
     // Setup action buttons after rendering
     setupActionButtons();
+
+    // Show pagination controls
+    showPaginationControls();
+
+    // Update summary cards
+    updateSummaryCards(filteredStudentsData);
   }
 
   // Setup action buttons
@@ -1189,6 +1056,227 @@
     }
   }
 
+  // Fungsi untuk menampilkan kontrol pagination
+  function showPaginationControls() {
+    const totalPages = Math.ceil(filteredStudentsData.length / studentsPerPage);
+    const totalStudents = filteredStudentsData.length;
+
+    if (totalPages <= 1) {
+      hidePaginationControls();
+      return;
+    }
+
+    // Cari atau buat container untuk pagination
+    let paginationContainer = document.getElementById("pagination-container");
+    if (!paginationContainer) {
+      paginationContainer = document.createElement("div");
+      paginationContainer.id = "pagination-container";
+      paginationContainer.className = "pagination";
+      const studentTable = document.getElementById("student-table");
+      studentTable.parentNode.insertBefore(
+        paginationContainer,
+        studentTable.nextSibling
+      );
+    }
+
+    // Create pagination info
+    const paginationInfo = document.createElement("div");
+    paginationInfo.className = "pagination-info";
+    paginationInfo.textContent = `Menampilkan ${searchResults.length} dari ${totalStudents} siswa (Halaman ${currentPage} dari ${totalPages})`;
+
+    // Create pagination controls container
+    const paginationControls = document.createElement("div");
+    paginationControls.className = "pagination-controls";
+
+    // Previous button
+    const prevButton = document.createElement("button");
+    prevButton.innerHTML = "&laquo; Sebelumnya";
+    prevButton.className = "pagination-btn prev-btn";
+    prevButton.disabled = currentPage === 1;
+    prevButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (currentPage > 1) {
+        previousPage();
+      }
+    });
+    paginationControls.appendChild(prevButton);
+
+    // Page numbers with ellipsis logic
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    // Adjust if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages && startPage > 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    // Add first page and ellipsis if needed
+    if (startPage > 1) {
+      const firstPageButton = document.createElement("button");
+      firstPageButton.textContent = "1";
+      firstPageButton.className = "pagination-btn page-btn";
+      firstPageButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        goToPage(1);
+      });
+      paginationControls.appendChild(firstPageButton);
+
+      if (startPage > 2) {
+        const ellipsis = document.createElement("span");
+        ellipsis.textContent = "...";
+        ellipsis.className = "pagination-ellipsis";
+        paginationControls.appendChild(ellipsis);
+      }
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      const pageButton = document.createElement("button");
+      pageButton.textContent = i;
+      pageButton.className = "pagination-btn page-btn";
+
+      if (i === currentPage) {
+        pageButton.classList.add("active");
+        pageButton.setAttribute("aria-current", "page");
+      }
+
+      pageButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (i !== currentPage) {
+          goToPage(i);
+        }
+      });
+
+      paginationControls.appendChild(pageButton);
+    }
+
+    // Add last page and ellipsis if needed
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement("span");
+        ellipsis.textContent = "...";
+        ellipsis.className = "pagination-ellipsis";
+        paginationControls.appendChild(ellipsis);
+      }
+
+      const lastPageButton = document.createElement("button");
+      lastPageButton.textContent = totalPages;
+      lastPageButton.className = "pagination-btn page-btn";
+      lastPageButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        goToPage(totalPages);
+      });
+      paginationControls.appendChild(lastPageButton);
+    }
+
+    // Next button
+    const nextButton = document.createElement("button");
+    nextButton.innerHTML = "Selanjutnya &raquo;";
+    nextButton.className = "pagination-btn next-btn";
+    nextButton.disabled = currentPage === totalPages;
+    nextButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (currentPage < totalPages) {
+        nextPage();
+      }
+    });
+    paginationControls.appendChild(nextButton);
+
+    // Clear and rebuild pagination container
+    paginationContainer.innerHTML = "";
+    paginationContainer.appendChild(paginationInfo);
+    paginationContainer.appendChild(paginationControls);
+    paginationContainer.style.display = "flex";
+  }
+
+  // Fungsi untuk menyembunyikan kontrol pagination
+  function hidePaginationControls() {
+    const paginationContainer = document.getElementById("pagination-container");
+    if (paginationContainer) {
+      paginationContainer.style.display = "none";
+    }
+  }
+
+  // Fungsi untuk filter berdasarkan nilai rata-rata
+  function applyGradeFilter(data, filterValue) {
+    if (filterValue === "all") {
+      return data;
+    }
+
+    return data.filter((student) => {
+      // Gunakan averageGrade yang sudah dihitung, bukan rataRata
+      const average = parseFloat(student.averageGrade) || 0;
+
+      switch (filterValue) {
+        case "below-75":
+          return average < 75;
+        case "75-above":
+          return average >= 75;
+        case "80-above":
+          return average >= 80;
+        case "90-above":
+          return average >= 90;
+        default:
+          return true;
+      }
+    });
+  }
+
+  // Fungsi untuk menerapkan filter dan search secara bersamaan
+  function applyFiltersAndSearch() {
+    const searchQuery = document.getElementById("search-input").value.trim();
+    const gradeFilter = document.getElementById("grade-filter").value;
+
+    let dataToFilter = allStudentsData;
+
+    // Apply search filter first if there's a search query
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      dataToFilter = allStudentsData.filter(
+        (student) =>
+          student.nis.toString().toLowerCase().includes(searchLower) ||
+          student.nama.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Apply grade filter
+    const finalFilteredData = applyGradeFilter(dataToFilter, gradeFilter);
+
+    // Update filtered data and pagination
+    filteredStudentsData = finalFilteredData;
+    searchResults = finalFilteredData;
+    currentPage = 1;
+
+    // Apply current sorting if any
+    if (currentSortField) {
+      applySortToData();
+    }
+
+    // Update UI
+    updatePaginatedResults();
+    renderStudentTable();
+    updateSummaryCards(finalFilteredData);
+    updateSortIndicators();
+
+    // Show appropriate message
+    if (finalFilteredData.length === 0) {
+      if (searchQuery && gradeFilter !== "all") {
+        showSearchInfo(
+          `Tidak ada siswa yang ditemukan dengan kata kunci "${searchQuery}" dan filter nilai yang dipilih`
+        );
+      } else if (searchQuery) {
+        showSearchInfo(
+          `Tidak ada siswa yang ditemukan dengan kata kunci "${searchQuery}"`
+        );
+      } else if (gradeFilter !== "all") {
+        showSearchInfo(
+          `Tidak ada siswa yang memenuhi kriteria filter nilai yang dipilih`
+        );
+      }
+    }
+  }
+
   // Fungsi untuk reset pencarian
   function resetSearch() {
     // Clear timeout jika ada
@@ -1197,20 +1285,148 @@
     }
 
     document.getElementById("search-input").value = "";
+    document.getElementById("grade-filter").value = "all";
     lastSearchQuery = "";
     searchResults = [];
+    filteredStudentsData = allStudentsData; // Reset to show all data
+    currentPage = 1;
+    // Reset sorting
+    currentSortField = "";
+    currentSortDirection = "asc";
+    updateSortIndicators();
     hideLoadingIndicator();
-    showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data");
+    hidePaginationControls();
+
+    // Update summary cards with all data
+    updateSummaryCards(allStudentsData);
+
+    // Show all data if available, otherwise show search info
+    if (allStudentsData.length > 0) {
+      updatePaginatedResults();
+      renderStudentTable();
+    } else {
+      showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data");
+    }
+  }
+
+  // Sort table by column
+  function sortTable(field) {
+    if (field === currentSortField) {
+      // Toggle direction if same field
+      currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+    } else {
+      // New field, default to ascending
+      currentSortField = field;
+      currentSortDirection = "asc";
+    }
+
+    // Apply sort to current filtered data
+    applySortToData();
+
+    // Update UI
+    currentPage = 1;
+    updatePaginatedResults();
+    renderStudentTable();
+    updateSortIndicators();
+  }
+
+  // Apply sorting to filtered data
+  function applySortToData() {
+    if (!currentSortField) return;
+
+    filteredStudentsData.sort((a, b) => {
+      let aValue, bValue;
+
+      switch (currentSortField) {
+        case "nis":
+          aValue = parseInt(a.nis) || 0;
+          bValue = parseInt(b.nis) || 0;
+          break;
+        case "nama":
+          aValue = a.nama.toLowerCase();
+          bValue = b.nama.toLowerCase();
+          break;
+        case "kelas":
+          aValue = a.kelas.toLowerCase();
+          bValue = b.kelas.toLowerCase();
+          break;
+        case "semester":
+          aValue = parseInt(a.semester) || 0;
+          bValue = parseInt(b.semester) || 0;
+          break;
+        case "tahunAjaran":
+          aValue = a.tahunAjaran || "";
+          bValue = b.tahunAjaran || "";
+          break;
+        case "averageGrade":
+          aValue = parseFloat(a.averageGrade) || 0;
+          bValue = parseFloat(b.averageGrade) || 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (typeof aValue === "string") {
+        if (currentSortDirection === "asc") {
+          return aValue.localeCompare(bValue);
+        } else {
+          return bValue.localeCompare(aValue);
+        }
+      } else {
+        if (currentSortDirection === "asc") {
+          return aValue - bValue;
+        } else {
+          return bValue - aValue;
+        }
+      }
+    });
+
+    // Update searchResults to match sorted filteredStudentsData
+    searchResults = filteredStudentsData;
+  }
+
+  // Update sort indicators on table headers
+  function updateSortIndicators() {
+    // Remove all sort indicators from sortable headers
+    document.querySelectorAll(".student-table th.sortable").forEach((th) => {
+      th.classList.remove("sorted-asc", "sorted-desc");
+    });
+
+    // Add indicator to current sorted column
+    if (currentSortField) {
+      const fieldMap = {
+        "nis": 1,
+        "nama": 2,
+        "kelas": 3,
+        "semester": 4,
+        "tahunAjaran": 5,
+        "averageGrade": 6,
+      };
+
+      const columnIndex = fieldMap[currentSortField];
+      if (columnIndex !== undefined) {
+        const th = document.querySelector(
+          `.student-table th:nth-child(${columnIndex + 1})`
+        );
+        if (th && th.classList.contains("sortable")) {
+          th.classList.add(
+            currentSortDirection === "asc" ? "sorted-asc" : "sorted-desc"
+          );
+        }
+      }
+    }
   }
 
   // Event listeners
   document.addEventListener("DOMContentLoaded", function () {
+    // Clean expired cache on page load
+    if (!isGradesCacheValid()) {
+      invalidateGradesCache();
+    }
+
     updateDateTime();
 
-    // Tampilkan pesan awal
-    showSearchInfo("Masukkan NIS atau nama siswa untuk mencari data nilai");
-
-    // Load data siswa untuk cache
+    // Load data siswa untuk cache dan tampilkan
     loadAllStudentsData();
 
     // Setup real-time search
@@ -1219,10 +1435,62 @@
     // Search button (untuk fallback)
     document
       .getElementById("search-btn")
-      .addEventListener("click", searchStudents);
+      .addEventListener("click", function () {
+        applyFiltersAndSearch();
+      });
 
     // Reset button
     document.getElementById("reset-btn").addEventListener("click", resetSearch);
+
+    // Grade filter dropdown
+    document
+      .getElementById("grade-filter")
+      .addEventListener("change", function () {
+        if (allStudentsData.length > 0) {
+          applyFiltersAndSearch();
+        }
+      });
+
+    // Refresh button
+    document
+      .getElementById("refresh-grades-btn")
+      .addEventListener("click", function () {
+        showInfo("Memuat ulang data nilai dari server...");
+        invalidateGradesCache();
+        loadAllStudentsData(true); // Force refresh
+        // Clear current search if any
+        const searchQuery = document
+          .getElementById("search-input")
+          .value.trim();
+        const gradeFilter = document.getElementById("grade-filter").value;
+        if (searchQuery || gradeFilter !== "all") {
+          setTimeout(() => {
+            applyFiltersAndSearch(); // Re-run filters with fresh data
+          }, 500);
+        }
+      });
+
+    // Setup table header sorting
+    document
+      .querySelectorAll(".student-table th")
+      .forEach(function (th, index) {
+        // Skip NO. column (index 0) and Aksi column (index 7)
+        if (index > 0 && index < 7) {
+          th.classList.add("sortable");
+          th.addEventListener("click", function () {
+            const fieldMap = {
+              1: "nis",
+              2: "nama",
+              3: "kelas",
+              4: "semester",
+              5: "tahunAjaran",
+              6: "averageGrade",
+            };
+
+            sortTable(fieldMap[index]);
+          });
+        }
+      });
   });
 
   // Update time every minute

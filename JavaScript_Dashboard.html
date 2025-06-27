@@ -24,8 +24,28 @@
       now.toLocaleDateString("id-ID", options);
   }
 
-  // Fungsi untuk memuat data dashboard (statistik)
-  function loadDashboardData() {
+  // Fungsi untuk memuat data dashboard (statistik) dengan caching
+  function loadDashboardData(forceRefresh = false) {
+    const cacheKey = generateDashboardCacheKey("stats");
+
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+      const cachedData = getDashboardCacheData(cacheKey);
+      if (cachedData) {
+        console.log("Loading dashboard stats from cache");
+
+        // Update statistik dengan data dari cache
+        document.getElementById("total-siswa-aktif").textContent =
+          cachedData.totalSiswaAktif || 0;
+        document.getElementById("total-siswa-lulus").textContent =
+          cachedData.totalSiswaLulus || 0;
+        return;
+      }
+    }
+
+    // If no cache or force refresh, load from server
+    console.log("Loading dashboard stats from server");
+
     // Get session ID
     const sessionId = getSessionId();
 
@@ -36,6 +56,9 @@
     // Panggil fungsi di server untuk mendapatkan data dashboard
     google.script.run
       .withSuccessHandler(function (data) {
+        // Cache the result
+        setDashboardCacheData(cacheKey, data);
+
         // Update statistik dengan data dari server
         document.getElementById("total-siswa-aktif").textContent =
           data.totalSiswaAktif || 0;
@@ -55,6 +78,140 @@
 
   // Menyimpan data siswa secara global untuk diakses oleh fungsi lain
   let allStudents = [];
+
+  // Cache management for dashboard
+  const dashboardCache = new Map();
+  const DASHBOARD_CACHE_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes
+  const DASHBOARD_CACHE_KEY_PREFIX = "dashboard_";
+  const DASHBOARD_CACHE_VERSION = "1.0";
+
+  // Generate cache key for dashboard data
+  function generateDashboardCacheKey(type) {
+    return `${DASHBOARD_CACHE_KEY_PREFIX}${type}_v${DASHBOARD_CACHE_VERSION}`;
+  }
+
+  // Set cache data for dashboard
+  function setDashboardCacheData(key, data) {
+    const cacheEntry = {
+      data: data,
+      timestamp: Date.now(),
+      version: DASHBOARD_CACHE_VERSION,
+    };
+
+    // Store in memory cache
+    dashboardCache.set(key, cacheEntry);
+
+    // Store in localStorage
+    try {
+      localStorage.setItem(key, JSON.stringify(cacheEntry));
+    } catch (e) {
+      console.warn("Failed to store dashboard cache in localStorage:", e);
+    }
+  }
+
+  // Get cache data for dashboard
+  function getDashboardCacheData(key) {
+    // Check memory cache first
+    let cacheEntry = dashboardCache.get(key);
+
+    // If not in memory, check localStorage
+    if (!cacheEntry) {
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          cacheEntry = JSON.parse(stored);
+          // Restore to memory cache
+          dashboardCache.set(key, cacheEntry);
+        }
+      } catch (e) {
+        console.warn(
+          "Failed to retrieve dashboard cache from localStorage:",
+          e
+        );
+        return null;
+      }
+    }
+
+    if (!cacheEntry) return null;
+
+    // Check if cache is expired
+    const isExpired =
+      Date.now() - cacheEntry.timestamp > DASHBOARD_CACHE_EXPIRY_TIME;
+    if (isExpired) {
+      dashboardCache.delete(key);
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.warn("Failed to remove expired dashboard cache:", e);
+      }
+      return null;
+    }
+
+    // Check version compatibility
+    if (cacheEntry.version !== DASHBOARD_CACHE_VERSION) {
+      dashboardCache.delete(key);
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.warn("Failed to remove incompatible dashboard cache:", e);
+      }
+      return null;
+    }
+
+    return cacheEntry.data;
+  }
+
+  // Invalidate dashboard cache
+  function invalidateDashboardCache() {
+    // Clear memory cache
+    dashboardCache.clear();
+
+    // Clear localStorage cache
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach((key) => {
+        if (key.startsWith(DASHBOARD_CACHE_KEY_PREFIX)) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to clear dashboard cache from localStorage:", e);
+    }
+
+    console.log("Dashboard cache invalidated");
+  }
+
+  // Clean expired dashboard cache
+  function cleanExpiredDashboardCache() {
+    const now = Date.now();
+
+    // Clean memory cache
+    for (const [key, entry] of dashboardCache.entries()) {
+      if (now - entry.timestamp > DASHBOARD_CACHE_EXPIRY_TIME) {
+        dashboardCache.delete(key);
+      }
+    }
+
+    // Clean localStorage cache
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach((key) => {
+        if (key.startsWith(DASHBOARD_CACHE_KEY_PREFIX)) {
+          try {
+            const entry = JSON.parse(localStorage.getItem(key));
+            if (now - entry.timestamp > DASHBOARD_CACHE_EXPIRY_TIME) {
+              localStorage.removeItem(key);
+            }
+          } catch (e) {
+            // Remove invalid entries
+            localStorage.removeItem(key);
+          }
+        }
+      });
+    } catch (e) {
+      console.warn("Failed to clean expired dashboard cache:", e);
+    }
+  }
 
   // Helper function to convert Indonesian date format to ISO format
   function convertIndonesianDateToISO(indonesianDate) {
@@ -89,53 +246,82 @@
     return indonesianDate; // Return original if format doesn't match
   }
 
-  // Fungsi untuk memuat data siswa terbaru
-  function loadRecentStudents() {
+  // Fungsi untuk memuat data siswa terbaru dengan caching
+  function loadRecentStudents(forceRefresh = false) {
+    const cacheKey = generateDashboardCacheKey("recent_students");
+    const recentStudentsContainer = document.getElementById("recent-students");
+
+    // Check cache first (unless force refresh)
+    if (!forceRefresh) {
+      const cachedStudents = getDashboardCacheData(cacheKey);
+      if (cachedStudents) {
+        console.log("Loading recent students from cache");
+
+        // Simpan data siswa ke variabel global
+        allStudents = cachedStudents;
+
+        // Render from cache
+        renderRecentStudents(cachedStudents, recentStudentsContainer);
+        return;
+      }
+    }
+
+    // If no cache or force refresh, load from server
+    console.log("Loading recent students from server");
+
     // Get session ID
     const sessionId = getSessionId();
 
-    const recentStudentsContainer = document.getElementById("recent-students");
     recentStudentsContainer.innerHTML =
       "<tr><td colspan='6' style='text-align: center;'>Memuat data siswa...</td></tr>";
 
     // Panggil fungsi di server untuk mendapatkan data siswa terbaru
     google.script.run
       .withSuccessHandler(function (students) {
+        // Cache the result
+        setDashboardCacheData(cacheKey, students);
+
         // Simpan data siswa ke variabel global
         allStudents = students;
 
-        if (students && students.length > 0) {
-          // Bersihkan container
-          recentStudentsContainer.innerHTML = "";
-
-          // Data sudah diurutkan berdasarkan NIS terbesar dari server
-          // Tidak perlu sorting ulang di client-side
-
-          // Tambahkan baris untuk setiap siswa
-          students.forEach(function (student) {
-            const status = getStatusBadge(student.status);
-
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${student.nis || "-"}</td>
-              <td class="student-name">${student.nama || "-"}</td>
-              <td>${student.jenisKelamin || student.gender || "-"}</td>
-              <td>${student.tanggalDaftar || "-"}</td>
-              <td>${status}</td>
-            `;
-
-            recentStudentsContainer.appendChild(row);
-          });
-        } else {
-          recentStudentsContainer.innerHTML =
-            "<tr><td colspan='6' style='text-align: center;'>Tidak ada data siswa</td></tr>";
-        }
+        // Render students
+        renderRecentStudents(students, recentStudentsContainer);
       })
       .withFailureHandler(function (error) {
         recentStudentsContainer.innerHTML = `<tr><td colspan='6' style='text-align: center; color: #e74c3c;'>Error: ${error}</td></tr>`;
         showNotification("Gagal memuat data siswa: " + error, "error");
       })
       .getRecentStudents();
+  }
+
+  // Helper function to render recent students
+  function renderRecentStudents(students, container) {
+    if (students && students.length > 0) {
+      // Bersihkan container
+      container.innerHTML = "";
+
+      // Data sudah diurutkan berdasarkan NIS terbesar dari server
+      // Tidak perlu sorting ulang di client-side
+
+      // Tambahkan baris untuk setiap siswa
+      students.forEach(function (student) {
+        const status = getStatusBadge(student.status);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${student.nis || "-"}</td>
+          <td class="student-name">${student.nama || "-"}</td>
+          <td>${student.jenisKelamin || student.gender || "-"}</td>
+          <td>${student.tanggalDaftar || "-"}</td>
+          <td>${status}</td>
+        `;
+
+        container.appendChild(row);
+      });
+    } else {
+      container.innerHTML =
+        "<tr><td colspan='6' style='text-align: center;'>Tidak ada data siswa</td></tr>";
+    }
   }
 
   // Helper untuk mendapatkan badge status
@@ -211,8 +397,40 @@
     }
   }
 
+  // Setup refresh functionality
+  function setupRefreshFunctionality() {
+    // Add keyboard shortcut for refresh (Ctrl+R or F5)
+    document.addEventListener("keydown", function (e) {
+      if ((e.ctrlKey && e.key === "r") || e.key === "F5") {
+        e.preventDefault();
+        refreshDashboard();
+      }
+    });
+
+    // Add double-click refresh on dashboard title
+    const pageTitle = document.querySelector(".page-title");
+    if (pageTitle) {
+      pageTitle.addEventListener("dblclick", function () {
+        refreshDashboard();
+      });
+      pageTitle.style.cursor = "pointer";
+      pageTitle.title = "Double-click to refresh dashboard";
+    }
+  }
+
+  // Refresh dashboard data
+  function refreshDashboard() {
+    showNotification("Memuat ulang data dashboard...", "info");
+    invalidateDashboardCache();
+    loadDashboardData(true); // Force refresh
+    loadRecentStudents(true); // Force refresh
+  }
+
   // Inisialisasi saat halaman dimuat
   document.addEventListener("DOMContentLoaded", function () {
+    // Clean expired cache on page load
+    cleanExpiredDashboardCache();
+
     const sessionId = getSessionId();
     const viewAllStudents = document.getElementById("view-all-students");
     viewAllStudents.href =
@@ -230,6 +448,9 @@
 
     // Setup logout
     setupLogout();
+
+    // Setup refresh functionality
+    setupRefreshFunctionality();
 
     // Tambahkan efek hover pada kartu statistik
     const statCards = document.querySelectorAll(".stat-card");
