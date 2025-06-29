@@ -63,8 +63,6 @@
 
       // Store in localStorage with expiry
       localStorage.setItem(key, JSON.stringify(cacheEntry));
-
-      console.log("Data cached successfully:", key);
     } catch (error) {
       console.warn("Failed to cache data:", error);
     }
@@ -804,11 +802,8 @@
 
   // Setup action buttons
   function setupActionButtons() {
-    console.log("Setting up action buttons...");
-
     // Debug: Check if delete buttons exist
     const deleteButtons = document.querySelectorAll(".btn-delete");
-    console.log("Found delete buttons:", deleteButtons.length);
 
     // Remove any existing event listeners to prevent duplicates
     deleteButtons.forEach((button) => {
@@ -866,8 +861,6 @@
 
     // Setup delete buttons with direct event listeners
     freshDeleteButtons.forEach((button, index) => {
-      console.log(`Setting up delete button ${index + 1}:`, button);
-
       button.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();

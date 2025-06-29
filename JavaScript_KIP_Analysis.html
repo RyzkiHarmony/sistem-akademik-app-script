@@ -1,738 +1,705 @@
 <script>
-  // KIP Analysis JavaScript Functions
-
   // Global variables
   let currentPage = 1;
-  let currentLimit = 50;
-  let currentFilters = {
-    category: "all",
-    status: "all",
-    search: "",
-  };
-  let isAnalysisRunning = false;
-  let currentStudentNIS = null;
+  let itemsPerPage = 50;
+  let totalItems = 0;
+  let allData = [];
+  let filteredData = [];
+  let isAnalyzing = false;
 
-  /**
-   * Get session ID from hidden input
-   */
-  function getSessionId() {
-    const hiddenInput = document.getElementById("sessionId");
-    if (hiddenInput) {
-      return hiddenInput.value;
-    }
-
-    // Fallback: get from URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("sessionId");
-  }
-
-  // Initialize page when DOM is loaded
+  // Initialize page
   document.addEventListener("DOMContentLoaded", function () {
     initializePage();
     setupEventListeners();
-    loadDashboardStats();
-    loadAnalysisResults();
+    loadExistingData();
   });
 
-  /**
-   * Initialize page elements
-   */
+  // Mobile sidebar toggle
+  function toggleSidebar() {
+    document.body.classList.toggle("sidebar-active");
+  }
+
   function initializePage() {
-    // Check if session ID exists
-    const sessionId = getSessionId();
-    if (!sessionId) {
-      alert("Session tidak valid. Silakan login kembali.");
-      window.location.href = "?page=Login";
-      return;
-    }
+    // Update datetime
+    updateDateTime();
 
-    // Set current date
-    const currentDate = new Date().toLocaleDateString("id-ID", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-    document.getElementById("current-date").textContent = currentDate;
-
-    // Initialize filters
-    document.getElementById("kategori-filter").value = "all";
-    document.getElementById("status-filter").value = "all";
-    document.getElementById("search-input").value = "";
+    // Load dashboard statistics
+    loadDashboardStats();
   }
 
-  /**
-   * Setup event listeners
-   */
   function setupEventListeners() {
-    // Analysis button
+    // Search functionality
     document
-      .getElementById("run-analysis-btn")
-      .addEventListener("click", runAnalysis);
-
-    // Export button
-    document
-      .getElementById("export-btn")
-      .addEventListener("click", exportReport);
-
-    // Filter changes
-    document
-      .getElementById("kategori-filter")
-      .addEventListener("change", handleFilterChange);
-    document
-      .getElementById("status-filter")
-      .addEventListener("change", handleFilterChange);
-
-    // Search input with debounce
-    let searchTimeout;
-    document
-      .getElementById("search-input")
+      .getElementById("search-box")
       .addEventListener("input", function () {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          handleFilterChange();
-        }, 500);
+        debounce(filterData, 300)();
       });
 
-    // Pagination
+    // Filter functionality
     document
-      .getElementById("prev-page")
-      .addEventListener("click", () => changePage(currentPage - 1));
+      .getElementById("filter-kategori")
+      .addEventListener("change", filterData);
     document
-      .getElementById("next-page")
-      .addEventListener("click", () => changePage(currentPage + 1));
+      .getElementById("filter-status")
+      .addEventListener("change", filterData);
 
-    // Modal close
-    document
-      .getElementById("close-modal")
-      .addEventListener("click", closeModal);
-    document
-      .getElementById("student-detail-modal")
-      .addEventListener("click", function (e) {
-        if (e.target === this) closeModal();
-      });
-
-    // Verification update
-    document
-      .getElementById("update-verification")
-      .addEventListener("click", updateVerificationStatus);
-
-    // Keyboard shortcuts
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") closeModal();
+    // Modal close on outside click
+    window.addEventListener("click", function (event) {
+      const modal = document.getElementById("detail-modal");
+      if (event.target === modal) {
+        closeModal();
+      }
     });
   }
 
-  /**
-   * Load dashboard statistics
-   */
   function loadDashboardStats() {
-    const sessionId = getSessionId();
-    if (!sessionId) return;
-
-    showLoading("Memuat statistik...");
-
+    console.log("Loading dashboard stats...");
     google.script.run
       .withSuccessHandler(function (stats) {
-        hideLoading();
-        updateDashboardStats(stats);
+        console.log("Dashboard stats received:", stats);
+        document.getElementById("total-siswa").textContent = stats.total || 0;
+        document.getElementById("sangat-layak").textContent =
+          stats.sangatLayak || 0;
+        document.getElementById("layak").textContent = stats.layak || 0;
+        document.getElementById("kurang-layak").textContent =
+          stats.kurangLayak || 0;
       })
       .withFailureHandler(function (error) {
-        hideLoading();
-        showError("Gagal memuat statistik: " + error.message);
+        console.error("Error loading dashboard stats:", error);
       })
-      .getKIPDashboardStats(sessionId);
+      .getKIPDashboardStats();
   }
 
-  /**
-   * Update dashboard statistics display
-   */
-  function updateDashboardStats(stats) {
-    document.getElementById("total-students").textContent =
-      stats.totalStudents || 0;
-    document.getElementById("sangat-layak-count").textContent =
-      stats.sangatLayak || 0;
-    document.getElementById("layak-count").textContent = stats.layak || 0;
-    document.getElementById("kurang-layak-count").textContent =
-      stats.kurangLayak || 0;
+  function loadExistingData() {
+    console.log("Loading existing KIP analysis data...");
+    showLoading();
 
-    // Update last analysis info
-    if (stats.lastAnalysis) {
-      const lastAnalysisDate = new Date(stats.lastAnalysis).toLocaleDateString(
-        "id-ID"
-      );
-      document.getElementById("last-analysis-date").textContent =
-        lastAnalysisDate;
-    } else {
-      document.getElementById("last-analysis-date").textContent =
-        "Belum pernah";
-    }
+    google.script.run
+      .withSuccessHandler(function (data) {
+        console.log("KIP analysis data received:", data);
+        console.log("Data type:", typeof data);
+        console.log("Data is array:", Array.isArray(data));
+        console.log("Data length:", data ? data.length : "null/undefined");
+
+        // Handle null, undefined, or non-array responses
+        if (!data) {
+          console.log("Received null/undefined data");
+          allData = [];
+          filteredData = [];
+          showEmptyState();
+          hideLoading();
+          return;
+        }
+
+        if (!Array.isArray(data)) {
+          console.log("Received non-array data, converting to array");
+          data = [];
+        }
+
+        if (data.length > 0) {
+          console.log("Found", data.length, "records");
+          allData = data;
+          filteredData = [...allData];
+          hideLoading();
+          displayData();
+          showTable();
+          showDataStatus(`Berhasil memuat ${data.length} data analisis KIP`, 'success');
+        } else {
+          console.log("No data found, showing empty state");
+          allData = [];
+          filteredData = [];
+          hideLoading();
+          showEmptyState();
+          showDataStatus('Belum ada data analisis KIP. Silakan klik "Mulai Analisis" untuk memproses data siswa.', 'warning');
+        }
+      })
+      .withFailureHandler(function (error) {
+        console.error("Error loading KIP analysis data:", error);
+        hideLoading();
+        showError("Gagal memuat data: " + error.message);
+        // Initialize empty arrays on error
+        allData = [];
+        filteredData = [];
+        showEmptyState();
+      })
+      .getKIPAnalysisResults();
   }
 
-  /**
-   * Run KIP analysis
-   */
-  function runAnalysis() {
-    if (isAnalysisRunning) return;
-
-    const sessionId = getSessionId();
-    if (!sessionId) {
-      alert("Session tidak valid. Silakan login kembali.");
-      return;
-    }
+  function startAnalysis() {
+    if (isAnalyzing) return;
 
     if (
       !confirm(
-        "Apakah Anda yakin ingin menjalankan analisis KIP? Proses ini mungkin memakan waktu beberapa menit."
+        "Mulai analisis eligibilitas KIP untuk semua siswa? Proses ini mungkin memakan waktu beberapa menit."
       )
     ) {
       return;
     }
 
-    isAnalysisRunning = true;
-    const runButton = document.getElementById("run-analysis-btn");
-    runButton.disabled = true;
-    runButton.innerHTML = '<span class="btn-icon">⏳</span> Menganalisis...';
+    isAnalyzing = true;
+    const analyzeBtn = document.getElementById("btn-analyze");
+    analyzeBtn.disabled = true;
+    analyzeBtn.textContent = "Sedang Menganalisis...";
 
-    showLoadingOverlay("Sedang menganalisis data siswa...");
+    showProgress();
+    hideTable();
+    hideEmptyState();
 
-    google.script.run
-      .withSuccessHandler(function (result) {
-        hideLoadingOverlay();
-        isAnalysisRunning = false;
-        runButton.disabled = false;
-        runButton.innerHTML =
-          '<span class="btn-icon">🔄</span> Jalankan Analisis';
-
-        if (result.success) {
-          showSuccess(result.message);
-          loadDashboardStats();
-          loadAnalysisResults();
-        } else {
-          showError(result.message || "Gagal menjalankan analisis");
-        }
-      })
-      .withFailureHandler(function (error) {
-        hideLoadingOverlay();
-        isAnalysisRunning = false;
-        runButton.disabled = false;
-        runButton.innerHTML =
-          '<span class="btn-icon">🔄</span> Jalankan Analisis';
-        showError("Gagal menjalankan analisis: " + error.message);
-      })
-      .performKIPAnalysis(sessionId);
-  }
-
-  /**
-   * Handle filter changes
-   */
-  function handleFilterChange() {
-    currentFilters.category = document.getElementById("kategori-filter").value;
-    currentFilters.status = document.getElementById("status-filter").value;
-    currentFilters.search = document
-      .getElementById("search-input")
-      .value.trim();
-
-    currentPage = 1; // Reset to first page
-    loadAnalysisResults();
-  }
-
-  /**
-   * Load analysis results with current filters and pagination
-   */
-  function loadAnalysisResults() {
-    const sessionId = getSessionId();
-    if (!sessionId) return;
-
-    const tbody = document.getElementById("kip-results-body");
-    tbody.innerHTML =
-      '<tr><td colspan="8" class="loading-row"><div class="loading-spinner"></div>Memuat data...</td></tr>';
-
-    const options = {
-      page: currentPage,
-      limit: currentLimit,
-      category:
-        currentFilters.category === "all" ? "" : currentFilters.category,
-      status: currentFilters.status === "all" ? "" : currentFilters.status,
-      search: currentFilters.search,
-      sessionId: sessionId,
-    };
-
+    // Start the analysis process
     google.script.run
       .withSuccessHandler(function (result) {
         if (result.success) {
-          displayAnalysisResults(result.data, result.pagination);
+          let message = "Analisis selesai!";
+          if (result.totalStudents && result.processedCount) {
+            message = `Analisis selesai! Diproses ${result.processedCount} siswa aktif dari ${result.totalStudents} total siswa.`;
+          }
+          updateProgress(100, message);
+          setTimeout(() => {
+            hideProgress();
+            loadExistingData();
+            loadDashboardStats();
+            resetAnalyzeButton();
+            
+            // Show success message with details
+            if (result.totalStudents && result.processedCount) {
+              showDataStatus(`Analisis KIP berhasil diselesaikan! Diproses ${result.processedCount} siswa aktif dari ${result.totalStudents} total siswa.`, 'success');
+            } else {
+              showDataStatus("Analisis KIP berhasil diselesaikan!", 'success');
+            }
+          }, 1000);
         } else {
-          tbody.innerHTML =
-            '<tr><td colspan="8" class="loading-row">Tidak ada data ditemukan</td></tr>';
-          showError(result.message || "Gagal memuat data");
+          hideProgress();
+          const errorMessage = result && result.message ? result.message : "Analisis KIP gagal diselesaikan";
+          showError("Analisis gagal: " + errorMessage);
+          resetAnalyzeButton();
         }
       })
       .withFailureHandler(function (error) {
-        tbody.innerHTML =
-          '<tr><td colspan="8" class="loading-row">Error memuat data</td></tr>';
-        showError("Gagal memuat data: " + error.message);
+        console.error("Analysis failed:", error);
+        hideProgress();
+        resetAnalyzeButton();
+        
+        let errorMessage = "Gagal melakukan analisis KIP";
+        if (error && error.message) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        showError(errorMessage + ". Silakan periksa data siswa dan coba lagi.");
       })
-      .getKIPAnalysisResults(options);
+      .startKIPAnalysis();
+
+    // Simulate progress updates
+    simulateProgress();
   }
 
-  /**
-   * Display analysis results in table
-   */
-  function displayAnalysisResults(data, pagination) {
-    const tbody = document.getElementById("kip-results-body");
+  function simulateProgress() {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.random() * 15;
+      if (progress >= 95) {
+        progress = 95;
+        clearInterval(interval);
+      }
+      updateProgress(
+        progress,
+        `Memproses data siswa aktif... ${Math.round(progress)}%`
+      );
+    }, 1000);
+  }
 
-    if (!data || data.length === 0) {
-      tbody.innerHTML =
-        '<tr><td colspan="8" class="loading-row">Tidak ada data ditemukan</td></tr>';
-      updatePagination(pagination);
-      return;
-    }
+  function resetAnalyzeButton() {
+    isAnalyzing = false;
+    const analyzeBtn = document.getElementById("btn-analyze");
+    analyzeBtn.disabled = false;
+    analyzeBtn.textContent = "Mulai Analisis";
+  }
 
-    let html = "";
-    data.forEach(function (student) {
-      const categoryClass = getCategoryClass(student.kategori);
-      const statusClass = getStatusClass(student.statusVerifikasi);
+  function refreshData() {
+    console.log("Refreshing KIP analysis data...");
+    showLoading();
+    loadExistingData();
+    loadDashboardStats();
+  }
 
-      html += `
-        <tr>
-          <td>${student.ranking}</td>
-          <td>${student.nis}</td>
-          <td>${student.namaLengkap}</td>
-          <td>${student.kelas}</td>
-          <td>${student.skorTotal}</td>
-          <td><span class="category-badge ${categoryClass}">${student.kategori}</span></td>
-          <td><span class="status-badge ${statusClass}">${student.statusVerifikasi}</span></td>
-          <td>
-            <button class="action-btn action-detail" onclick="showStudentDetail('${student.nis}')">
-              Detail
-            </button>
-          </td>
-        </tr>
-      `;
+  // Fungsi untuk memuat ulang data secara paksa
+  function forceRefreshData() {
+    console.log("Force refreshing KIP analysis data...");
+    showLoading();
+
+    // Reset data arrays
+    allData = [];
+    filteredData = [];
+
+    // Reload data
+    loadExistingData();
+    loadDashboardStats();
+  }
+
+  function filterData() {
+    const searchTerm = document
+      .getElementById("search-box")
+      .value.toLowerCase();
+    const kategoriFilter = document.getElementById("filter-kategori").value;
+    const statusFilter = document.getElementById("filter-status").value;
+
+    filteredData = allData.filter((item) => {
+      const matchesSearch =
+        item.namaSiswa.toLowerCase().includes(searchTerm) ||
+        item.nis.toString().includes(searchTerm);
+      const matchesKategori =
+        !kategoriFilter || item.kategori === kategoriFilter;
+      const matchesStatus = !statusFilter || item.status === statusFilter;
+
+      return matchesSearch && matchesKategori && matchesStatus;
     });
 
-    tbody.innerHTML = html;
-    updatePagination(pagination);
-    updateShowingInfo(pagination);
+    currentPage = 1;
+    displayData();
   }
 
-  /**
-   * Get CSS class for category badge
-   */
-  function getCategoryClass(category) {
-    switch (category) {
+  function displayData() {
+    console.log("Displaying data. Filtered data length:", filteredData.length);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = filteredData.slice(startIndex, endIndex);
+    console.log("Page data:", pageData);
+
+    const tbody = document.getElementById("table-body");
+    if (!tbody) {
+      console.error("Table body element not found!");
+      return;
+    }
+    tbody.innerHTML = "";
+
+    pageData.forEach((item, index) => {
+      const row = createTableRow(item, startIndex + index + 1);
+      tbody.appendChild(row);
+    });
+
+    updatePagination();
+  }
+
+  function createTableRow(item, ranking) {
+    const row = document.createElement("tr");
+
+    const kategoriClass = getKategoriClass(item.kategori);
+
+    row.innerHTML = `
+      <td>${ranking}</td>
+      <td>${item.nis}</td>
+      <td>${item.namaSiswa}</td>
+      <td>${item.kelas || "-"}</td>
+      <td><strong>${item.skorTotal.toFixed(1)}</strong></td>
+      <td><span class="kategori-badge ${kategoriClass}">${
+      item.kategori
+    }</span></td>
+      <td>${item.status || "Pending"}</td>
+      <td>
+        <button class="btn-detail" onclick="showDetail('${item.nis}')">
+          Detail
+        </button>
+      </td>
+    `;
+
+    return row;
+  }
+
+  function getKategoriClass(kategori) {
+    switch (kategori) {
       case "Sangat Layak":
-        return "category-sangat-layak";
+        return "kategori-sangat-layak";
       case "Layak":
-        return "category-layak";
+        return "kategori-layak";
       case "Kurang Layak":
-        return "category-kurang-layak";
+        return "kategori-kurang-layak";
       default:
         return "";
     }
   }
 
-  /**
-   * Get CSS class for status badge
-   */
-  function getStatusClass(status) {
-    switch (status) {
-      case "Pending":
-        return "status-pending";
-      case "Verified":
-        return "status-verified";
-      case "Rejected":
-        return "status-rejected";
-      default:
-        return "status-pending";
-    }
-  }
+  function showDetail(nis) {
+    const item = allData.find((data) => data.nis === nis);
+    if (!item) return;
 
-  /**
-   * Update pagination controls
-   */
-  function updatePagination(pagination) {
-    const prevBtn = document.getElementById("prev-page");
-    const nextBtn = document.getElementById("next-page");
-    const pageNumbers = document.getElementById("page-numbers");
-    const paginationInfo = document.getElementById("pagination-info");
-
-    // Update buttons
-    prevBtn.disabled = pagination.page <= 1;
-    nextBtn.disabled = pagination.page >= pagination.totalPages;
-
-    // Update page numbers
-    let pageNumbersHtml = "";
-    const maxVisiblePages = 5;
-    let startPage = Math.max(
-      1,
-      pagination.page - Math.floor(maxVisiblePages / 2)
-    );
-    let endPage = Math.min(
-      pagination.totalPages,
-      startPage + maxVisiblePages - 1
-    );
-
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      const activeClass = i === pagination.page ? "active" : "";
-      pageNumbersHtml += `<button class="page-number ${activeClass}" onclick="changePage(${i})">${i}</button>`;
-    }
-
-    pageNumbers.innerHTML = pageNumbersHtml;
-    paginationInfo.textContent = `Halaman ${pagination.page} dari ${pagination.totalPages}`;
-  }
-
-  /**
-   * Update showing info
-   */
-  function updateShowingInfo(pagination) {
-    const start = (pagination.page - 1) * pagination.limit + 1;
-    const end = Math.min(pagination.page * pagination.limit, pagination.total);
-    document.getElementById(
-      "showing-info"
-    ).textContent = `Menampilkan ${start}-${end} dari ${pagination.total} siswa`;
-  }
-
-  /**
-   * Change page
-   */
-  function changePage(page) {
-    if (page < 1) return;
-    currentPage = page;
-    loadAnalysisResults();
-  }
-
-  /**
-   * Show student detail modal
-   */
-  function showStudentDetail(nis) {
-    const sessionId = getSessionId();
-    if (!sessionId) return;
-
-    currentStudentNIS = nis;
-    const modal = document.getElementById("student-detail-modal");
     const modalBody = document.getElementById("modal-body");
-
-    modalBody.innerHTML =
-      '<div class="loading-spinner"></div><p>Memuat detail siswa...</p>';
-    modal.style.display = "flex";
-
-    google.script.run
-      .withSuccessHandler(function (result) {
-        if (result.success) {
-          displayStudentDetail(result.data);
-        } else {
-          modalBody.innerHTML =
-            "<p>Gagal memuat detail siswa: " +
-            (result.message || "Unknown error") +
-            "</p>";
-        }
-      })
-      .withFailureHandler(function (error) {
-        modalBody.innerHTML =
-          "<p>Error memuat detail siswa: " + error.message + "</p>";
-      })
-      .getStudentKIPDetail(nis, sessionId);
-  }
-
-  /**
-   * Display student detail in modal
-   */
-  function displayStudentDetail(student) {
-    const modalBody = document.getElementById("modal-body");
-
-    const html = `
-      <div class="student-info">
-        <div class="info-item">
-          <div class="info-label">NIS</div>
-          <div class="info-value">${student.nis}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Nama Lengkap</div>
-          <div class="info-value">${student.namaLengkap}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Kelas</div>
-          <div class="info-value">${student.kelas}</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Ranking</div>
-          <div class="info-value">#${student.ranking}</div>
-        </div>
-      </div>
-      
+    modalBody.innerHTML = `
       <div class="score-breakdown">
-        <div class="score-category">
-          <h4>💰 Skor Penghasilan Keluarga</h4>
+        <div class="score-item">
+          <h4>Informasi Siswa</h4>
           <div class="score-details">
-            <div class="score-data">
-              Penghasilan Ayah: Rp ${formatCurrency(
-                student.penghasilanAyah || 0
-              )}<br>
-              Penghasilan Ibu: Rp ${formatCurrency(
-                student.penghasilanIbu || 0
-              )}<br>
-              Penghasilan Wali: Rp ${formatCurrency(
-                student.penghasilanWali || 0
-              )}<br>
-              <strong>Total: Rp ${formatCurrency(
-                student.penghasilanTotal || 0
-              )}</strong>
+            <div>
+              <strong>NIS:</strong> ${item.nis}<br>
+              <strong>Nama:</strong> ${item.namaSiswa}<br>
+              <strong>Kelas:</strong> ${item.kelas || "-"}<br>
+              <strong>Tanggal Analisis:</strong> ${formatDate(
+                item.tanggalAnalisis
+              )}
             </div>
-            <div class="score-value">${student.skorPenghasilan}</div>
-            <div class="score-weight">Bobot: 40%</div>
           </div>
         </div>
         
-        <div class="score-category">
-          <h4>👨‍👩‍👧‍👦 Skor Status Keluarga</h4>
+        <div class="score-item">
+          <h4>Kriteria Penghasilan Keluarga (40%)</h4>
           <div class="score-details">
-            <div class="score-data">
-              Status Orang Tua: ${student.statusKeluarga || "Tidak diketahui"}
+            <div>
+              <strong>Penghasilan Ayah:</strong> ${
+                item.penghasilanAyah || "Tidak ada data"
+              }<br>
+              <strong>Penghasilan Ibu:</strong> ${
+                item.penghasilanIbu || "Tidak ada data"
+              }<br>
+              <strong>Penghasilan Wali:</strong> ${
+                item.penghasilanWali || "Tidak ada data"
+              }
             </div>
-            <div class="score-value">${student.skorStatus}</div>
-            <div class="score-weight">Bobot: 30%</div>
+            <div class="score-value">${item.skorPenghasilan.toFixed(1)}</div>
           </div>
         </div>
         
-        <div class="score-category">
-          <h4>👶 Skor Jumlah Tanggungan</h4>
+        <div class="score-item">
+          <h4>Kriteria Status Keluarga (30%)</h4>
           <div class="score-details">
-            <div class="score-data">
-              Jumlah Saudara Kandung: ${student.jumlahSaudara || 0} orang
+            <div>
+              <strong>Status Orang Tua:</strong> ${
+                item.statusOrangTua || "Tidak ada data"
+              }
             </div>
-            <div class="score-value">${student.skorTanggungan}</div>
-            <div class="score-weight">Bobot: 20%</div>
+            <div class="score-value">${item.skorStatus.toFixed(1)}</div>
           </div>
         </div>
         
-        <div class="score-category">
-          <h4>🎓 Skor Riwayat Beasiswa</h4>
+        <div class="score-item">
+          <h4>Kriteria Jumlah Tanggungan (20%)</h4>
           <div class="score-details">
-            <div class="score-data">
-              Status Beasiswa: ${student.statusBeasiswa || "Tidak diketahui"}
+            <div>
+              <strong>Jumlah Saudara Kandung:</strong> ${
+                item.jumlahSaudara || "Tidak ada data"
+              }
             </div>
-            <div class="score-value">${student.skorBeasiswa}</div>
-            <div class="score-weight">Bobot: 10%</div>
+            <div class="score-value">${item.skorTanggungan.toFixed(1)}</div>
           </div>
         </div>
-      </div>
-      
-      <div class="total-score">
-        <h3>Skor Total KIP</h3>
-        <div class="score">${student.skorTotal}</div>
-        <div class="category">${student.kategori}</div>
+        
+        <div class="score-item">
+          <h4>Kriteria Beasiswa (10%)</h4>
+          <div class="score-details">
+            <div>
+              <strong>Status Beasiswa:</strong> ${
+                item.statusBeasiswa || "Tidak ada data"
+              }
+            </div>
+            <div class="score-value">${item.skorBeasiswa.toFixed(1)}</div>
+          </div>
+        </div>
+        
+        <div class="score-item" style="background: #e3f2fd; border-color: #2196f3;">
+          <h4>Skor Total</h4>
+          <div class="score-details">
+            <div>
+              <strong>Kategori:</strong> <span class="kategori-badge ${getKategoriClass(
+                item.kategori
+              )}">${item.kategori}</span>
+            </div>
+            <div class="score-value" style="font-size: 24px; color: #2196f3;">${item.skorTotal.toFixed(
+              1
+            )}</div>
+          </div>
+        </div>
+        
+        ${
+          item.catatan
+            ? `
+        <div class="score-item">
+          <h4>Catatan Admin</h4>
+          <div>${item.catatan}</div>
+        </div>
+        `
+            : ""
+        }
       </div>
     `;
 
-    modalBody.innerHTML = html;
-
-    // Set verification status
-    document.getElementById("verification-status").value =
-      student.statusVerifikasi || "Pending";
-    document.getElementById("verification-notes").value =
-      student.catatanAdmin || "";
+    document.getElementById("detail-modal").style.display = "block";
   }
 
-  /**
-   * Format currency
-   */
-  function formatCurrency(amount) {
-    return new Intl.NumberFormat("id-ID").format(amount);
-  }
-
-  /**
-   * Close modal
-   */
   function closeModal() {
-    document.getElementById("student-detail-modal").style.display = "none";
-    currentStudentNIS = null;
+    document.getElementById("detail-modal").style.display = "none";
   }
 
-  /**
-   * Update verification status
-   */
-  function updateVerificationStatus() {
-    if (!currentStudentNIS) return;
+  function updatePagination() {
+    totalItems = filteredData.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    const sessionId = getSessionId();
-    if (!sessionId) {
-      alert("Session tidak valid. Silakan login kembali.");
+    document.getElementById(
+      "page-info"
+    ).textContent = `Halaman ${currentPage} dari ${totalPages}`;
+    document.getElementById("prev-btn").disabled = currentPage <= 1;
+    document.getElementById("next-btn").disabled = currentPage >= totalPages;
+
+    if (totalItems > 0) {
+      document.getElementById("pagination").style.display = "flex";
+    } else {
+      document.getElementById("pagination").style.display = "none";
+    }
+  }
+
+  function changePage(direction) {
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const newPage = currentPage + direction;
+
+    if (newPage >= 1 && newPage <= totalPages) {
+      currentPage = newPage;
+      displayData();
+    }
+  }
+
+  function exportData() {
+    if (filteredData.length === 0) {
+      alert("Tidak ada data untuk diekspor");
       return;
     }
 
-    const status = document.getElementById("verification-status").value;
-    const notes = document.getElementById("verification-notes").value;
-
-    const updateBtn = document.getElementById("update-verification");
-    updateBtn.disabled = true;
-    updateBtn.textContent = "Menyimpan...";
+    const exportBtn = document.querySelector(".btn-export");
+    exportBtn.disabled = true;
+    exportBtn.textContent = "Mengekspor...";
 
     google.script.run
       .withSuccessHandler(function (result) {
-        updateBtn.disabled = false;
-        updateBtn.textContent = "Update Status";
-
         if (result.success) {
-          showSuccess("Status verifikasi berhasil diperbarui");
-          closeModal();
-          loadAnalysisResults(); // Refresh table
+          // Create download link
+          const link = document.createElement("a");
+          link.href = result.url;
+          link.download = result.filename;
+          link.click();
         } else {
-          showError(result.message || "Gagal memperbarui status");
+          alert("Gagal mengekspor data: " + result.message);
         }
+
+        exportBtn.disabled = false;
+        exportBtn.textContent = "Export Excel";
       })
       .withFailureHandler(function (error) {
-        updateBtn.disabled = false;
-        updateBtn.textContent = "Update Status";
-        showError("Gagal memperbarui status: " + error.message);
+        alert("Error saat mengekspor: " + error.message);
+        exportBtn.disabled = false;
+        exportBtn.textContent = "Export Excel";
       })
-      .updateKIPVerificationStatus(currentStudentNIS, status, notes, sessionId);
+      .exportKIPAnalysis(filteredData);
   }
 
-  /**
-   * Export report
-   */
-  function exportReport() {
-    const sessionId = getSessionId();
-    if (!sessionId) {
-      alert("Session tidak valid. Silakan login kembali.");
-      return;
+  // Utility functions
+  function showLoading() {
+    document.getElementById("loading-state").style.display = "block";
+    document.getElementById("empty-state").style.display = "none";
+    document.getElementById("table-wrapper").style.display = "none";
+  }
+
+  function hideLoading() {
+    document.getElementById("loading-state").style.display = "none";
+  }
+
+  function showEmptyState() {
+    const emptyStateElement = document.getElementById("empty-state");
+    if (emptyStateElement) {
+      emptyStateElement.innerHTML = `
+        <h3>Belum Ada Data Analisis KIP</h3>
+        <p>Klik "Mulai Analisis" untuk memproses data siswa dan membuat analisis eligibilitas KIP</p>
+        <p style="font-size: 12px; color: #666; margin-top: 10px;">💡 Tip: Pastikan data siswa sudah tersedia di sheet "DATA SISWA" sebelum memulai analisis</p>
+      `;
+      emptyStateElement.style.display = "block";
+    }
+    document.getElementById("table-wrapper").style.display = "none";
+    document.getElementById("pagination").style.display = "none";
+  }
+
+  function hideEmptyState() {
+    document.getElementById("empty-state").style.display = "none";
+  }
+
+  function showTable() {
+    document.getElementById("table-wrapper").style.display = "block";
+  }
+
+  function hideTable() {
+    document.getElementById("table-wrapper").style.display = "none";
+    document.getElementById("pagination").style.display = "none";
+  }
+
+  function showProgress() {
+    document.getElementById("progress-container").style.display = "block";
+  }
+
+  function hideProgress() {
+    document.getElementById("progress-container").style.display = "none";
+  }
+
+  function updateProgress(percentage, text) {
+    document.getElementById("progress-fill").style.width = percentage + "%";
+    document.getElementById("progress-text").textContent = text;
+  }
+
+  function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.innerHTML = `
+      <div style="background: #ffebee; border: 1px solid #f44336; color: #c62828; padding: 12px; border-radius: 4px; margin: 10px 0;">
+        <strong>❌ Error:</strong> ${message}
+        <br><small style="margin-top: 8px; display: block;">💡 Coba refresh halaman atau klik "Refresh Data" untuk memuat ulang</small>
+      </div>
+    `;
+    
+    const container = document.querySelector('.kip-table') || document.querySelector('.main-content') || document.body;
+    container.insertBefore(errorDiv, container.firstChild);
+    
+    // Remove error message after 8 seconds
+    setTimeout(() => {
+      if (errorDiv.parentNode) {
+        errorDiv.parentNode.removeChild(errorDiv);
+      }
+    }, 8000);
+  }
+
+  function showDataStatus(message, type = 'info') {
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'status-message';
+    
+    let bgColor, borderColor, textColor;
+    switch(type) {
+      case 'warning':
+        bgColor = '#fff3cd';
+        borderColor = '#ffc107';
+        textColor = '#856404';
+        break;
+      case 'success':
+        bgColor = '#d4edda';
+        borderColor = '#28a745';
+        textColor = '#155724';
+        break;
+      default:
+        bgColor = '#d1ecf1';
+        borderColor = '#17a2b8';
+        textColor = '#0c5460';
+    }
+    
+    statusDiv.innerHTML = `
+      <div style="background: ${bgColor}; border: 1px solid ${borderColor}; color: ${textColor}; padding: 12px; border-radius: 4px; margin: 10px 0;">
+        <strong>ℹ️ Info:</strong> ${message}
+      </div>
+    `;
+    
+    const container = document.querySelector('.kip-table') || document.querySelector('.main-content') || document.body;
+    container.insertBefore(statusDiv, container.firstChild);
+    
+    // Remove status message after 5 seconds
+    setTimeout(() => {
+      if (statusDiv.parentNode) {
+        statusDiv.parentNode.removeChild(statusDiv);
+      }
+    }, 5000);
+  }
+
+  function showSuccess(message) {
+    // Create a success notification
+    const notification = document.createElement("div");
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #4CAF50, #45a049);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      z-index: 10000;
+      font-size: 14px;
+      font-weight: 500;
+      max-width: 400px;
+      animation: slideInRight 0.3s ease;
+    `;
+    notification.textContent = message;
+
+    // Add animation keyframes
+    if (!document.getElementById("notification-styles")) {
+      const style = document.createElement("style");
+      style.id = "notification-styles";
+      style.textContent = `
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(100%); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
     }
 
-    const format = prompt(
-      "Pilih format export:\n1. Excel (ketik: excel)\n2. PDF (ketik: pdf)",
-      "excel"
-    );
+    document.body.appendChild(notification);
 
-    if (!format || (format !== "excel" && format !== "pdf")) {
-      return;
-    }
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      notification.style.animation = "slideOutRight 0.3s ease";
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }, 5000);
+  }
 
-    showLoading("Menyiapkan laporan...");
+  function formatDate(dateString) {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 
-    const filters = {
-      category:
-        currentFilters.category === "all" ? "" : currentFilters.category,
-      status: currentFilters.status === "all" ? "" : currentFilters.status,
-      search: currentFilters.search,
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  function updateDateTime() {
+    const now = new Date();
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Jakarta",
     };
 
-    google.script.run
-      .withSuccessHandler(function (result) {
-        hideLoading();
-        if (result.success) {
-          showSuccess(result.message);
-          // Open export URL in new tab
-          window.open(result.exportUrl, "_blank");
-        } else {
-          showError(result.message || "Gagal mengekspor laporan");
-        }
-      })
-      .withFailureHandler(function (error) {
-        hideLoading();
-        showError("Gagal mengekspor laporan: " + error.message);
-      })
-      .exportKIPAnalysisReport(format, filters, sessionId);
-  }
+    const dateTimeString = now.toLocaleDateString("id-ID", options);
 
-  /**
-   * Show loading overlay
-   */
-  function showLoadingOverlay(message) {
-    const overlay = document.getElementById("loading-overlay");
-    const loadingText = overlay.querySelector(".loading-text");
-    const progressFill = document.getElementById("progress-fill");
-    const progressText = document.getElementById("progress-text");
-
-    loadingText.textContent = message || "Memproses...";
-    progressFill.style.width = "0%";
-    progressText.textContent = "0%";
-    overlay.style.display = "flex";
-
-    // Simulate progress
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += Math.random() * 10;
-      if (progress > 90) progress = 90;
-
-      progressFill.style.width = progress + "%";
-      progressText.textContent = Math.round(progress) + "%";
-    }, 500);
-
-    // Store interval for cleanup
-    overlay.progressInterval = progressInterval;
-  }
-
-  /**
-   * Hide loading overlay
-   */
-  function hideLoadingOverlay() {
-    const overlay = document.getElementById("loading-overlay");
-    const progressFill = document.getElementById("progress-fill");
-    const progressText = document.getElementById("progress-text");
-
-    // Complete progress
-    progressFill.style.width = "100%";
-    progressText.textContent = "100%";
-
-    // Clear interval
-    if (overlay.progressInterval) {
-      clearInterval(overlay.progressInterval);
+    // Update navbar datetime if exists
+    const dateTimeElement = document.querySelector(".navbar-datetime");
+    if (dateTimeElement) {
+      dateTimeElement.textContent = dateTimeString;
     }
 
-    // Hide after short delay
-    setTimeout(() => {
-      overlay.style.display = "none";
-    }, 500);
-  }
-
-  /**
-   * Show loading message
-   */
-  function showLoading(message) {
-    // You can implement a simple loading indicator here
-    console.log("Loading: " + message);
-  }
-
-  /**
-   * Hide loading message
-   */
-  function hideLoading() {
-    // Hide loading indicator
-    console.log("Loading complete");
-  }
-
-  /**
-   * Show success message
-   */
-  function showSuccess(message) {
-    alert("✅ " + message);
-  }
-
-  /**
-   * Show error message
-   */
-  function showError(message) {
-    alert("❌ " + message);
-  }
-
-  /**
-   * Toggle sidebar (for mobile)
-   */
-  function toggleSidebar() {
-    const sidebar = document.querySelector(".sidebar");
-    if (sidebar) {
-      sidebar.classList.toggle("active");
+    // Update page date if exists
+    const pageDateElement = document.querySelector(".page-date");
+    if (pageDateElement) {
+      pageDateElement.textContent = dateTimeString;
     }
   }
 
-  // Make functions available globally
-  window.showStudentDetail = showStudentDetail;
-  window.changePage = changePage;
-  window.toggleSidebar = toggleSidebar;
+  // Update datetime every minute
+  setInterval(updateDateTime, 60000);
 </script>

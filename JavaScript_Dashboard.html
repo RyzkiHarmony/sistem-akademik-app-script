@@ -64,8 +64,6 @@
           data.totalSiswaAktif || 0;
         document.getElementById("total-siswa-lulus").textContent =
           data.totalSiswaLulus || 0;
-
-        // Admin name is now handled by getCurrentUserUsername in sidebar
       })
       .withFailureHandler(function (error) {
         showNotification(

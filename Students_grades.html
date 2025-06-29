@@ -70,6 +70,30 @@
                 <option value="90-above">Nilai 90 ke Atas</option>
               </select>
             </div>
+            <div class="form-group">
+              <label class="form-label">Filter Tahun</label>
+              <select class="form-control" id="year-filter">
+                <option value="all">Semua Tahun</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Filter Jenis Kelas</label>
+              <select class="form-control" id="class-type-filter">
+                <option value="all">Semua Jenis Kelas</option>
+                <option value="SPINEL">SPINEL</option>
+                <option value="ALEXANDRITE">ALEXANDRITE</option>
+                <option value="EMERALD">EMERALD</option>
+                <option value="AMETHYST">AMETHYST</option>
+                <option value="TURQUOIS">TURQUOIS</option>
+                <option value="AQUAMARINE">AQUAMARINE</option>
+                <option value="RUBY">RUBY</option>
+                <option value="SAPPHIRE">SAPPHIRE</option>
+                <option value="TOPAZ">TOPAZ</option>
+                <option value="ZIRCON">ZIRCON</option>
+                <option value="PERIDOTE">PERIDOTE</option>
+                <option value="MOLDAVITE">MOLDAVITE</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="btn-group">
@@ -100,6 +124,7 @@
               <th>NIS</th>
               <th>Nama Siswa</th>
               <th>Kelas</th>
+              <th>Jenis Kelas</th>
               <th>Semester</th>
               <th>Tahun Ajaran</th>
               <th>Rata-rata Nilai</th>
@@ -108,7 +133,7 @@
           </thead>
           <tbody id="students-table-body">
             <tr>
-              <td colspan="8" style="text-align: center">
+              <td colspan="9" style="text-align: center">
                 Masukkan kata kunci pencarian untuk menampilkan data siswa
               </td>
             </tr>

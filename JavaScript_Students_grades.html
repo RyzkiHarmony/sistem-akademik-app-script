@@ -181,12 +181,16 @@
             data.grades.slice(0, 10).map((g) => ({
               nama: g.nama,
               kelas: g.kelas,
+              jenisKelas: g.jenisKelas,
               kelas_: g.kelas_,
+              jenisKelas_: g.jenisKelas_,
               semester: g.semester,
               semester_: g.semester_,
               semesterKelulusan: g.semesterKelulusan,
               hasKelas: !!g.kelas,
+              hasJenisKelas: !!g.jenisKelas,
               hasKelas_: !!g.kelas_,
+              hasJenisKelas_: !!g.jenisKelas_,
               hasSemester: !!g.semester,
               hasSemester_: !!g.semester_,
               hasSemesterKelulusan: !!g.semesterKelulusan,
@@ -253,25 +257,34 @@
                 g.semesterKelulusan === 0)
           ).length;
 
-          console.log(`SemesterKelulusan distribution:`);
-          console.log(`- Has semesterKelulusan data: ${withSemesterKelulusan}`);
-          console.log(`- SemesterKelulusan = Ya/Yes/1: ${semesterKelulusanYa}`);
-          console.log(
-            `- SemesterKelulusan = Tidak/No/0: ${semesterKelulusanTidak}`
-          );
+          // Log sample kelas values with their structure
+          const kelasStructureSample = data.grades.slice(0, 20).map((g) => ({
+            nama: g.nama,
+            kelas: g.kelas,
+            jenisKelas: g.jenisKelas,
+            jenisKelas_: g.jenisKelas_,
+            kelasType: g.kelas ? g.kelas.split(" ").slice(1).join(" ") : "N/A",
+          }));
+          console.log(`Kelas structure sample:`, kelasStructureSample);
 
-          // Sample semesterKelulusan values
-          const uniqueSemesterKelulusan = [
+          // Log unique jenisKelas values untuk debugging filter jenis kelas
+          const uniqueJenisKelas = [
             ...new Set(
               data.grades
-                .map((g) => g.semesterKelulusan)
-                .filter((s) => s && s.trim() !== "")
+                .map((g) => g.jenisKelas)
+                .filter((jk) => jk && jk.trim() !== "")
             ),
           ];
-          console.log(
-            `Unique semesterKelulusan values:`,
-            uniqueSemesterKelulusan
-          );
+          console.log(`Unique jenisKelas values:`, uniqueJenisKelas);
+
+          const uniqueJenisKelas_ = [
+            ...new Set(
+              data.grades
+                .map((g) => g.jenisKelas_)
+                .filter((jk) => jk && jk.trim() !== "")
+            ),
+          ];
+          console.log(`Unique jenisKelas_ values:`, uniqueJenisKelas_);
 
           // Setiap baris sudah berisi data lengkap siswa dengan semua mata pelajaran
           const processedData = data.grades.map((grade) => {
@@ -311,6 +324,7 @@
               nis: grade.nis,
               nama: grade.nama,
               kelas: grade.kelas,
+              jenisKelas: grade.jenisKelas || grade.jenisKelas_ || "",
               nisn: grade.nisn,
               semester: grade.semester,
               tahunAjaran: grade.tahunAjaran,
@@ -327,7 +341,6 @@
           // Set cache timestamp and save to localStorage
           cacheTimestamp = Date.now();
           saveGradesToLocalStorage();
-          console.log("Grades data cached successfully");
 
           console.log("Data processing results:");
           console.log("- Total students:", allStudentsData.length);
@@ -340,6 +353,9 @@
 
           // Update summary cards with all data
           updateSummaryCards(allStudentsData);
+
+          // Populate year filter dropdown
+          populateYearFilter(allStudentsData);
 
           // Show pagination info if there are more pages
           if (data.totalPages && data.totalPages > 1) {
@@ -500,6 +516,7 @@
                   nis: grade.nis,
                   nama: grade.nama,
                   kelas: grade.kelas,
+                  jenisKelas: grade.jenisKelas || grade.jenisKelas_ || "",
                   nisn: grade.nisn,
                   semester: grade.semester,
                   tahunAjaran: grade.tahunAjaran,
@@ -548,6 +565,7 @@
                   nis: grade.nis,
                   nama: grade.nama,
                   kelas: grade.kelas_,
+                  jenisKelas: grade.jenisKelas || grade.jenisKelas_ || "",
                   nisn: grade.nisn,
                   semester: grade.semester_,
                   tahunAjaran: grade.tahunAjaran,
@@ -611,6 +629,9 @@
                   ")"
               );
             }
+
+            // Populate year filter dropdown
+            populateYearFilter(allStudentsData);
 
             performSearch(searchTerm);
           } else {
@@ -945,6 +966,7 @@
             <td>${student.nis}</td>
             <td class="student-name">${student.nama}</td>
             <td>${student.kelas || "-"}</td>
+            <td>${student.jenisKelas || "-"}</td>
             <td>${semesterDisplay}</td>
             <td>${student.tahunAjaran || "-"}</td>
             <td style="color: ${gradeColor}; font-weight: bold;">${avgGrade}</td>
@@ -976,8 +998,6 @@
 
   // Setup action buttons
   function setupActionButtons() {
-    console.log("Setting up action buttons...");
-
     // View student grades button - Setup both href and click handler
     document.querySelectorAll(".btn-view-grades").forEach(function (button) {
       const studentId = button.getAttribute("data-id");
@@ -1198,6 +1218,31 @@
     }
   }
 
+  // Fungsi untuk mengisi dropdown tahun
+  function populateYearFilter(data) {
+    const yearFilter = document.getElementById("year-filter");
+    const years = new Set();
+
+    data.forEach((student) => {
+      if (student.tahunAjaran) {
+        years.add(student.tahunAjaran);
+      }
+    });
+
+    // Clear existing options except "Semua Tahun"
+    yearFilter.innerHTML = '<option value="all">Semua Tahun</option>';
+
+    // Sort years and add to dropdown
+    Array.from(years)
+      .sort()
+      .forEach((year) => {
+        const option = document.createElement("option");
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+      });
+  }
+
   // Fungsi untuk filter berdasarkan nilai rata-rata
   function applyGradeFilter(data, filterValue) {
     if (filterValue === "all") {
@@ -1223,10 +1268,54 @@
     });
   }
 
+  // Fungsi untuk filter berdasarkan tahun
+  function applyYearFilter(data, filterValue) {
+    if (filterValue === "all") {
+      return data;
+    }
+
+    return data.filter((student) => {
+      return student.tahunAjaran === filterValue;
+    });
+  }
+
+  // Fungsi untuk filter berdasarkan jenis kelas
+  function applyClassTypeFilter(data, filterValue) {
+    if (filterValue === "all") {
+      return data;
+    }
+
+    return data.filter((student) => {
+      // Use jenisKelas field directly if available, otherwise fallback to extracting from kelas
+      let jenisKelas = "";
+
+      if (student.jenisKelas && student.jenisKelas.trim() !== "") {
+        jenisKelas = student.jenisKelas.toUpperCase();
+      } else if (student.kelas) {
+        // Fallback: extract class type from kelas field (e.g., "7 SPINEL" -> "SPINEL")
+        const kelasParts = student.kelas.split(" ");
+        if (kelasParts.length > 1) {
+          jenisKelas = kelasParts.slice(1).join(" ").toUpperCase();
+        }
+      }
+
+      console.log(
+        `Filtering student ${
+          student.nama
+        }: jenisKelas="${jenisKelas}", filterValue="${filterValue}", match=${
+          jenisKelas === filterValue
+        }`
+      );
+      return jenisKelas === filterValue;
+    });
+  }
+
   // Fungsi untuk menerapkan filter dan search secara bersamaan
   function applyFiltersAndSearch() {
     const searchQuery = document.getElementById("search-input").value.trim();
     const gradeFilter = document.getElementById("grade-filter").value;
+    const yearFilter = document.getElementById("year-filter").value;
+    const classTypeFilter = document.getElementById("class-type-filter").value;
 
     let dataToFilter = allStudentsData;
 
@@ -1240,8 +1329,14 @@
       );
     }
 
-    // Apply grade filter
-    const finalFilteredData = applyGradeFilter(dataToFilter, gradeFilter);
+    // Apply all filters sequentially
+    let finalFilteredData = dataToFilter;
+    finalFilteredData = applyGradeFilter(finalFilteredData, gradeFilter);
+    finalFilteredData = applyYearFilter(finalFilteredData, yearFilter);
+    finalFilteredData = applyClassTypeFilter(
+      finalFilteredData,
+      classTypeFilter
+    );
 
     // Update filtered data and pagination
     filteredStudentsData = finalFilteredData;
@@ -1261,17 +1356,22 @@
 
     // Show appropriate message
     if (finalFilteredData.length === 0) {
-      if (searchQuery && gradeFilter !== "all") {
+      const hasActiveFilters =
+        gradeFilter !== "all" ||
+        yearFilter !== "all" ||
+        classTypeFilter !== "all";
+
+      if (searchQuery && hasActiveFilters) {
         showSearchInfo(
-          `Tidak ada siswa yang ditemukan dengan kata kunci "${searchQuery}" dan filter nilai yang dipilih`
+          `Tidak ada siswa yang ditemukan dengan kata kunci "${searchQuery}" dan filter yang dipilih`
         );
       } else if (searchQuery) {
         showSearchInfo(
           `Tidak ada siswa yang ditemukan dengan kata kunci "${searchQuery}"`
         );
-      } else if (gradeFilter !== "all") {
+      } else if (hasActiveFilters) {
         showSearchInfo(
-          `Tidak ada siswa yang memenuhi kriteria filter nilai yang dipilih`
+          `Tidak ada siswa yang memenuhi kriteria filter yang dipilih`
         );
       }
     }
@@ -1286,6 +1386,8 @@
 
     document.getElementById("search-input").value = "";
     document.getElementById("grade-filter").value = "all";
+    document.getElementById("year-filter").value = "all";
+    document.getElementById("class-type-filter").value = "all";
     lastSearchQuery = "";
     searchResults = [];
     filteredStudentsData = allStudentsData; // Reset to show all data
@@ -1445,6 +1547,24 @@
     // Grade filter dropdown
     document
       .getElementById("grade-filter")
+      .addEventListener("change", function () {
+        if (allStudentsData.length > 0) {
+          applyFiltersAndSearch();
+        }
+      });
+
+    // Year filter dropdown
+    document
+      .getElementById("year-filter")
+      .addEventListener("change", function () {
+        if (allStudentsData.length > 0) {
+          applyFiltersAndSearch();
+        }
+      });
+
+    // Class type filter dropdown
+    document
+      .getElementById("class-type-filter")
       .addEventListener("change", function () {
         if (allStudentsData.length > 0) {
           applyFiltersAndSearch();

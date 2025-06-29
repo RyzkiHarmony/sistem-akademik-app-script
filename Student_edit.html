@@ -1311,10 +1311,6 @@
       function saveChangesToServer(changes, cardId) {
         const sessionId = getSessionId();
 
-        // Debug logging
-        console.log("saveChangesToServer called for cardId:", cardId);
-        console.log("Changes to save:", changes);
-
         // Show loading state
         const card = document.querySelector(`[data-card-id="${cardId}"]`);
         const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
