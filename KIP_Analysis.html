@@ -261,7 +261,7 @@
         cursor: not-allowed;
       }
 
-      /* Modal Styles */
+      /* Modal Styles - Override untuk KIP Analysis */
       .modal {
         display: none;
         position: fixed;
@@ -271,46 +271,76 @@
         width: 100%;
         height: 100%;
         background-color: rgba(0, 0, 0, 0.5);
-      }
-
-      .modal-content {
-        background-color: white;
-        margin: 5% auto;
-        padding: 0;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 600px;
-        max-height: 80vh;
-        overflow-y: auto;
-      }
-
-      .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #dee2e6;
-        display: flex;
-        justify-content: space-between;
+        backdrop-filter: blur(5px);
+        justify-content: center;
         align-items: center;
       }
 
+      .modal-content {
+        background: white;
+        width: 90%;
+        max-width: 900px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        position: relative;
+        max-height: 90vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .modal-header {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
       .modal-title {
-        margin: 0;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
+        color: #1a5276;
+        margin: 0;
       }
 
-      .close {
-        font-size: 24px;
-        font-weight: bold;
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 20px;
         cursor: pointer;
-        color: #999;
+        color: #7f8c8d;
+        padding: 5px;
+        border-radius: 4px;
+        transition: all 0.2s ease;
       }
 
-      .close:hover {
-        color: #333;
+      .modal-close:hover {
+        background-color: #f8f9fa;
+        color: #e74c3c;
       }
 
       .modal-body {
         padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      /* Animation for modal */
+      .modal {
+        animation: modalSlideIn 0.3s ease-out;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
 
       .score-breakdown {
@@ -319,16 +349,21 @@
       }
 
       .score-item {
-        padding: 15px;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        background: #f8f9fa;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #3498db;
       }
 
       .score-item h4 {
-        margin: 0 0 10px 0;
-        color: #333;
+        margin: 0 0 15px 0;
+        color: #1a5276;
         font-size: 16px;
+        font-weight: 600;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 8px;
       }
 
       .score-details {
@@ -339,9 +374,12 @@
       }
 
       .score-value {
-        font-weight: bold;
+        font-weight: 600;
         font-size: 18px;
-        color: #007bff;
+        color: #3498db;
+        background: rgba(52, 152, 219, 0.1);
+        padding: 4px 12px;
+        border-radius: 20px;
       }
 
       .loading {
@@ -434,10 +472,20 @@
         }
 
         .modal-content {
-          width: 95%;
-          margin: 5% auto;
-          max-height: 90vh;
-          overflow-y: auto;
+          width: 100%;
+          height: 100vh;
+          margin: 0;
+          border-radius: 0;
+          max-height: none;
+        }
+
+        .modal-header {
+          padding: 15px 20px;
+          border-radius: 0;
+        }
+
+        .modal-body {
+          padding: 20px;
         }
 
         .table-wrapper {
@@ -515,6 +563,16 @@
           height: 100vh;
           margin: 0;
           border-radius: 0;
+          max-height: none;
+        }
+
+        .modal-header {
+          padding: 15px 20px;
+          border-radius: 0;
+        }
+
+        .modal-body {
+          padding: 15px;
         }
 
         .kip-data-table {
@@ -547,14 +605,11 @@
     <!-- Mobile Toggle -->
     <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
 
-    <!-- Include Sidebar -->
-    <?!= include('Sidebar') ?>
+    <!-- Include Navbar -->
+    <?!= includeNavbar() ?>
 
     <!-- Main Content -->
     <div class="main-content">
-      <!-- Navbar -->
-      <?!= includeNavbar() ?>
-
       <!-- Page Header -->
       <div class="page-header">
         <h1 class="page-title">Analisis Eligibilitas KIP</h1>
@@ -667,7 +722,6 @@
                   <th>Ranking</th>
                   <th>NIS</th>
                   <th>Nama Siswa</th>
-                  <th>Kelas</th>
                   <th>Skor Total</th>
                   <th>Kategori</th>
                   <th>Status</th>
@@ -694,7 +748,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h3 class="modal-title">Detail Analisis KIP</h3>
-          <span class="close" onclick="closeModal()">&times;</span>
+          <button class="modal-close" onclick="closeModal()">&times;</button>
         </div>
         <div class="modal-body" id="modal-body">
           <!-- Detail content will be populated here -->

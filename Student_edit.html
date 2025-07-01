@@ -38,6 +38,7 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        text-decoration: none;
       }
 
       .back-button:hover {
@@ -212,6 +213,7 @@
         display: flex;
         align-items: center;
         gap: 5px;
+        text-decoration: none;
       }
 
       .edit-toggle-btn:hover {
@@ -239,6 +241,48 @@
       .section-content {
         padding: 25px;
         background: rgba(255, 255, 255, 0.8);
+      }
+
+      .detail-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .detail-table td {
+        padding: 15px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        vertical-align: top;
+        transition: all 0.3s ease;
+      }
+
+      .detail-table tr:hover {
+        background: rgba(0, 123, 255, 0.05);
+      }
+
+      .detail-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .detail-table td:first-child {
+        width: 30%;
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 0.95em;
+        line-height: 1.4;
+        background: rgba(248, 249, 250, 0.8);
+      }
+
+      .detail-table td:last-child {
+        width: 70%;
+        color: #495057;
+        font-weight: 500;
+        line-height: 1.5;
+        word-wrap: break-word;
       }
 
       .detail-row {
@@ -350,7 +394,7 @@
         font-weight: 600;
         min-width: 150px;
         border-radius: 12px;
-        text-decoration: none;
+        text-decoration: none !important;
         display: inline-block;
         transition: all 0.4s ease;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -369,9 +413,18 @@
         border: 2px solid #1a5276;
       }
 
-      .btn-primary:hover {
+      .btn-secondary:hover {
         background: #154360;
         border-color: #0f2a44;
+      }
+
+      /* Ensure anchor elements with btn class have no underline */
+      a.btn {
+        text-decoration: none !important;
+      }
+
+      a.btn:hover {
+        text-decoration: none !important;
       }
 
       .btn-secondary {
@@ -619,9 +672,60 @@
         cancelBtn.onclick = () => cancelEditMode(cardId);
         editBtn.parentNode.appendChild(cancelBtn);
 
-        // Convert values to inputs
+        // Convert values to inputs - support both table and row formats
         const detailRows = card.querySelectorAll(".detail-row");
+        const tableRows = card.querySelectorAll("tr[data-field]");
+
+        // Handle old detail-row format
         detailRows.forEach((row) => {
+          const valueElement = row.querySelector(".detail-value");
+          const fieldName = row.getAttribute("data-field");
+
+          if (valueElement && fieldName) {
+            const currentValue = valueElement.textContent.trim();
+            const fieldType = getFieldType(fieldName);
+
+            if (fieldType === "select") {
+              const selectOptions = getSelectOptions(fieldName);
+              const select = document.createElement("select");
+              select.className = "detail-select";
+              select.setAttribute("data-field", fieldName);
+
+              selectOptions.forEach((option) => {
+                const optionElement = document.createElement("option");
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                if (option.value === currentValue) {
+                  optionElement.selected = true;
+                }
+                select.appendChild(optionElement);
+              });
+
+              valueElement.replaceWith(select);
+            } else {
+              const input = document.createElement("input");
+              input.type = fieldType;
+              input.className = "detail-input";
+
+              // Handle date fields - convert from display format to YYYY-MM-DD
+              if (
+                fieldType === "date" &&
+                currentValue !== "-" &&
+                currentValue !== ""
+              ) {
+                input.value = convertToDateInputFormat(currentValue);
+              } else {
+                input.value = currentValue === "-" ? "" : currentValue;
+              }
+
+              input.setAttribute("data-field", fieldName);
+              valueElement.replaceWith(input);
+            }
+          }
+        });
+
+        // Handle new table format
+        tableRows.forEach((row) => {
           const valueElement = row.querySelector(".detail-value");
           const fieldName = row.getAttribute("data-field");
 
@@ -685,9 +789,28 @@
           cancelBtn.remove();
         }
 
-        // Restore original values
+        // Restore original values - support both table and row formats
         const detailRows = card.querySelectorAll(".detail-row");
+        const tableRows = card.querySelectorAll("tr[data-field]");
+
+        // Handle old detail-row format
         detailRows.forEach((row) => {
+          const inputElement = row.querySelector(
+            ".detail-input, .detail-select"
+          );
+          const fieldName = row.getAttribute("data-field");
+
+          if (inputElement && fieldName) {
+            const originalValue = getOriginalValue(fieldName);
+            const valueDiv = document.createElement("div");
+            valueDiv.className = "detail-value";
+            valueDiv.textContent = originalValue || "-";
+            inputElement.replaceWith(valueDiv);
+          }
+        });
+
+        // Handle new table format
+        tableRows.forEach((row) => {
           const inputElement = row.querySelector(
             ".detail-input, .detail-select"
           );
@@ -706,6 +829,7 @@
       // Save changes for a specific card
       function saveCardChanges(cardId) {
         const card = document.querySelector(`[data-card-id="${cardId}"]`);
+        // Get inputs from both old detail-row format and new table format
         const inputs = card.querySelectorAll(".detail-input, .detail-select");
         const changes = {};
 
@@ -745,9 +869,29 @@
           cancelBtn.remove();
         }
 
-        // Convert inputs back to values
+        // Convert inputs back to values - support both table and row formats
         const detailRows = card.querySelectorAll(".detail-row");
+        const tableRows = card.querySelectorAll("tr[data-field]");
+
+        // Handle old detail-row format
         detailRows.forEach((row) => {
+          const inputElement = row.querySelector(
+            ".detail-input, .detail-select"
+          );
+          const fieldName = row.getAttribute("data-field");
+
+          if (inputElement && fieldName) {
+            const currentValue =
+              pendingChanges[fieldName] || getOriginalValue(fieldName);
+            const valueDiv = document.createElement("div");
+            valueDiv.className = "detail-value";
+            valueDiv.textContent = currentValue || "-";
+            inputElement.replaceWith(valueDiv);
+          }
+        });
+
+        // Handle new table format
+        tableRows.forEach((row) => {
           const inputElement = row.querySelector(
             ".detail-input, .detail-select"
           );
@@ -1503,125 +1647,127 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="NIS">
-                    <div class="detail-label">NIS</div>
-                    <div class="detail-value">${
-                      student.NIS || student.nis || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="NISN">
-                    <div class="detail-label">NISN</div>
-                    <div class="detail-value">${
-                      student.NISN || student.nisn || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Siswa">
-                    <div class="detail-label">Nama Siswa</div>
-                    <div class="detail-value">${
-                      student["Nama Siswa"] || student.nama || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jenis Kelamin">
-                    <div class="detail-label">Jenis Kelamin</div>
-                    <div class="detail-value">${
-                      student["Jenis Kelamin"] || student.gender || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="NIK">
-                    <div class="detail-label">NIK</div>
-                    <div class="detail-value">${
-                      student["NIK"] || student.nik || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tempat Lahir">
-                    <div class="detail-label">Tempat Lahir</div>
-                    <div class="detail-value">${
-                      student["Tempat Lahir"] || student.birthplace || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tanggal Lahir">
-                    <div class="detail-label">Tanggal Lahir</div>
-                    <div class="detail-value">${
-                      student["Tanggal Lahir"] || student.birthdate || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Agama">
-                    <div class="detail-label">Agama</div>
-                    <div class="detail-value">${
-                      student["Agama"] || student.agama || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kewarganegaraan">
-                    <div class="detail-label">Kewarganegaraan</div>
-                    <div class="detail-value">${
-                      student["Kewarganegaraan"] ||
-                      student.kewarganegaraan ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Anak Ke-Berapa">
-                    <div class="detail-label">Anak Ke-</div>
-                    <div class="detail-value">${
-                      student["Anak Ke-Berapa"] ||
-                      student["Anak Ke"] ||
-                      student.anakKe ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jumlah Saudara Kandung">
-                    <div class="detail-label">Jumlah Saudara Kandung</div>
-                    <div class="detail-value">${
-                      student["Jumlah Saudara Kandung"] ||
-                      student.jumlahSaudaraKandung ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jumlah Saudara Tiri">
-                    <div class="detail-label">Jumlah Saudara Tiri</div>
-                    <div class="detail-value">${
-                      student["Jumlah Saudara Tiri"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jumlah Saudara Angkat">
-                    <div class="detail-label">Jumlah Saudara Angkat</div>
-                    <div class="detail-value">${
-                      student["Jumlah Saudara Angkat"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Status Orang Tua">
-                    <div class="detail-label">Status Orang Tua</div>
-                    <div class="detail-value">${
-                      student["Status Orang Tua"] ||
-                      student.statusOrangTua ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Bahasa Sehari-hari Dirumah">
-                    <div class="detail-label">Bahasa Sehari-hari Dirumah</div>
-                    <div class="detail-value">${
-                      student["Bahasa Sehari-hari Dirumah"] ||
-                      student.bahasaSehari ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tempat Tinggal Bersama">
-                    <div class="detail-label">Tempat Tinggal Bersama</div>
-                    <div class="detail-value">${
-                      student["Tempat Tinggal Bersama"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Modal Transportasi ke Sekolah">
-                    <div class="detail-label">Modal Transportasi ke Sekolah</div>
-                    <div class="detail-value">${
-                      student["Modal Transportasi ke Sekolah"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jarak ke Sekolah">
-                    <div class="detail-label">Jarak ke Sekolah</div>
-                    <div class="detail-value">${
-                      student["Jarak ke Sekolah"] || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="NIS">
+                      <td>NIS</td>
+                      <td class="detail-value">${
+                        student.NIS || student.nis || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="NISN">
+                      <td>NISN</td>
+                      <td class="detail-value">${
+                        student.NISN || student.nisn || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Siswa">
+                      <td>Nama Siswa</td>
+                      <td class="detail-value">${
+                        student["Nama Siswa"] || student.nama || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Jenis Kelamin">
+                      <td>Jenis Kelamin</td>
+                      <td class="detail-value">${
+                        student["Jenis Kelamin"] || student.gender || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="NIK">
+                      <td>NIK</td>
+                      <td class="detail-value">${
+                        student["NIK"] || student.nik || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tempat Lahir">
+                      <td>Tempat Lahir</td>
+                      <td class="detail-value">${
+                        student["Tempat Lahir"] || student.birthplace || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tanggal Lahir">
+                      <td>Tanggal Lahir</td>
+                      <td class="detail-value">${
+                        student["Tanggal Lahir"] || student.birthdate || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Agama">
+                      <td>Agama</td>
+                      <td class="detail-value">${
+                        student["Agama"] || student.agama || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kewarganegaraan">
+                      <td>Kewarganegaraan</td>
+                      <td class="detail-value">${
+                        student["Kewarganegaraan"] ||
+                        student.kewarganegaraan ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Anak Ke-Berapa">
+                      <td>Anak Ke-</td>
+                      <td class="detail-value">${
+                        student["Anak Ke-Berapa"] ||
+                        student["Anak Ke"] ||
+                        student.anakKe ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Jumlah Saudara Kandung">
+                      <td>Jumlah Saudara Kandung</td>
+                      <td class="detail-value">${
+                        student["Jumlah Saudara Kandung"] ||
+                        student.jumlahSaudaraKandung ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Jumlah Saudara Tiri">
+                      <td>Jumlah Saudara Tiri</td>
+                      <td class="detail-value">${
+                        student["Jumlah Saudara Tiri"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Jumlah Saudara Angkat">
+                      <td>Jumlah Saudara Angkat</td>
+                      <td class="detail-value">${
+                        student["Jumlah Saudara Angkat"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Status Orang Tua">
+                      <td>Status Orang Tua</td>
+                      <td class="detail-value">${
+                        student["Status Orang Tua"] ||
+                        student.statusOrangTua ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Bahasa Sehari-hari Dirumah">
+                      <td>Bahasa Sehari-hari Dirumah</td>
+                      <td class="detail-value">${
+                        student["Bahasa Sehari-hari Dirumah"] ||
+                        student.bahasaSehari ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tempat Tinggal Bersama">
+                      <td>Tempat Tinggal Bersama</td>
+                      <td class="detail-value">${
+                        student["Tempat Tinggal Bersama"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Modal Transportasi ke Sekolah">
+                      <td>Modal Transportasi ke Sekolah</td>
+                      <td class="detail-value">${
+                        student["Modal Transportasi ke Sekolah"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Jarak ke Sekolah">
+                      <td>Jarak ke Sekolah</td>
+                      <td class="detail-value">${
+                        student["Jarak ke Sekolah"] || "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -1634,69 +1780,71 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Alamat Lengkap">
-                    <div class="detail-label">Alamat Lengkap</div>
-                    <div class="detail-value">${
-                      student["Alamat Lengkap"] || student.alamat || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="RT/RW">
-                    <div class="detail-label">RT/RW</div>
-                    <div class="detail-value">${
-                      student["RT/RW"] || student.rt || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Dusun">
-                    <div class="detail-label">Nama Dusun</div>
-                    <div class="detail-value">${
-                      student["Nama Dusun"] ||
-                      student["Dusun"] ||
-                      student.dusun ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Desa/Kelurahan">
-                    <div class="detail-label">Nama Desa/Kelurahan</div>
-                    <div class="detail-value">${
-                      student["Nama Desa/Kelurahan"] ||
-                      student["Desa/Kelurahan"] ||
-                      student.desa ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kecamatan">
-                    <div class="detail-label">Kecamatan</div>
-                    <div class="detail-value">${
-                      student["Kecamatan"] || student.kecamatan || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kabupaten/Kota">
-                    <div class="detail-label">Kabupaten/Kota</div>
-                    <div class="detail-value">${
-                      student["Kabupaten/Kota"] || student.kabupaten || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Provinsi">
-                    <div class="detail-label">Provinsi</div>
-                    <div class="detail-value">${
-                      student["Provinsi"] || student.provinsi || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kode Pos">
-                    <div class="detail-label">Kode Pos</div>
-                    <div class="detail-value">${
-                      student["Kode Pos"] || student.kodePos || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="No. Telp Rumah">
-                    <div class="detail-label">No. Telp Rumah</div>
-                    <div class="detail-value">${
-                      student["No. Telp Rumah"] ||
-                      student["No. Telepon Rumah"] ||
-                      student.teleponRumah ||
-                      "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Alamat Lengkap">
+                      <td>Alamat Lengkap</td>
+                      <td class="detail-value">${
+                        student["Alamat Lengkap"] || student.alamat || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="RT/RW">
+                      <td>RT/RW</td>
+                      <td class="detail-value">${
+                        student["RT/RW"] || student.rt || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Dusun">
+                      <td>Nama Dusun</td>
+                      <td class="detail-value">${
+                        student["Nama Dusun"] ||
+                        student["Dusun"] ||
+                        student.dusun ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Desa/Kelurahan">
+                      <td>Nama Desa/Kelurahan</td>
+                      <td class="detail-value">${
+                        student["Nama Desa/Kelurahan"] ||
+                        student["Desa/Kelurahan"] ||
+                        student.desa ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kecamatan">
+                      <td>Kecamatan</td>
+                      <td class="detail-value">${
+                        student["Kecamatan"] || student.kecamatan || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kabupaten/Kota">
+                      <td>Kabupaten/Kota</td>
+                      <td class="detail-value">${
+                        student["Kabupaten/Kota"] || student.kabupaten || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Provinsi">
+                      <td>Provinsi</td>
+                      <td class="detail-value">${
+                        student["Provinsi"] || student.provinsi || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kode Pos">
+                      <td>Kode Pos</td>
+                      <td class="detail-value">${
+                        student["Kode Pos"] || student.kodePos || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="No. Telp Rumah">
+                      <td>No. Telp Rumah</td>
+                      <td class="detail-value">${
+                        student["No. Telp Rumah"] ||
+                        student["No. Telepon Rumah"] ||
+                        student.teleponRumah ||
+                        "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -1709,47 +1857,51 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Golongan Darah">
-                    <div class="detail-label">Golongan Darah</div>
-                    <div class="detail-value">${
-                      student["Golongan Darah"] || student.golonganDarah || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Penyakit Yang Pernah dI Derita">
-                    <div class="detail-label">Penyakit Yang Pernah dI Derita</div>
-                    <div class="detail-value">${
-                      student["Penyakit Yang Pernah dI Derita"] ||
-                      student["Penyakit Yang Pernah Diderita"] ||
-                      student.penyakitPernah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Penyakit Yang Lain">
-                    <div class="detail-label">Penyakit Yang Lain</div>
-                    <div class="detail-value">${
-                      student["Penyakit Yang Lain"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kelainan Jasmani">
-                    <div class="detail-label">Kelainan Jasmani</div>
-                    <div class="detail-value">${
-                      student["Kelainan Jasmani"] ||
-                      student.kelainanJasmani ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tinggi Badan">
-                    <div class="detail-label">Tinggi Badan</div>
-                    <div class="detail-value">${
-                      student["Tinggi Badan"] || student.tinggiBadan || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Berat Badan">
-                    <div class="detail-label">Berat Badan</div>
-                    <div class="detail-value">${
-                      student["Berat Badan"] || student.beratBadan || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Golongan Darah">
+                      <td>Golongan Darah</td>
+                      <td class="detail-value">${
+                        student["Golongan Darah"] ||
+                        student.golonganDarah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Penyakit Yang Pernah dI Derita">
+                      <td>Penyakit Yang Pernah dI Derita</td>
+                      <td class="detail-value">${
+                        student["Penyakit Yang Pernah dI Derita"] ||
+                        student["Penyakit Yang Pernah Diderita"] ||
+                        student.penyakitPernah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Penyakit Yang Lain">
+                      <td>Penyakit Yang Lain</td>
+                      <td class="detail-value">${
+                        student["Penyakit Yang Lain"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kelainan Jasmani">
+                      <td>Kelainan Jasmani</td>
+                      <td class="detail-value">${
+                        student["Kelainan Jasmani"] ||
+                        student.kelainanJasmani ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tinggi Badan">
+                      <td>Tinggi Badan</td>
+                      <td class="detail-value">${
+                        student["Tinggi Badan"] || student.tinggiBadan || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Berat Badan">
+                      <td>Berat Badan</td>
+                      <td class="detail-value">${
+                        student["Berat Badan"] || student.beratBadan || "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -1762,78 +1914,77 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Status Akademik">
-                    <div class="detail-label">Status Akademik</div>
-                    <div class="detail-value">${
-                      student["Status Akademik"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan">
-                    <div class="detail-label">Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</div>
-                    <div class="detail-value">${
-                      student[
-                        "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan"
-                      ] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan">
-                    <div class="detail-label">Tanggal Diterima di SMPN 03 Pekalongan</div>
-                    <div class="detail-value">${
-                      student[
-                        "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"
-                      ] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Asal Sekolah (SD/MI)">
-                    <div class="detail-label">Asal Sekolah (SD/MI)</div>
-                    <div class="detail-value">${
-                      student["Asal Sekolah (SD/MI)"] ||
-                      student.asalSekolah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tanggal Lulus SD/MI">
-                    <div class="detail-label">Tanggal Lulus (SD/MI)</div>
-                    <div class="detail-value">${
-                      student["Tanggal Lulus SD/MI"] ||
-                      student.tanggalLulusSD ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nomor Ijazah (SD/MI)">
-                    <div class="detail-label">Nomor Ijazah (SD/MI)</div>
-                    <div class="detail-value">${
-                      student["Nomor Ijazah SD/MI"] ||
-                      student.nomorIjazahSD ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Lama Belajar di (SD/MI)">
-                    <div class="detail-label">Lama Belajar di (SD/MI)</div>
-                    <div class="detail-value">${
-                      student["Lama Belajar di SD/MI"] ||
-                      student.lamaBelajarSD ||
-                      "-"
-                    }</div>
-                  </div>
-
-                  <div class="detail-row">
-                      <h3>Siswa Pindahan</h3>
-                   
-                  </div>
-                  
-                  <div class="detail-row" data-field="Asal Sekolah (SMP/MTS/Sederajat)">
-                    <div class="detail-label">Asal Sekolah (SMP/MTS/Sederajat)</div>
-                    <div class="detail-value">${
-                      student["Asal Sekolah (SMP/MTS/Sederajat)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Alasan Pindah Sekolah">
-                    <div class="detail-label">Alasan Pindah Sekolah</div>
-                    <div class="detail-value">${
-                      student["Alasan Pindah Sekolah"] || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Status Akademik">
+                      <td>Status Akademik</td>
+                      <td class="detail-value">${
+                        student["Status Akademik"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan">
+                      <td>Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</td>
+                      <td class="detail-value">${
+                        student[
+                          "Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan"
+                        ] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan">
+                      <td>Tanggal Diterima di SMPN 03 Pekalongan</td>
+                      <td class="detail-value">${
+                        student[
+                          "Hari, Tanggal, dan Tahun Diterima di SMPN 03 Pekalongan"
+                        ] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Asal Sekolah (SD/MI)">
+                      <td>Asal Sekolah (SD/MI)</td>
+                      <td class="detail-value">${
+                        student["Asal Sekolah (SD/MI)"] ||
+                        student.asalSekolah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tanggal Lulus SD/MI">
+                      <td>Tanggal Lulus (SD/MI)</td>
+                      <td class="detail-value">${
+                        student["Tanggal Lulus SD/MI"] ||
+                        student.tanggalLulusSD ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nomor Ijazah (SD/MI)">
+                      <td>Nomor Ijazah (SD/MI)</td>
+                      <td class="detail-value">${
+                        student["Nomor Ijazah SD/MI"] ||
+                        student.nomorIjazahSD ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Lama Belajar di (SD/MI)">
+                      <td>Lama Belajar di (SD/MI)</td>
+                      <td class="detail-value">${
+                        student["Lama Belajar di SD/MI"] ||
+                        student.lamaBelajarSD ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2"><h3>Siswa Pindahan</h3></td>
+                    </tr>
+                    <tr data-field="Asal Sekolah (SMP/MTS/Sederajat)">
+                      <td>Asal Sekolah (SMP/MTS/Sederajat)</td>
+                      <td class="detail-value">${
+                        student["Asal Sekolah (SMP/MTS/Sederajat)"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Alasan Pindah Sekolah">
+                      <td>Alasan Pindah Sekolah</td>
+                      <td class="detail-value">${
+                        student["Alasan Pindah Sekolah"] || "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -1846,87 +1997,91 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Nama Ayah Kandung">
-                    <div class="detail-label">Nama</div>
-                    <div class="detail-value">${
-                      student["Nama Ayah Kandung"] || student.ayah || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="NIK Ayah">
-                    <div class="detail-label">NIK</div>
-                    <div class="detail-value">${
-                      student["NIK Ayah"] || student.nikAyah || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tempat dan Tanggal Lahir Ayah">
-                    <div class="detail-label">Tempat dan Tanggal Lahir</div>
-                    <div class="detail-value">${
-                      student["Tempat dan Tanggal Lahir Ayah"] ||
-                      student["Tempat, Tanggal Lahir Ayah"] ||
-                      student.ttlAyah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Agama Ayah">
-                    <div class="detail-label">Agama</div>
-                    <div class="detail-value">${
-                      student["Agama Ayah"] || student.agamaAyah || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kewarganegaraan Ayah">
-                    <div class="detail-label">Kewarganegaraan</div>
-                    <div class="detail-value">${
-                      student["Kewarganegaraan Ayah"] ||
-                      student.kewarganegaraanAyah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Pendidikan Terakhir Ayah">
-                    <div class="detail-label">Pendidikan</div>
-                    <div class="detail-value">${
-                      student["Pendidikan Terakhir Ayah"] ||
-                      student.pendidikanAyah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Pekerjaan Ayah">
-                    <div class="detail-label">Pekerjaan</div>
-                    <div class="detail-value">${
-                      student["Pekerjaan Ayah"] || student.pekerjaanAyah || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Penghasilan Bulanan Ayah">
-                    <div class="detail-label">Penghasilan Bulanan</div>
-                    <div class="detail-value">${
-                      student["Penghasilan Bulanan Ayah"] ||
-                      student["Penghasilan per Bulan Ayah"] ||
-                      student.penghasilanAyah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Alamat Lengkap Ayah">
-                    <div class="detail-label">Alamat</div>
-                    <div class="detail-value">${
-                      student["Alamat Lengkap Ayah"] ||
-                      student.alamatAyah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nomor Telepon Ayah">
-                    <div class="detail-label">Nomor Telepon</div>
-                    <div class="detail-value">${
-                      student["Nomor Telepon Ayah"] ||
-                      student["No. HP/Telp Ayah"] ||
-                      student.phoneAyah ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Status Ayah">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value">${
-                      student["Status Ayah"] || student.statusAyah || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Nama Ayah Kandung">
+                      <td>Nama</td>
+                      <td class="detail-value">${
+                        student["Nama Ayah Kandung"] || student.ayah || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="NIK Ayah">
+                      <td>NIK</td>
+                      <td class="detail-value">${
+                        student["NIK Ayah"] || student.nikAyah || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tempat dan Tanggal Lahir Ayah">
+                      <td>Tempat dan Tanggal Lahir</td>
+                      <td class="detail-value">${
+                        student["Tempat dan Tanggal Lahir Ayah"] ||
+                        student["Tempat, Tanggal Lahir Ayah"] ||
+                        student.ttlAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Agama Ayah">
+                      <td>Agama</td>
+                      <td class="detail-value">${
+                        student["Agama Ayah"] || student.agamaAyah || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kewarganegaraan Ayah">
+                      <td>Kewarganegaraan</td>
+                      <td class="detail-value">${
+                        student["Kewarganegaraan Ayah"] ||
+                        student.kewarganegaraanAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Pendidikan Terakhir Ayah">
+                      <td>Pendidikan</td>
+                      <td class="detail-value">${
+                        student["Pendidikan Terakhir Ayah"] ||
+                        student.pendidikanAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Pekerjaan Ayah">
+                      <td>Pekerjaan</td>
+                      <td class="detail-value">${
+                        student["Pekerjaan Ayah"] ||
+                        student.pekerjaanAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Penghasilan Bulanan Ayah">
+                      <td>Penghasilan Bulanan</td>
+                      <td class="detail-value">${
+                        student["Penghasilan Bulanan Ayah"] ||
+                        student["Penghasilan per Bulan Ayah"] ||
+                        student.penghasilanAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Alamat Lengkap Ayah">
+                      <td>Alamat</td>
+                      <td class="detail-value">${
+                        student["Alamat Lengkap Ayah"] ||
+                        student.alamatAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nomor Telepon Ayah">
+                      <td>Nomor Telepon</td>
+                      <td class="detail-value">${
+                        student["Nomor Telepon Ayah"] ||
+                        student["No. HP/Telp Ayah"] ||
+                        student.phoneAyah ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Status Ayah">
+                      <td>Status</td>
+                      <td class="detail-value">${
+                        student["Status Ayah"] || student.statusAyah || "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -1939,85 +2094,89 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Nama Ibu Kandung">
-                    <div class="detail-label">Nama</div>
-                    <div class="detail-value">${
-                      student["Nama Ibu Kandung"] || student.ibu || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="NIK Ibu">
-                    <div class="detail-label">NIK</div>
-                    <div class="detail-value">${
-                      student["NIK Ibu"] || student.nikIbu || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tempat dan Tanggal Lahir Ibu">
-                    <div class="detail-label">Tempat dan Tanggal Lahir</div>
-                    <div class="detail-value">${
-                      student["Tempat dan Tanggal Lahir Ibu"] ||
-                      student["Tempat, Tanggal Lahir Ibu"] ||
-                      student.ttlIbu ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Agama Ibu">
-                    <div class="detail-label">Agama</div>
-                    <div class="detail-value">${
-                      student["Agama Ibu"] || student.agamaIbu || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kewarganegaraan Ibu">
-                    <div class="detail-label">Kewarganegaraan</div>
-                    <div class="detail-value">${
-                      student["Kewarganegaraan Ibu"] ||
-                      student.kewarganegaraanIbu ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Pendidikan Terakhir Ibu">
-                    <div class="detail-label">Pendidikan</div>
-                    <div class="detail-value">${
-                      student["Pendidikan Terakhir Ibu"] ||
-                      student.pendidikanIbu ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Pekerjaan Ibu">
-                    <div class="detail-label">Pekerjaan</div>
-                    <div class="detail-value">${
-                      student["Pekerjaan Ibu"] || student.pekerjaanIbu || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Penghasilan Bulanan Ibu">
-                    <div class="detail-label">Penghasilan Bulanan</div>
-                    <div class="detail-value">${
-                      student["Penghasilan Bulanan Ibu"] ||
-                      student["Penghasilan per Bulan Ibu"] ||
-                      student.penghasilanIbu ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Alamat Lengkap Ibu">
-                    <div class="detail-label">Alamat</div>
-                    <div class="detail-value">${
-                      student["Alamat Lengkap Ibu"] || student.alamatIbu || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nomor Telepon Ibu">
-                    <div class="detail-label">Nomor Telepon</div>
-                    <div class="detail-value">${
-                      student["Nomor Telepon Ibu"] ||
-                      student["No. HP/Telp Ibu"] ||
-                      student.phoneIbu ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Status Ibu">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value">${
-                      student["Status Ibu"] || student.statusIbu || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Nama Ibu Kandung">
+                      <td>Nama</td>
+                      <td class="detail-value">${
+                        student["Nama Ibu Kandung"] || student.ibu || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="NIK Ibu">
+                      <td>NIK</td>
+                      <td class="detail-value">${
+                        student["NIK Ibu"] || student.nikIbu || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tempat dan Tanggal Lahir Ibu">
+                      <td>Tempat dan Tanggal Lahir</td>
+                      <td class="detail-value">${
+                        student["Tempat dan Tanggal Lahir Ibu"] ||
+                        student["Tempat, Tanggal Lahir Ibu"] ||
+                        student.ttlIbu ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Agama Ibu">
+                      <td>Agama</td>
+                      <td class="detail-value">${
+                        student["Agama Ibu"] || student.agamaIbu || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kewarganegaraan Ibu">
+                      <td>Kewarganegaraan</td>
+                      <td class="detail-value">${
+                        student["Kewarganegaraan Ibu"] ||
+                        student.kewarganegaraanIbu ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Pendidikan Terakhir Ibu">
+                      <td>Pendidikan</td>
+                      <td class="detail-value">${
+                        student["Pendidikan Terakhir Ibu"] ||
+                        student.pendidikanIbu ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Pekerjaan Ibu">
+                      <td>Pekerjaan</td>
+                      <td class="detail-value">${
+                        student["Pekerjaan Ibu"] || student.pekerjaanIbu || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Penghasilan Bulanan Ibu">
+                      <td>Penghasilan Bulanan</td>
+                      <td class="detail-value">${
+                        student["Penghasilan Bulanan Ibu"] ||
+                        student["Penghasilan per Bulan Ibu"] ||
+                        student.penghasilanIbu ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Alamat Lengkap Ibu">
+                      <td>Alamat</td>
+                      <td class="detail-value">${
+                        student["Alamat Lengkap Ibu"] ||
+                        student.alamatIbu ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nomor Telepon Ibu">
+                      <td>Nomor Telepon</td>
+                      <td class="detail-value">${
+                        student["Nomor Telepon Ibu"] ||
+                        student["No. HP/Telp Ibu"] ||
+                        student.phoneIbu ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Status Ibu">
+                      <td>Status</td>
+                      <td class="detail-value">${
+                        student["Status Ibu"] || student.statusIbu || "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -2030,90 +2189,94 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Nama Wali">
-                    <div class="detail-label">Nama</div>
-                    <div class="detail-value">${
-                      student["Nama Wali"] || student.wali || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="NIK Wali">
-                    <div class="detail-label">NIK</div>
-                    <div class="detail-value">${
-                      student["NIK Wali"] || student.nikWali || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tempat dan Tanggal Lahir Wali">
-                    <div class="detail-label">Tempat dan Tanggal Lahir</div>
-                    <div class="detail-value">${
-                      student["Tempat dan Tanggal Lahir Wali"] ||
-                      student["Tempat, Tanggal Lahir Wali"] ||
-                      student.ttlWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Agama Wali Murid">
-                    <div class="detail-label">Agama Wali Murid</div>
-                    <div class="detail-value">${
-                      student["Agama Wali Murid"] ||
-                      student["Agama Wali"] ||
-                      student.agamaWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Kewarganegaraan Wali">
-                    <div class="detail-label">Kewarganegaraan</div>
-                    <div class="detail-value">${
-                      student["Kewarganegaraan Wali"] ||
-                      student.kewarganegaraanWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Pendidikan Terakhir Wali">
-                    <div class="detail-label">Pendidikan</div>
-                    <div class="detail-value">${
-                      student["Pendidikan Terakhir Wali"] ||
-                      student.pendidikanWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Pekerjaan Wali">
-                    <div class="detail-label">Pekerjaan</div>
-                    <div class="detail-value">${
-                      student["Pekerjaan Wali"] || student.pekerjaanWali || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Penghasilan Bulanan Wali">
-                    <div class="detail-label">Penghasilan Bulanan</div>
-                    <div class="detail-value">${
-                      student["Penghasilan Bulanan Wali"] ||
-                      student["Penghasilan per Bulan Wali"] ||
-                      student.penghasilanWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Alamat Lengkap Wali">
-                    <div class="detail-label">Alamat</div>
-                    <div class="detail-value">${
-                      student["Alamat Lengkap Wali"] ||
-                      student.alamatWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nomor Telepon Wali">
-                    <div class="detail-label">Nomor Telepon</div>
-                    <div class="detail-value">${
-                      student["Nomor Telepon Wali"] ||
-                      student["No. HP/Telp Wali"] ||
-                      student.phoneWali ||
-                      "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Status Wali">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value">${
-                      student["Status Wali"] || student.statusWali || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Nama Wali">
+                      <td>Nama</td>
+                      <td class="detail-value">${
+                        student["Nama Wali"] || student.wali || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="NIK Wali">
+                      <td>NIK</td>
+                      <td class="detail-value">${
+                        student["NIK Wali"] || student.nikWali || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Tempat dan Tanggal Lahir Wali">
+                      <td>Tempat dan Tanggal Lahir</td>
+                      <td class="detail-value">${
+                        student["Tempat dan Tanggal Lahir Wali"] ||
+                        student["Tempat, Tanggal Lahir Wali"] ||
+                        student.ttlWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Agama Wali Murid">
+                      <td>Agama Wali Murid</td>
+                      <td class="detail-value">${
+                        student["Agama Wali Murid"] ||
+                        student["Agama Wali"] ||
+                        student.agamaWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Kewarganegaraan Wali">
+                      <td>Kewarganegaraan</td>
+                      <td class="detail-value">${
+                        student["Kewarganegaraan Wali"] ||
+                        student.kewarganegaraanWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Pendidikan Terakhir Wali">
+                      <td>Pendidikan</td>
+                      <td class="detail-value">${
+                        student["Pendidikan Terakhir Wali"] ||
+                        student.pendidikanWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Pekerjaan Wali">
+                      <td>Pekerjaan</td>
+                      <td class="detail-value">${
+                        student["Pekerjaan Wali"] ||
+                        student.pekerjaanWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Penghasilan Bulanan Wali">
+                      <td>Penghasilan Bulanan</td>
+                      <td class="detail-value">${
+                        student["Penghasilan Bulanan Wali"] ||
+                        student["Penghasilan per Bulan Wali"] ||
+                        student.penghasilanWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Alamat Lengkap Wali">
+                      <td>Alamat</td>
+                      <td class="detail-value">${
+                        student["Alamat Lengkap Wali"] ||
+                        student.alamatWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Nomor Telepon Wali">
+                      <td>Nomor Telepon</td>
+                      <td class="detail-value">${
+                        student["Nomor Telepon Wali"] ||
+                        student["No. HP/Telp Wali"] ||
+                        student.phoneWali ||
+                        "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Status Wali">
+                      <td>Status</td>
+                      <td class="detail-value">${
+                        student["Status Wali"] || student.statusWali || "-"
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
 
@@ -2126,195 +2289,142 @@
                   </button>
                 </div>
                 <div class="section-content">
-                  <div class="detail-row" data-field="Bidang Seni">
-                    <div class="detail-label">Hobi Seni</div>
-                    <div class="detail-value">${
-                      student["Bidang Seni"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Bidang Olahraga">
-                    <div class="detail-label">Hobi Olahraga</div>
-                    <div class="detail-value">${
-                      student["Bidang Olahraga"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Bidang Lain-Lain">
-                    <div class="detail-label">Bidang Lain</div>
-                    <div class="detail-value">${
-                      student["Bidang Lain-Lain"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row">
-                      <h3>Prestasi Siswa</h3>
-                   
-                  </div>
-                  <div class="detail-row" data-field="Nama Prestasi">
-                    <div class="detail-label">Nama Prestasi 1</div>
-                    <div class="detail-value">${
-                      student["Nama Prestasi"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tingkat Prestasi">
-                    <div class="detail-label">Tingkat Prestasi 1</div>
-                    <div class="detail-value">${
-                      student["Tingkat Prestasi"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Prestasi">
-                    <div class="detail-label">Tahun Prestasi 1</div>
-                    <div class="detail-value">${
-                      student["Tahun Prestasi"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Prestasi (2)">
-                    <div class="detail-label">Nama Prestasi 2</div>
-                    <div class="detail-value">${
-                      student["Nama Prestasi (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tingkat Prestasi (2)">
-                    <div class="detail-label">Tingkat Prestasi 2</div>
-                    <div class="detail-value">${
-                      student["Tingkat Prestasi (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Prestasi (2)">
-                    <div class="detail-label">Tahun Prestasi 2</div>
-                    <div class="detail-value">${
-                      student["Tahun Prestasi (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Prestasi (3)">
-                    <div class="detail-label">Nama Prestasi 3</div>
-                    <div class="detail-value">${
-                      student["Nama Prestasi (3)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tingkat Prestasi (3)">
-                    <div class="detail-label">Tingkat Prestasi 3</div>
-                    <div class="detail-value">${
-                      student["Tingkat Prestasi (3)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Prestasi (3)">
-                    <div class="detail-label">Tahun Prestasi 3</div>
-                    <div class="detail-value">${
-                      student["Tahun Prestasi (3)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Prestasi (4)">
-                    <div class="detail-label">Nama Prestasi 4</div>
-                    <div class="detail-value">${
-                      student["Nama Prestasi (4)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tingkat Prestasi (4)">
-                    <div class="detail-label">Tingkat Prestasi 4</div>
-                    <div class="detail-value">${
-                      student["Tingkat Prestasi (4)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Prestasi (4)">
-                    <div class="detail-label">Tahun Prestasi 4</div>
-                    <div class="detail-value">${
-                      student["Tahun Prestasi (4)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Nama Prestasi (5)">
-                    <div class="detail-label">Nama Prestasi 5</div>
-                    <div class="detail-value">${
-                      student["Nama Prestasi (5)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tingkat Prestasi (5)">
-                    <div class="detail-label">Tingkat Prestasi 5</div>
-                    <div class="detail-value">${
-                      student["Tingkat Prestasi (5)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Prestasi (5)">
-                    <div class="detail-label">Tahun Prestasi 5</div>
-                    <div class="detail-value">${
-                      student["Tahun Prestasi (5)"] || "-"
-                    }</div>
-                  </div>
-
-                  <div class="detail-row">
-                      <h3>Beasiswa Siswa</h3>
-                    
-                  </div>
-                  <div class="detail-row" data-field="Jenis Beasiswa">
-                    <div class="detail-label">Jenis Beasiswa 1</div>
-                    <div class="detail-value">${
-                      student["Jenis Beasiswa"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Keterangan">
-                    <div class="detail-label">Keterangan Beasiswa 1</div>
-                    <div class="detail-value">${
-                      student["Keterangan"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Mulai">
-                    <div class="detail-label">Tahun Mulai Beasiswa 1</div>
-                    <div class="detail-value">${
-                      student["Tahun Mulai"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Selesai">
-                    <div class="detail-label">Tahun Selesai Beasiswa 1</div>
-                    <div class="detail-value">${
-                      student["Tahun Selesai"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jenis Beasiswa (2)">
-                    <div class="detail-label">Jenis Beasiswa 2</div>
-                    <div class="detail-value">${
-                      student["Jenis Beasiswa (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Keterangan (2)">
-                    <div class="detail-label">Keterangan Beasiswa 2</div>
-                    <div class="detail-value">${
-                      student["Keterangan (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Mulai (2)">
-                    <div class="detail-label">Tahun Mulai Beasiswa 2</div>
-                    <div class="detail-value">${
-                      student["Tahun Mulai (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Selesai (2)">
-                    <div class="detail-label">Tahun Selesai Beasiswa 2</div>
-                    <div class="detail-value">${
-                      student["Tahun Selesai (2)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Jenis Beasiswa (3)">
-                    <div class="detail-label">Jenis Beasiswa 3</div>
-                    <div class="detail-value">${
-                      student["Jenis Beasiswa (3)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Keterangan (3)">
-                    <div class="detail-label">Keterangan Beasiswa 3</div>
-                    <div class="detail-value">${
-                      student["Keterangan (3)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Mulai (3)">
-                    <div class="detail-label">Tahun Mulai Beasiswa 3</div>
-                    <div class="detail-value">${
-                      student["Tahun Mulai (3)"] || "-"
-                    }</div>
-                  </div>
-                  <div class="detail-row" data-field="Tahun Selesai (3)">
-                    <div class="detail-label">Tahun Selesai Beasiswa 3</div>
-                    <div class="detail-value">${
-                      student["Tahun Selesai (3)"] || "-"
-                    }</div>
-                  </div>
+                  <table class="detail-table">
+                    <tr data-field="Bidang Seni">
+                      <td>🎨 Hobi Seni</td>
+                      <td class="detail-value">${
+                        student["Bidang Seni"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Bidang Olahraga">
+                      <td>⚽ Hobi Olahraga</td>
+                      <td class="detail-value">${
+                        student["Bidang Olahraga"] || "-"
+                      }</td>
+                    </tr>
+                    <tr data-field="Bidang Lain-Lain">
+                      <td>🎯 Bidang Lain</td>
+                      <td class="detail-value">${
+                        student["Bidang Lain-Lain"] || "-"
+                      }</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2"><h3>🏆 Prestasi Siswa</h3></td>
+                    </tr>
+                    <tr data-field="Nama Prestasi">
+                      <td>Prestasi 1</td>
+                      <td class="detail-value">${
+                        (student["Nama Prestasi"] || "-") +
+                        (student["Tingkat Prestasi"]
+                          ? " (" + student["Tingkat Prestasi"] + ")"
+                          : "") +
+                        (student["Tahun Prestasi"]
+                          ? " - " + student["Tahun Prestasi"]
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Prestasi (2)">
+                      <td>Prestasi 2</td>
+                      <td class="detail-value">${
+                        (student["Nama Prestasi (2)"] || "-") +
+                        (student["Tingkat Prestasi (2)"]
+                          ? " (" + student["Tingkat Prestasi (2)"] + ")"
+                          : "") +
+                        (student["Tahun Prestasi (2)"]
+                          ? " - " + student["Tahun Prestasi (2)"]
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Prestasi (3)">
+                      <td>Prestasi 3</td>
+                      <td class="detail-value">${
+                        (student["Nama Prestasi (3)"] || "-") +
+                        (student["Tingkat Prestasi (3)"]
+                          ? " (" + student["Tingkat Prestasi (3)"] + ")"
+                          : "") +
+                        (student["Tahun Prestasi (3)"]
+                          ? " - " + student["Tahun Prestasi (3)"]
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Prestasi (4)">
+                      <td>Prestasi 4</td>
+                      <td class="detail-value">${
+                        (student["Nama Prestasi (4)"] || "-") +
+                        (student["Tingkat Prestasi (4)"]
+                          ? " (" + student["Tingkat Prestasi (4)"] + ")"
+                          : "") +
+                        (student["Tahun Prestasi (4)"]
+                          ? " - " + student["Tahun Prestasi (4)"]
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr data-field="Nama Prestasi (5)">
+                      <td>Prestasi 5</td>
+                      <td class="detail-value">${
+                        (student["Nama Prestasi (5)"] || "-") +
+                        (student["Tingkat Prestasi (5)"]
+                          ? " (" + student["Tingkat Prestasi (5)"] + ")"
+                          : "") +
+                        (student["Tahun Prestasi (5)"]
+                          ? " - " + student["Tahun Prestasi (5)"]
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2"><h3>🎓 Beasiswa Siswa</h3></td>
+                    </tr>
+                    <tr data-field="Jenis Beasiswa">
+                      <td>Beasiswa 1</td>
+                      <td class="detail-value">${
+                        (student["Jenis Beasiswa"] || "-") +
+                        (student["Keterangan"]
+                          ? " - " + student["Keterangan"]
+                          : "") +
+                        (student["Tahun Mulai"] && student["Tahun Selesai"]
+                          ? " (" +
+                            student["Tahun Mulai"] +
+                            "-" +
+                            student["Tahun Selesai"] +
+                            ")"
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr data-field="Jenis Beasiswa (2)">
+                      <td>Beasiswa 2</td>
+                      <td class="detail-value">${
+                        (student["Jenis Beasiswa (2)"] || "-") +
+                        (student["Keterangan (2)"]
+                          ? " - " + student["Keterangan (2)"]
+                          : "") +
+                        (student["Tahun Mulai (2)"] &&
+                        student["Tahun Selesai (2)"]
+                          ? " (" +
+                            student["Tahun Mulai (2)"] +
+                            "-" +
+                            student["Tahun Selesai (2)"] +
+                            ")"
+                          : "")
+                      }</td>
+                    </tr>
+                    <tr data-field="Jenis Beasiswa (3)">
+                      <td>Beasiswa 3</td>
+                      <td class="detail-value">${
+                        (student["Jenis Beasiswa (3)"] || "-") +
+                        (student["Keterangan (3)"]
+                          ? " - " + student["Keterangan (3)"]
+                          : "") +
+                        (student["Tahun Mulai (3)"] &&
+                        student["Tahun Selesai (3)"]
+                          ? " (" +
+                            student["Tahun Mulai (3)"] +
+                            "-" +
+                            student["Tahun Selesai (3)"] +
+                            ")"
+                          : "")
+                      }</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
             </div>

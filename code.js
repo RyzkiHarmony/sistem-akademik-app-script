@@ -3867,51 +3867,85 @@ function getKIPAnalysisResults() {
 
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
+
+      // Ensure all values are properly serializable
       const result = {
-        id: row[headers.indexOf("ID")] || i,
-        tanggalAnalisis: row[headers.indexOf("Tanggal Analisis")] || new Date(),
-        nis: row[headers.indexOf("NIS")] || "",
-        namaSiswa: row[headers.indexOf("Nama Siswa")] || "",
-        kelas: row[headers.indexOf("Kelas")] || "",
-        skorPenghasilan: parseFloat(
-          row[headers.indexOf("Skor Penghasilan")] || 0
+        id: Number(row[headers.indexOf("ID")]) || i,
+        tanggalAnalisis: formatDateForSerialization(
+          row[headers.indexOf("Tanggal Analisis")] || new Date()
         ),
-        skorStatus: parseFloat(row[headers.indexOf("Skor Status")] || 0),
-        skorTanggungan: parseFloat(
-          row[headers.indexOf("Skor Tanggungan")] || 0
+        nis: String(row[headers.indexOf("NIS")] || ""),
+        namaSiswa: String(row[headers.indexOf("Nama Siswa")] || ""),
+        kelas: String(row[headers.indexOf("Kelas")] || ""),
+        skorPenghasilan: Number(
+          parseFloat(row[headers.indexOf("Skor Penghasilan")] || 0)
         ),
-        skorBeasiswa: parseFloat(row[headers.indexOf("Skor Beasiswa")] || 0),
-        skorTotal: parseFloat(row[headers.indexOf("Skor Total")] || 0),
-        kategori: row[headers.indexOf("Kategori")] || "",
-        ranking: parseInt(row[headers.indexOf("Ranking")] || 0),
-        status: row[headers.indexOf("Status Verifikasi")] || "Pending",
-        catatan: row[headers.indexOf("Catatan Admin")] || "",
-        penghasilanAyah: row[headers.indexOf("Penghasilan Ayah")] || "",
-        penghasilanIbu: row[headers.indexOf("Penghasilan Ibu")] || "",
-        penghasilanWali: row[headers.indexOf("Penghasilan Wali")] || "",
-        statusOrangTua: row[headers.indexOf("Status Orang Tua")] || "",
-        jumlahSaudara: row[headers.indexOf("Jumlah Saudara")] || "",
-        statusBeasiswa: row[headers.indexOf("Status Beasiswa")] || "",
+        skorStatus: Number(
+          parseFloat(row[headers.indexOf("Skor Status")] || 0)
+        ),
+        skorTanggungan: Number(
+          parseFloat(row[headers.indexOf("Skor Tanggungan")] || 0)
+        ),
+        skorBeasiswa: Number(
+          parseFloat(row[headers.indexOf("Skor Beasiswa")] || 0)
+        ),
+        skorTotal: Number(parseFloat(row[headers.indexOf("Skor Total")] || 0)),
+        kategori: String(row[headers.indexOf("Kategori")] || ""),
+        ranking: Number(parseInt(row[headers.indexOf("Ranking")] || 0)),
+        status: String(row[headers.indexOf("Status Verifikasi")] || "Pending"),
+        catatan: String(row[headers.indexOf("Catatan Admin")] || ""),
+        penghasilanAyah: String(row[headers.indexOf("Penghasilan Ayah")] || ""),
+        penghasilanIbu: String(row[headers.indexOf("Penghasilan Ibu")] || ""),
+        penghasilanWali: String(row[headers.indexOf("Penghasilan Wali")] || ""),
+        statusOrangTua: String(row[headers.indexOf("Status Orang Tua")] || ""),
+        jumlahSaudara: String(row[headers.indexOf("Jumlah Saudara")] || ""),
+        statusBeasiswa: String(row[headers.indexOf("Status Beasiswa")] || ""),
       };
-      results.push(result);
+
+      // Validate the result object
+      if (result.nis && result.namaSiswa) {
+        results.push(result);
+      } else {
+        Logger.log("Skipping invalid row " + i + ": missing NIS or name");
+      }
     }
 
     // Sort by ranking
     results.sort((a, b) => a.ranking - b.ranking);
-    Logger.log("Processed " + results.length + " data rows successfully");
-    Logger.log(
-      "Sample result (first item): " +
-        JSON.stringify(results[0] || "No results")
-    );
+    Logger.log("Processed " + results.length + " valid data rows successfully");
+
+    if (results.length > 0) {
+      Logger.log("Sample result (first item): " + JSON.stringify(results[0]));
+    }
+
     Logger.log("=== Returning " + results.length + " KIP analysis results ===");
 
-    return results;
+    // Return a clean, serializable array
+    return JSON.parse(JSON.stringify(results));
   } catch (error) {
     Logger.log("=== ERROR in getKIPAnalysisResults ===");
     Logger.log("Error message: " + error.message);
     Logger.log("Error stack: " + error.stack);
     Logger.log("Returning empty array due to error");
     return [];
+  }
+}
+
+// Helper function to format dates for serialization
+function formatDateForSerialization(date) {
+  if (!date) return new Date().toISOString();
+
+  try {
+    if (date instanceof Date) {
+      return date.toISOString();
+    } else if (typeof date === "string") {
+      return new Date(date).toISOString();
+    } else {
+      return new Date().toISOString();
+    }
+  } catch (error) {
+    Logger.log("Error formatting date: " + error.message);
+    return new Date().toISOString();
   }
 }
 
@@ -3960,7 +3994,7 @@ function ensureKIPAnalysisSheet() {
       Logger.log("KIP_Analisis sheet created successfully with headers");
     } else {
       Logger.log("KIP_Analisis sheet already exists");
-      
+
       // Periksa apakah sheet memiliki header yang benar
       const dataRange = kipSheet.getDataRange();
       if (dataRange.getNumRows() === 0) {
@@ -3987,14 +4021,14 @@ function ensureKIPAnalysisSheet() {
           "Status Verifikasi",
           "Catatan Admin",
         ];
-        
+
         kipSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-        
+
         // Format header
         const headerRange = kipSheet.getRange(1, 1, 1, headers.length);
         headerRange.setBackground("#f0f0f0");
         headerRange.setFontWeight("bold");
-        
+
         Logger.log("Headers added to existing empty sheet");
       }
     }
@@ -4012,15 +4046,21 @@ function hasKIPAnalysisData() {
     Logger.log("Checking if KIP analysis data exists...");
     const spreadsheet = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
     const kipSheet = spreadsheet.getSheetByName(KIP_ANALYSIS_SHEET_NAME);
-    
+
     if (!kipSheet) {
       Logger.log("KIP_Analisis sheet does not exist");
       return false;
     }
-    
+
     const dataRange = kipSheet.getDataRange();
     const hasData = dataRange.getNumRows() > 1; // More than just headers
-    Logger.log("KIP analysis data exists: " + hasData + " (rows: " + dataRange.getNumRows() + ")");
+    Logger.log(
+      "KIP analysis data exists: " +
+        hasData +
+        " (rows: " +
+        dataRange.getNumRows() +
+        ")"
+    );
     return hasData;
   } catch (error) {
     Logger.log("Error checking KIP analysis data: " + error.message);
@@ -4084,7 +4124,8 @@ function startKIPAnalysis() {
       Logger.log("No student data found for KIP analysis");
       return {
         success: false,
-        message: "Tidak ada data siswa yang ditemukan. Pastikan ada data siswa di sheet 'DATA SISWA'.",
+        message:
+          "Tidak ada data siswa yang ditemukan. Pastikan ada data siswa di sheet 'DATA SISWA'.",
         processedCount: 0,
         totalStudents: 0,
         activeStudents: 0,
@@ -4157,7 +4198,8 @@ function startKIPAnalysis() {
       Logger.log("No active students found for KIP analysis after filtering");
       return {
         success: false,
-        message: "Tidak ada siswa aktif yang ditemukan untuk dianalisis. Pastikan ada siswa dengan status 'Aktif' di sheet 'DATA SISWA'.",
+        message:
+          "Tidak ada siswa aktif yang ditemukan untuk dianalisis. Pastikan ada siswa dengan status 'Aktif' di sheet 'DATA SISWA'.",
         processedCount: 0,
         totalStudents: studentsData.length,
         activeStudents: 0,
@@ -4470,8 +4512,8 @@ function exportKIPAnalysis(filteredData) {
   try {
     // Buat spreadsheet baru untuk export
     const exportSpreadsheet = SpreadsheetApp.create(
-      "Export_Analisis_KIP_" +
-        Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd_HH-mm-ss")
+      "KIP Analysis Export - " +
+        Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd")
     );
     const sheet = exportSpreadsheet.getActiveSheet();
 
@@ -4534,20 +4576,26 @@ function exportKIPAnalysis(filteredData) {
       sheet.autoResizeColumns(1, headers.length);
     }
 
-    // Buat URL untuk download
+    // Atur permission file agar dapat dibagikan ke semua orang
+    const file = DriveApp.getFileById(exportSpreadsheet.getId());
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // Buat URL untuk download Excel
     const url =
       "https://docs.google.com/spreadsheets/d/" +
       exportSpreadsheet.getId() +
       "/export?format=xlsx";
+
     const filename =
-      "Analisis_KIP_" +
-      Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd_HH-mm-ss") +
+      "KIP Analysis Export - " +
+      Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd") +
       ".xlsx";
 
     return {
       success: true,
       url: url,
       filename: filename,
+      spreadsheetId: exportSpreadsheet.getId(),
     };
   } catch (error) {
     Logger.log("Error in exportKIPAnalysis: " + error.message);

@@ -1,0 +1,16 @@
+	getKIPAnalysisResults	Aplikasi Web	1 Jul 2025, 12.00.38	1.115 dtk	
+Selesai
+Log cloud
+1 Jul 2025, 12.00.39	Info	=== Starting getKIPAnalysisResults ===
+1 Jul 2025, 12.00.39	Info	BUKU_INDUK_SPREADSHEET_ID: 1Xv8VGni724ljfMe1RW_0Io5bivzCOxgsZF-khqtoABc
+1 Jul 2025, 12.00.39	Info	KIP_ANALYSIS_SHEET_NAME: KIP_Analisis
+1 Jul 2025, 12.00.39	Info	Ensuring KIP_Analisis sheet exists...
+1 Jul 2025, 12.00.39	Info	KIP_Analisis sheet already exists
+1 Jul 2025, 12.00.39	Info	KIP_Analisis sheet verified/created successfully
+1 Jul 2025, 12.00.39	Info	Data range: A1:T313
+1 Jul 2025, 12.00.39	Info	Found 313 rows in KIP_Analisis sheet
+1 Jul 2025, 12.00.39	Info	Headers: ["ID","Tanggal Analisis","NIS","Nama Siswa","Kelas","Penghasilan Ayah","Penghasilan Ibu","Penghasilan Wali","Status Orang Tua","Jumlah Saudara","Status Beasiswa","Skor Penghasilan","Skor Status","Skor Tanggungan","Skor Beasiswa","Skor Total","Kategori","Ranking","Status Verifikasi","Catatan Admin"]
+1 Jul 2025, 12.00.39	Info	Number of columns: 20
+1 Jul 2025, 12.00.39	Info	Processed 312 data rows successfully
+1 Jul 2025, 12.00.39	Info	Sample result (first item): {"id":14,"tanggalAnalisis":"2025-07-01T04:59:06.824Z","nis":2053,"namaSiswa":"Rina Kartika","kelas":"","skorPenghasilan":22.666666666666668,"skorStatus":24,"skorTanggungan":20,"skorBeasiswa":10,"skorTotal":76.66666666666667,"kategori":"Layak","ranking":1,"status":"Pending","catatan":"","penghasilanAyah":"Rp5.000.000 – Rp9.999.999","penghasilanIbu":"Tidak berpenghasilan","penghasilanWali":"Rp3.000.000 – Rp4.999.1021","statusOrangTua":"Piatu","jumlahSaudara":4,"statusBeasiswa":"Belum pernah"}
+1 Jul 2025, 12.00.39	Info	=== Returning 312 KIP analysis results ===
