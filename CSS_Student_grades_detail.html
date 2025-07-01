@@ -354,40 +354,76 @@
     padding: 25px;
   }
 
-  .grades-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 15px;
+  .grades-table {
+    width: 100%;
+    border-collapse: collapse;
     margin-bottom: 20px;
-  }
-
-  .grade-item {
-    background: #f8f9fa;
-    padding: 15px;
+    background: white;
     border-radius: 8px;
-    border-left: 4px solid #1a5276;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
-  .grade-item:hover {
-    background: #e9ecef;
-    transform: translateY(-2px);
-  }
-
-  .grade-subject {
-    font-size: 14px;
+  .grades-table th {
+    background: #1a5276;
+    color: white;
+    padding: 15px;
+    text-align: left;
     font-weight: 600;
+    font-size: 14px;
+    border-bottom: 2px solid #154a6b;
+  }
+
+  .grades-table th:first-child {
+    width: 70%;
+  }
+
+  .grades-table th:last-child {
+    width: 30%;
+    text-align: center;
+  }
+
+  .grades-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 14px;
+  }
+
+  .grades-table tr:hover {
+    background: #f8f9fa;
+  }
+
+  .grades-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .subject-name {
+    font-weight: 500;
     color: #1a5276;
-    margin-bottom: 8px;
   }
 
   .grade-value {
-    font-size: 24px;
-    font-weight: 700;
     text-align: center;
-    padding: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 8px 12px;
     border-radius: 6px;
-    color: #1a5276;
+    color: white;
+    display: inline-block;
+    min-width: 50px;
+  }
+
+  .grade-pass {
+    background: #28a745;
+  }
+
+  .grade-fail {
+    background: #dc3545;
+  }
+
+  .grade-empty {
+    background: #6c757d;
+    color: white;
   }
 
   .grade-excellent {
@@ -400,11 +436,6 @@
 
   .grade-poor {
     background: #dc3545;
-  }
-
-  .grade-empty {
-    background: #6c757d;
-    color: white;
   }
 
   .grades-summary {

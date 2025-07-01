@@ -606,9 +606,12 @@
           <a href="#" class="btn btn-sm btn-warning btn-edit" data-id="${
             student.nis
           }">Edit</a>
-          <button class="btn btn-sm btn-danger btn-delete" data-id="${
+          <button class="btn btn-sm btn-info btn-pdf" data-id="${
             student.nis
-          }">Hapus</button>
+          }" title="Cetak PDF siswa">
+            <span class="btn-icon"></span>
+            PDF
+          </button>
         </td>
       `;
 
@@ -802,18 +805,18 @@
 
   // Setup action buttons
   function setupActionButtons() {
-    // Debug: Check if delete buttons exist
-    const deleteButtons = document.querySelectorAll(".btn-delete");
+    // Debug: Check if PDF buttons exist
+    const pdfButtons = document.querySelectorAll(".btn-pdf");
 
     // Remove any existing event listeners to prevent duplicates
-    deleteButtons.forEach((button) => {
+    pdfButtons.forEach((button) => {
       // Clone the button to remove all event listeners
       const newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
     });
 
     // Re-query after cloning
-    const freshDeleteButtons = document.querySelectorAll(".btn-delete");
+    const freshPdfButtons = document.querySelectorAll(".btn-pdf");
 
     // View student button - Setup both href and click handler
     document.querySelectorAll(".btn-view").forEach(function (button) {
@@ -859,13 +862,13 @@
       });
     });
 
-    // Setup delete buttons with direct event listeners
-    freshDeleteButtons.forEach((button, index) => {
+    // Setup PDF buttons with direct event listeners
+    freshPdfButtons.forEach((button, index) => {
       button.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
         const studentId = this.getAttribute("data-id");
-        console.log("Delete button clicked for student:", studentId);
+        console.log("PDF button clicked for student:", studentId);
         console.log("Button element:", this);
 
         // Add visual feedback
@@ -874,16 +877,16 @@
           this.style.transform = "";
         }, 150);
 
-        openDeleteModal(studentId);
+        generateStudentPDF(studentId, this);
       });
 
       // Add additional debugging
       button.addEventListener("mousedown", function () {
-        console.log("Delete button mousedown event");
+        console.log("PDF button mousedown event");
       });
 
       button.addEventListener("mouseup", function () {
-        console.log("Delete button mouseup event");
+        console.log("PDF button mouseup event");
       });
     });
   }
@@ -1080,6 +1083,61 @@
         resetDeleteButton();
       })
       .deleteStudent(studentToDelete.nis);
+  }
+
+  // Generate PDF for student (same logic as Student_detail.html)
+  function generateStudentPDF(studentId, buttonElement) {
+    if (!studentId) {
+      showNotification("ID siswa tidak tersedia", "error");
+      return;
+    }
+
+    try {
+      const sessionId = getSessionId();
+      if (!sessionId) {
+        showNotification(
+          "Session tidak valid. Silakan login kembali.",
+          "error"
+        );
+        return;
+      }
+
+      // Show loading state
+      const originalText = buttonElement.innerHTML;
+      buttonElement.innerHTML = '<span class="btn-icon">⏳</span>Memproses...';
+      buttonElement.disabled = true;
+
+      // Call server-side function to get PDF URL
+      google.script.run
+        .withSuccessHandler(function (result) {
+          // Reset button
+          buttonElement.innerHTML = originalText;
+          buttonElement.disabled = false;
+
+          if (result.success) {
+            // Open PDF in new tab
+            window.open(result.url, "_blank");
+            showNotification("PDF berhasil dibuat", "success");
+          } else {
+            showNotification(
+              result.message || "Gagal mengakses file PDF",
+              "error"
+            );
+          }
+        })
+        .withFailureHandler(function (error) {
+          // Reset button
+          buttonElement.innerHTML = originalText;
+          buttonElement.disabled = false;
+
+          console.error("Error generating PDF:", error);
+          showNotification("Terjadi kesalahan: " + error, "error");
+        })
+        .getStudentPDFUrl(studentId);
+    } catch (error) {
+      console.error("Error in generateStudentPDF:", error);
+      showNotification("Terjadi kesalahan saat membuat PDF", "error");
+    }
   }
 
   // Helper function to reset delete button state

@@ -309,6 +309,48 @@
       ? studentData.nama.charAt(0).toUpperCase()
       : "?";
 
+    // Generate summary info HTML
+    let summaryInfoHtml = '';
+    if (gradeSummary) {
+      summaryInfoHtml = `
+        <div class="detail-item">
+          <div class="detail-label">Total Mata Pelajaran</div>
+          <div class="detail-value">${gradeSummary.totalSubjects || 0}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Rata-rata</div>
+          <div class="detail-value">${
+            gradeSummary.averageGrade
+              ? gradeSummary.averageGrade.toFixed(1)
+              : "0.0"
+          }</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Nilai Tertinggi</div>
+          <div class="detail-value">${gradeSummary.highestGrade || 0}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Nilai Terendah</div>
+          <div class="detail-value">${gradeSummary.lowestGrade || 0}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Lulus</div>
+          <div class="detail-value">${gradeSummary.passedSubjects || 0}</div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-label">Tidak Lulus</div>
+          <div class="detail-value">${gradeSummary.failedSubjects || 0}</div>
+        </div>
+      `;
+    } else {
+      summaryInfoHtml = `
+        <div class="detail-item">
+          <div class="detail-label">Status</div>
+          <div class="detail-value">Data nilai belum tersedia</div>
+        </div>
+      `;
+    }
+
     studentInfoSection.innerHTML = `
       <div class="student-info-card">
         <div class="student-basic-info">
@@ -316,37 +358,14 @@
           <div class="student-name">${
             studentData.nama || "Nama tidak tersedia"
           }</div>
-          <div class="student-nis">NIS: ${studentData.nis || "-"}</div>
+          <div class="student-nis">NIS: ${studentData.nis || "-"} | NISN: ${studentData.nisn || "-"}</div>
           <div class="student-status ${statusClass}">${
       studentData.status || "Aktif"
     }</div>
         </div>
         
         <div class="student-details-info">
-          <div class="detail-item">
-            <div class="detail-label">NISN</div>
-            <div class="detail-value">${studentData.nisn || "-"}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Jenis Kelamin</div>
-            <div class="detail-value">${studentData.jenisKelamin || "-"}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Tanggal Daftar</div>
-            <div class="detail-value">${studentData.tanggalDaftar || "-"}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Tempat Lahir</div>
-            <div class="detail-value">${studentData.tempatLahir || "-"}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Tanggal Lahir</div>
-            <div class="detail-value">${studentData.tanggalLahir || "-"}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Alamat</div>
-            <div class="detail-value">${studentData.alamat || "-"}</div>
-          </div>
+          ${summaryInfoHtml}
         </div>
       </div>
     `;
@@ -372,6 +391,10 @@
 
     // Show academic grades
     renderAcademicGrades(gradeRecord);
+    
+    // Re-render student info with summary data now available
+    renderStudentInfo();
+    
     document.getElementById("exam-grades-card").style.display = "none";
   }
 
@@ -407,8 +430,17 @@
       { key: "bahasaJawa", name: "Bahasa Jawa" },
     ];
 
-    // Render grades
-    let gradesHtml = "";
+    // Render grades as table
+    let gradesHtml = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>Mata Pelajaran</th>
+            <th>Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
 
     subjectFields.forEach((subject) => {
       const nilai = gradeRecord[subject.key];
@@ -422,51 +454,22 @@
           : "grade-empty";
 
       gradesHtml += `
-        <div class="grade-item">
-          <div class="subject-name">${subject.name}</div>
-          <div class="grade-value ${gradeClass}">${nilaiDisplay}</div>
-        </div>
+        <tr>
+          <td class="subject-name">${subject.name}</td>
+          <td><span class="grade-value ${gradeClass}">${nilaiDisplay}</span></td>
+        </tr>
       `;
     });
 
+    gradesHtml += `
+        </tbody>
+      </table>
+    `;
+
     gradesGrid.innerHTML = gradesHtml;
 
-    // Render summary
-    if (gradeSummary) {
-      gradesSummary.innerHTML = `
-        <div class="summary-title">📊 Ringkasan Nilai</div>
-        <div class="summary-stats">
-          <div class="summary-item">
-            <div class="summary-label">Total Mata Pelajaran</div>
-            <div class="summary-value">${gradeSummary.totalSubjects || 0}</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">Rata-rata</div>
-            <div class="summary-value">${
-              gradeSummary.averageGrade
-                ? gradeSummary.averageGrade.toFixed(1)
-                : "0.0"
-            }</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">Nilai Tertinggi</div>
-            <div class="summary-value">${gradeSummary.highestGrade || 0}</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">Nilai Terendah</div>
-            <div class="summary-value">${gradeSummary.lowestGrade || 0}</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">Lulus</div>
-            <div class="summary-value">${gradeSummary.passedSubjects || 0}</div>
-          </div>
-          <div class="summary-item">
-            <div class="summary-label">Tidak Lulus</div>
-            <div class="summary-value">${gradeSummary.failedSubjects || 0}</div>
-          </div>
-        </div>
-      `;
-    }
+    // Hide summary section since it's now moved to student info
+    gradesSummary.style.display = "none";
 
     academicCard.style.display = "block";
   }
