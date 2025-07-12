@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Admin - Buku Induk</title>
     <base target="_top" />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?!= include('CSS_Dashboard') ?>
     <?!= include('CSS_Students_manage') ?>
   </head>
   <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
     <!-- Pass sessionId to the Navbar template -->
     <?!= includeNavbar() ?>
@@ -24,45 +28,143 @@
 
       <div class="stats-container">
         <div class="stat-card">
-          <div class="stat-icon students">👨‍🎓</div>
+          <div class="stat-icon students"><i class="fas fa-users"></i></div>
           <div class="stat-info">
             <div class="stat-value" id="total-siswa-aktif">-</div>
-            <div class="stat-label">Total Siswa Aktif</div>
+            <div class="stat-label">Total Siswa</div>
           </div>
         </div>
         <div class="stat-card">
-          <div class="stat-icon students">🎓</div>
+          <div class="stat-icon students"><i class="fas fa-graduation-cap"></i></div>
           <div class="stat-info">
             <div class="stat-value" id="total-siswa-lulus">-</div>
-            <div class="stat-label">Total Siswa Lulus</div>
+            <div class="stat-label">Siswa Lulus</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon grades"><i class="fas fa-chart-bar"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="rata-rata-nilai">-</div>
+            <div class="stat-label">Rata-rata Nilai</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon kip"><i class="fas fa-bullseye"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="analisis-kip">-</div>
+            <div class="stat-label">Analisis KIP</div>
           </div>
         </div>
       </div>
 
-      <div class="recent-container">
-        <div class="container-header">
-          <div class="container-title">Siswa Terbaru</div>
-          <!-- Update link to include sessionId -->
-          <a href="#" id="view-all-students" class="view-all">Lihat Semua</a>
+      <div class="dashboard-content">
+        <div class="recent-container">
+          <div class="container-header">
+            <div class="container-title">Siswa Terbaru</div>
+            <!-- Update link to include sessionId -->
+            <a href="#" id="view-all-students" class="view-all">Lihat Semua</a>
+          </div>
+          <table class="student-table">
+            <thead>
+              <tr>
+                <th>NIS</th>
+                <th>Nama</th>
+                <th>Jenis Kelamin</th>
+                <th>Tanggal Daftar</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recent-students">
+              <tr>
+                <td colspan="6" style="text-align: center">
+                  Memuat data siswa...
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <table class="student-table">
-          <thead>
-            <tr>
-              <th>NIS</th>
-              <th>Nama</th>
-              <th>Jenis Kelamin</th>
-              <th>Tanggal Daftar</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="recent-students">
-            <tr>
-              <td colspan="6" style="text-align: center">
-                Memuat data siswa...
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+        <div class="sidebar-content">
+          <!-- Ringkasan Data Chart -->
+          <div class="summary-container">
+            <div class="container-header">
+              <div class="container-title">Ringkasan Data</div>
+              <div class="chart-toggle">
+                <button
+                  class="chart-toggle-btn active"
+                  data-chart="doughnut"
+                  title="Grafik Donat"
+                >
+                  <i class="fas fa-circle-notch"></i>
+                </button>
+                <button
+                  class="chart-toggle-btn"
+                  data-chart="bar"
+                  title="Grafik Batang"
+                >
+                  <i class="fas fa-chart-bar"></i>
+                </button>
+                <button
+                  class="chart-toggle-btn"
+                  data-chart="line"
+                  title="Grafik Garis"
+                >
+                  <i class="fas fa-chart-line"></i>
+                </button>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="summaryChart" width="300" height="300"></canvas>
+              <div class="chart-loading" id="chart-loading">
+                <div class="spinner"></div>
+                <span>Memuat data...</span>
+              </div>
+            </div>
+            <div class="chart-legend" id="chart-legend">
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #3498db"
+                ></div>
+                <span class="legend-label">Siswa Aktif</span>
+                <span class="legend-value" id="legend-siswa-aktif">0%</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #2ecc71"
+                ></div>
+                <span class="legend-label">Data Lengkap</span>
+                <span class="legend-value" id="legend-data-lengkap">0%</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #f39c12"
+                ></div>
+                <span class="legend-label">Nilai Terinput</span>
+                <span class="legend-value" id="legend-nilai-terinput">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aksi Cepat -->
+          <div class="quick-actions-container">
+            <div class="container-header">
+              <div class="container-title">Aksi Cepat</div>
+            </div>
+            <div class="quick-actions">
+              <button class="quick-action-btn" id="btn-tambah-siswa">
+                <div class="action-icon"><i class="fas fa-user-plus"></i></div>
+                <div class="action-text">Tambah Siswa Baru</div>
+              </button>
+              <button class="quick-action-btn" id="btn-input-nilai">
+                <div class="action-icon"><i class="fas fa-edit"></i></div>
+                <div class="action-text">Input Nilai</div>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <footer

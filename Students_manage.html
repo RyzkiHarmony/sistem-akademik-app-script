@@ -6,10 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kelola Data Siswa - Buku Induk</title>
     <base target="_top" />
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?!= include('CSS_Students_manage') ?>
   </head>
   <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
     <?!=includeNavbar();?>
 
@@ -54,7 +56,7 @@
             Reset
           </button>
           <button class="btn btn-info btn-refresh" id="refresh-btn" title="Refresh data dari server">
-            ↻ Refresh
+            <i class="fas fa-sync-alt"></i> Refresh
           </button>
           <button class="btn btn-success" id="graduate-batch-btn">
             Batch Lulus

@@ -5,10 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kelola Nilai Siswa - Buku Induk</title>
     <base target="_top" />
+    <!-- FontAwesome CDN -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <?!= include('CSS_Students_grades') ?>
   </head>
   <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
 
     <?!=includeNavbar();?>
 
@@ -23,21 +30,23 @@
       <div class="summary-section" id="summary-section" style="display: none">
         <div class="summary-cards">
           <div class="summary-card">
-            <div class="summary-icon">📊</div>
+            <div class="summary-icon"><i class="fas fa-chart-bar"></i></div>
             <div class="summary-content">
               <div class="summary-title">Rata-rata Keseluruhan</div>
               <div class="summary-value" id="overall-average">0</div>
             </div>
           </div>
           <div class="summary-card warning">
-            <div class="summary-icon">⚠️</div>
+            <div class="summary-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
             <div class="summary-content">
               <div class="summary-title">Nilai di Bawah 75</div>
               <div class="summary-value" id="below-75-count">0</div>
             </div>
           </div>
           <div class="summary-card success">
-            <div class="summary-icon">✅</div>
+            <div class="summary-icon"><i class="fas fa-check-circle"></i></div>
             <div class="summary-content">
               <div class="summary-title">Nilai 75 ke Atas</div>
               <div class="summary-value" id="above-75-count">0</div>
@@ -98,17 +107,17 @@
         </div>
         <div class="btn-group">
           <button class="btn btn-primary btn-search" id="search-btn">
-            🔍 Cari Siswa
+            <i class="fas fa-search"></i> Cari Siswa
           </button>
           <button class="btn btn-secondary btn-reset" id="reset-btn">
-            ↺ Reset
+            <i class="fas fa-undo"></i> Reset
           </button>
           <button
             class="btn btn-info btn-refresh"
             id="refresh-grades-btn"
             title="Refresh data dari server"
           >
-            ↻ Refresh
+            <i class="fas fa-sync-alt"></i> Refresh
           </button>
         </div>
       </div>

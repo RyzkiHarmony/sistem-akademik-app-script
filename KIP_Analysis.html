@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Analisis Eligibilitas KIP - Buku Induk Siswa</title>
     <base target="_top" />
-
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Include CSS -->
     <?!= include('CSS_Students_manage') ?>
 
@@ -615,7 +616,7 @@
     <input type="hidden" id="sessionId" value="<?= sessionId ?>" />
 
     <!-- Mobile Toggle -->
-    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
     <!-- Include Navbar -->
     <?!= includeNavbar() ?>
@@ -640,7 +641,7 @@
           color: #1565c0;
         "
       >
-        <strong>ℹ️ Informasi:</strong> Sistem analisis otomatis untuk menentukan
+        <strong><i class="fas fa-info-circle"></i> Informasi:</strong> Sistem analisis otomatis untuk menentukan
         kelayakan siswa menerima Kartu Indonesia Pintar. Analisis hanya
         dilakukan pada siswa dengan status akademik <strong>"Aktif"</strong>.
       </div>

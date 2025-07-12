@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Edit Data Siswa - Buku Induk</title>
     <base target="_top" />
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?!= include('CSS_Students_manage') ?>
     <style>
       .detail-container {
@@ -164,40 +166,42 @@
       }
 
       .section-title::before {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
         font-size: 1.2em;
         margin-right: 5px;
       }
 
       .section-title[data-section="identitas"]::before {
-        content: "👤";
+        content: "\f007"; /* Font Awesome user icon */
       }
 
       .section-title[data-section="alamat"]::before {
-        content: "🏠";
+        content: "\f015"; /* Font Awesome home icon */
       }
 
       .section-title[data-section="kesehatan"]::before {
-        content: "🏥";
+        content: "\f0f8"; /* Font Awesome hospital icon */
       }
 
       .section-title[data-section="pendidikan"]::before {
-        content: "🎓";
+        content: "\f19d"; /* Font Awesome graduation cap icon */
       }
 
       .section-title[data-section="ayah"]::before {
-        content: "👨";
+        content: "\f183"; /* Font Awesome male icon */
       }
 
       .section-title[data-section="ibu"]::before {
-        content: "👩";
+        content: "\f182"; /* Font Awesome female icon */
       }
 
       .section-title[data-section="wali"]::before {
-        content: "�";
+        content: "\f0c0"; /* Font Awesome users icon */
       }
 
       .section-title[data-section="hobi"]::before {
-        content: "🏆";
+        content: "\f091"; /* Font Awesome trophy icon */
       }
 
       .edit-toggle-btn {
@@ -496,7 +500,7 @@
     </style>
   </head>
   <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
 
     <?!= includeNavbar() ?>
 
@@ -509,7 +513,7 @@
 
       <div class="detail-container">
         <button class="back-button" onclick="goBack()">
-          🔙 Kembali ke Detail Siswa
+          <i class="fas fa-arrow-left"></i> Kembali ke Detail Siswa
         </button>
 
         <div class="student-header-card">
@@ -534,7 +538,7 @@
             onclick="saveAllChanges()"
             title="Simpan semua perubahan"
           >
-            <span class="btn-icon">💾</span>
+            <span class="btn-icon"><i class="fas fa-save"></i></span>
             Simpan Semua Perubahan
           </button>
           <a
@@ -544,7 +548,7 @@
             title="Kembali tanpa menyimpan"
             id="back-to-detail-btn"
           >
-            <span class="btn-icon">↩️</span>
+            <span class="btn-icon"><i class="fas fa-arrow-left"></i></span>
             Kembali
           </a>
         </div>
@@ -662,12 +666,12 @@
         const editBtn = card.querySelector(".edit-toggle-btn");
 
         // Update button
-        editBtn.innerHTML = "💾 Simpan";
+        editBtn.innerHTML = "<i class='fas fa-save'></i> Simpan";
         editBtn.className = "edit-toggle-btn save-mode";
 
         // Add cancel button
         const cancelBtn = document.createElement("button");
-        cancelBtn.innerHTML = "❌ Batal";
+        cancelBtn.innerHTML = "<i class='fas fa-times'></i> Batal";
         cancelBtn.className = "edit-toggle-btn cancel-mode";
         cancelBtn.onclick = () => cancelEditMode(cardId);
         editBtn.parentNode.appendChild(cancelBtn);
@@ -781,7 +785,7 @@
         const cancelBtn = card.querySelector(".edit-toggle-btn.cancel-mode");
 
         // Update button
-        editBtn.innerHTML = "✏️ Edit";
+        editBtn.innerHTML = "<i class='fas fa-edit'></i> Edit";
         editBtn.className = "edit-toggle-btn";
 
         // Remove cancel button
@@ -861,7 +865,7 @@
         const cancelBtn = card.querySelector(".edit-toggle-btn.cancel-mode");
 
         // Update button
-        editBtn.innerHTML = "✏️ Edit";
+        editBtn.innerHTML = "<i class='fas fa-edit'></i> Edit";
         editBtn.className = "edit-toggle-btn";
 
         // Remove cancel button
@@ -1459,7 +1463,7 @@
         const card = document.querySelector(`[data-card-id="${cardId}"]`);
         const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
         const originalText = editBtn.innerHTML;
-        editBtn.innerHTML = "⏳ Menyimpan...";
+        editBtn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Menyimpan...";
         editBtn.disabled = true;
 
         // Prepare data for server
@@ -1476,7 +1480,7 @@
 
             if (result.success) {
               console.log("Showing success alert for cardId:", cardId);
-              showAlert("✅ Data berhasil disimpan!", "success");
+              showAlert("<i class='fas fa-check-circle'></i> Data berhasil disimpan!", "success");
 
               // Update original data
               Object.keys(changes).forEach((key) => {
@@ -1492,7 +1496,7 @@
                 result.error
               );
               showAlert(
-                "❌ Gagal menyimpan data: " + (result.error || "Unknown error"),
+                "<i class='fas fa-times-circle'></i> Gagal menyimpan data: " + (result.error || "Unknown error"),
                 "danger"
               );
             }
@@ -1507,7 +1511,7 @@
             editBtn.innerHTML = originalText;
             editBtn.disabled = false;
             showAlert(
-              "❌ Terjadi kesalahan saat menyimpan: " + error.message,
+              "<i class='fas fa-times-circle'></i> Terjadi kesalahan saat menyimpan: " + error.message,
               "danger"
             );
           })
@@ -1517,7 +1521,7 @@
       // Save all pending changes
       function saveAllChanges() {
         if (Object.keys(pendingChanges).length === 0) {
-          showAlert("ℹ️ Tidak ada perubahan untuk disimpan.", "info");
+          showAlert("<i class='fas fa-info-circle'></i> Tidak ada perubahan untuk disimpan.", "info");
           return;
         }
 
@@ -1530,7 +1534,7 @@
         // Show loading state
         const saveBtn = document.querySelector(".btn-success");
         const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<span class="btn-icon">⏳</span>Menyimpan...';
+        saveBtn.innerHTML = '<span class="btn-icon"><i class="fas fa-spinner fa-spin"></i></span>Menyimpan...';
         saveBtn.disabled = true;
 
         google.script.run
@@ -1539,7 +1543,7 @@
             saveBtn.disabled = false;
 
             if (result.success) {
-              showAlert("✅ Semua perubahan berhasil disimpan!", "success");
+              showAlert("<i class='fas fa-check-circle'></i> Semua perubahan berhasil disimpan!", "success");
 
               // Update original data
               Object.keys(pendingChanges).forEach((key) => {
@@ -1557,7 +1561,7 @@
               });
             } else {
               showAlert(
-                "❌ Gagal menyimpan data: " + (result.error || "Unknown error"),
+                "<i class='fas fa-times-circle'></i> Gagal menyimpan data: " + (result.error || "Unknown error"),
                 "danger"
               );
             }
@@ -1566,7 +1570,7 @@
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
             showAlert(
-              "❌ Terjadi kesalahan saat menyimpan: " + error.message,
+              "<i class='fas fa-times-circle'></i> Terjadi kesalahan saat menyimpan: " + error.message,
               "danger"
             );
           })
@@ -1643,7 +1647,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="identitas">Data Identitas</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('identitas')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -1776,7 +1780,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="alamat">Data Alamat</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('alamat')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -1853,7 +1857,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="kesehatan">Data Kesehatan</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('kesehatan')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -1910,7 +1914,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="pendidikan">Data Pendidikan</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('pendidikan')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -1993,7 +1997,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="ayah">Data Ayah</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('ayah')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -2090,7 +2094,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="ibu">Data Ibu</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('ibu')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -2185,7 +2189,7 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="wali">Data Wali</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('wali')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
@@ -2285,31 +2289,31 @@
                 <div class="section-header">
                   <h3 class="section-title" data-section="hobi">Hobi dan Prestasi</h3>
                   <button class="edit-toggle-btn" onclick="toggleEditMode('hobi')">
-                    ✏️ Edit
+                    <i class="fas fa-edit"></i> Edit
                   </button>
                 </div>
                 <div class="section-content">
                   <table class="detail-table">
                     <tr data-field="Bidang Seni">
-                      <td>🎨 Hobi Seni</td>
+                      <td><i class="fas fa-palette"></i> Hobi Seni</td>
                       <td class="detail-value">${
                         student["Bidang Seni"] || "-"
                       }</td>
                     </tr>
                     <tr data-field="Bidang Olahraga">
-                      <td>⚽ Hobi Olahraga</td>
+                      <td><i class="fas fa-futbol"></i> Hobi Olahraga</td>
                       <td class="detail-value">${
                         student["Bidang Olahraga"] || "-"
                       }</td>
                     </tr>
                     <tr data-field="Bidang Lain-Lain">
-                      <td>🎯 Bidang Lain</td>
+                      <td><i class="fas fa-bullseye"></i> Bidang Lain</td>
                       <td class="detail-value">${
                         student["Bidang Lain-Lain"] || "-"
                       }</td>
                     </tr>
                     <tr>
-                      <td colspan="2"><h3>🏆 Prestasi Siswa</h3></td>
+                      <td colspan="2"><h3><i class="fas fa-trophy"></i> Prestasi Siswa</h3></td>
                     </tr>
                     <tr data-field="Nama Prestasi">
                       <td>Prestasi 1</td>
@@ -2372,7 +2376,7 @@
                       }</td>
                     </tr>
                     <tr>
-                      <td colspan="2"><h3>🎓 Beasiswa Siswa</h3></td>
+                      <td colspan="2"><h3><i class="fas fa-graduation-cap"></i> Beasiswa Siswa</h3></td>
                     </tr>
                     <tr data-field="Jenis Beasiswa">
                       <td>Beasiswa 1</td>

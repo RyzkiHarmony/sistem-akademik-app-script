@@ -39,6 +39,15 @@
           cachedData.totalSiswaAktif || 0;
         document.getElementById("total-siswa-lulus").textContent =
           cachedData.totalSiswaLulus || 0;
+        document.getElementById("rata-rata-nilai").textContent =
+          cachedData.rataRataNilai || 0;
+        document.getElementById("analisis-kip").textContent =
+          (cachedData.analisisKIP || 0) + " Layak";
+
+        // Update summary data from cache
+        if (cachedData.summaryStats) {
+          updateSummaryDisplay(cachedData.summaryStats);
+        }
         return;
       }
     }
@@ -52,6 +61,8 @@
     // Tampilkan loading state
     document.getElementById("total-siswa-aktif").textContent = "...";
     document.getElementById("total-siswa-lulus").textContent = "...";
+    document.getElementById("rata-rata-nilai").textContent = "...";
+    document.getElementById("analisis-kip").textContent = "...";
 
     // Panggil fungsi di server untuk mendapatkan data dashboard
     google.script.run
@@ -64,6 +75,15 @@
           data.totalSiswaAktif || 0;
         document.getElementById("total-siswa-lulus").textContent =
           data.totalSiswaLulus || 0;
+        document.getElementById("rata-rata-nilai").textContent =
+          data.rataRataNilai || 0;
+        document.getElementById("analisis-kip").textContent =
+          (data.analisisKIP || 0) + " Layak";
+
+        // Update summary data from server
+        if (data.summaryStats) {
+          updateSummaryDisplay(data.summaryStats);
+        }
       })
       .withFailureHandler(function (error) {
         showNotification(
@@ -424,6 +444,234 @@
     loadRecentStudents(true); // Force refresh
   }
 
+  // Chart instance global variable
+  let summaryChart = null;
+  let currentChartType = "doughnut";
+
+  // Chart colors
+  const chartColors = {
+    siswaAktif: "#3498db",
+    dataLengkap: "#2ecc71",
+    nilaiTerinput: "#f39c12",
+  };
+
+  // Fungsi untuk mengupdate tampilan data ringkasan dengan chart
+  function updateSummaryDisplay(summaryData) {
+    // Update legend values
+    document.getElementById("legend-siswa-aktif").textContent =
+      summaryData.siswaAktif + "%";
+    document.getElementById("legend-data-lengkap").textContent =
+      summaryData.dataLengkap + "%";
+    document.getElementById("legend-nilai-terinput").textContent =
+      summaryData.nilaiTerinput + "%";
+
+    // Hide loading indicator
+    document.getElementById("chart-loading").classList.add("hidden");
+
+    // Create or update chart
+    createSummaryChart(summaryData);
+  }
+
+  // Fungsi untuk membuat chart ringkasan
+  function createSummaryChart(summaryData) {
+    const ctx = document.getElementById("summaryChart").getContext("2d");
+
+    // Destroy existing chart if exists
+    if (summaryChart) {
+      summaryChart.destroy();
+    }
+
+    const data = {
+      labels: ["Siswa Aktif", "Data Lengkap", "Nilai Terinput"],
+      datasets: [
+        {
+          data: [
+            summaryData.siswaAktif,
+            summaryData.dataLengkap,
+            summaryData.nilaiTerinput,
+          ],
+          backgroundColor: [
+            chartColors.siswaAktif,
+            chartColors.dataLengkap,
+            chartColors.nilaiTerinput,
+          ],
+          borderWidth: 2,
+          borderColor: "#ffffff",
+        },
+      ],
+    };
+
+    const config = getChartConfig(currentChartType, data);
+    summaryChart = new Chart(ctx, config);
+  }
+
+  // Fungsi untuk mendapatkan konfigurasi chart berdasarkan tipe
+  function getChartConfig(type, data) {
+    const baseOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false, // We use custom legend
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return context.label + ": " + context.parsed + "%";
+            },
+          },
+        },
+      },
+    };
+
+    switch (type) {
+      case "doughnut":
+        return {
+          type: "doughnut",
+          data: data,
+          options: {
+            ...baseOptions,
+            cutout: "60%",
+            plugins: {
+              ...baseOptions.plugins,
+              tooltip: {
+                ...baseOptions.plugins.tooltip,
+                displayColors: true,
+              },
+            },
+          },
+        };
+
+      case "bar":
+        return {
+          type: "bar",
+          data: data,
+          options: {
+            ...baseOptions,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function (value) {
+                    return value + "%";
+                  },
+                },
+              },
+            },
+          },
+        };
+
+      case "line":
+        return {
+          type: "line",
+          data: {
+            ...data,
+            datasets: [
+              {
+                ...data.datasets[0],
+                fill: false,
+                borderColor: chartColors.siswaAktif,
+                backgroundColor: chartColors.siswaAktif,
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            ...baseOptions,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: {
+                  callback: function (value) {
+                    return value + "%";
+                  },
+                },
+              },
+            },
+          },
+        };
+
+      default:
+        return getChartConfig("doughnut", data);
+    }
+  }
+
+  // Fungsi untuk setup chart toggle buttons
+  function setupChartToggle() {
+    const toggleButtons = document.querySelectorAll(".chart-toggle-btn");
+
+    toggleButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        // Remove active class from all buttons
+        toggleButtons.forEach((btn) => btn.classList.remove("active"));
+
+        // Add active class to clicked button
+        this.classList.add("active");
+
+        // Get chart type and update
+        const chartType = this.getAttribute("data-chart");
+        currentChartType = chartType;
+
+        // Recreate chart with new type if data exists
+        if (summaryChart && summaryChart.data) {
+          const currentData = {
+            siswaAktif: summaryChart.data.datasets[0].data[0],
+            dataLengkap: summaryChart.data.datasets[0].data[1],
+            nilaiTerinput: summaryChart.data.datasets[0].data[2],
+          };
+          createSummaryChart(currentData);
+        }
+      });
+    });
+  }
+
+  // Fungsi untuk memuat data ringkasan dengan loading state
+  function loadSummaryData() {
+    // Show loading state
+    document.getElementById("chart-loading").classList.remove("hidden");
+
+    // Set legend values to loading
+    document.getElementById("legend-siswa-aktif").textContent = "...";
+    document.getElementById("legend-data-lengkap").textContent = "...";
+    document.getElementById("legend-nilai-terinput").textContent = "...";
+
+    // Data akan dimuat bersamaan dengan loadDashboardData()
+    // Jika tidak ada data dari cache atau server, gunakan default
+    const defaultData = {
+      siswaAktif: 0,
+      dataLengkap: 0,
+      nilaiTerinput: 0,
+    };
+
+    setTimeout(() => {
+      // Fallback jika data tidak dimuat dari server
+      if (document.getElementById("legend-siswa-aktif").textContent === "...") {
+        updateSummaryDisplay(defaultData);
+      }
+    }, 5000);
+  }
+
+  // Fungsi untuk setup aksi cepat
+  function setupQuickActions() {
+    const sessionId = getSessionId();
+
+    // Tambah Siswa Baru
+    document
+      .getElementById("btn-tambah-siswa")
+      .addEventListener("click", function () {
+        window.open("https://forms.gle/ygpAQTqxnHjMhNKi9", "_blank");
+      });
+
+    // Input Nilai
+    document
+      .getElementById("btn-input-nilai")
+      .addEventListener("click", function () {
+        window.open("https://forms.gle/PTrCvLCwrQPwmwdF7", "_blank");
+      });
+  }
+
   // Inisialisasi saat halaman dimuat
   document.addEventListener("DOMContentLoaded", function () {
     // Clean expired cache on page load
@@ -444,11 +692,20 @@
     // Load recent students
     loadRecentStudents();
 
+    // Initialize summary data loading state
+    loadSummaryData();
+
     // Setup logout
     setupLogout();
 
     // Setup refresh functionality
     setupRefreshFunctionality();
+
+    // Setup quick actions
+    setupQuickActions();
+
+    // Setup chart toggle functionality
+    setupChartToggle();
 
     // Tambahkan efek hover pada kartu statistik
     const statCards = document.querySelectorAll(".stat-card");
@@ -460,5 +717,20 @@
         this.style.transform = "translateY(0)";
       });
     });
+
+    // Add chart animation on load
+    setTimeout(() => {
+      const chartContainer = document.querySelector(".chart-container");
+      if (chartContainer) {
+        chartContainer.style.opacity = "0";
+        chartContainer.style.transform = "translateY(20px)";
+        chartContainer.style.transition = "all 0.5s ease";
+
+        setTimeout(() => {
+          chartContainer.style.opacity = "1";
+          chartContainer.style.transform = "translateY(0)";
+        }, 100);
+      }
+    }, 500);
   });
 </script>

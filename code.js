@@ -338,7 +338,8 @@ function getDashboardData() {
     const dashboardData = {
       totalSiswaAktif: 0,
       totalSiswaLulus: 0,
-      totalGuru: 0,
+      rataRataNilai: 0,
+      analisisKIP: 0,
       adminName: getCurrentUserUsername(),
     };
 
@@ -390,12 +391,220 @@ function getDashboardData() {
       createStudentsSheet(bukuIndukSS);
     }
 
-    // Kode lainnya untuk guru dan kelas...
+    // Hitung rata-rata nilai siswa
+    try {
+      dashboardData.rataRataNilai = calculateOverallAverageGrade();
+    } catch (error) {
+      Logger.log("Error calculating average grade: " + error.message);
+      dashboardData.rataRataNilai = 0;
+    }
+
+    // Hitung jumlah siswa layak KIP
+    try {
+      const kipStats = getKIPDashboardStats();
+      dashboardData.analisisKIP = kipStats.layak + kipStats.sangatLayak;
+    } catch (error) {
+      Logger.log("Error getting KIP stats: " + error.message);
+      dashboardData.analisisKIP = 0;
+    }
+
+    // Hitung data ringkasan
+    try {
+      const summaryStats = calculateSummaryStats();
+      dashboardData.summaryStats = summaryStats;
+    } catch (error) {
+      Logger.log("Error calculating summary stats: " + error.message);
+      dashboardData.summaryStats = {
+        siswaAktif: 0,
+        dataLengkap: 0,
+        nilaiTerinput: 0
+      };
+    }
 
     return dashboardData;
   } catch (error) {
     Logger.log("Error getting dashboard data: " + error.message);
     throw new Error("Gagal mendapatkan data dashboard: " + error.message);
+  }
+}
+
+// Fungsi untuk menghitung statistik ringkasan dashboard
+function calculateSummaryStats() {
+  try {
+    Logger.log("Calculating summary statistics...");
+    
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
+    const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
+    
+    const summaryStats = {
+      siswaAktif: 0,
+      dataLengkap: 0,
+      nilaiTerinput: 0
+    };
+    
+    if (!studentsSheet) {
+      Logger.log("Students sheet not found");
+      return summaryStats;
+    }
+    
+    const studentData = studentsSheet.getDataRange().getValues();
+    if (studentData.length <= 1) {
+      Logger.log("No student data found");
+      return summaryStats;
+    }
+    
+    const headers = studentData[0];
+    const statusIndex = findColumnIndex(headers, ["Status Akademik", "Status", "status"]);
+    
+    let totalStudents = studentData.length - 1; // Exclude header
+    let activeStudents = 0;
+    let completeDataStudents = 0;
+    
+    // Hitung siswa aktif dan data lengkap
+    for (let i = 1; i < studentData.length; i++) {
+      const row = studentData[i];
+      
+      // Hitung siswa aktif
+      if (statusIndex !== -1) {
+        const status = row[statusIndex];
+        if (status && status.toString().toLowerCase() === "aktif") {
+          activeStudents++;
+        }
+      }
+      
+      // Hitung data lengkap (minimal 80% kolom terisi)
+      let filledColumns = 0;
+      for (let j = 0; j < row.length; j++) {
+        if (row[j] && row[j].toString().trim() !== "") {
+          filledColumns++;
+        }
+      }
+      
+      const completenessPercentage = (filledColumns / headers.length) * 100;
+      if (completenessPercentage >= 80) {
+        completeDataStudents++;
+      }
+    }
+    
+    // Hitung persentase siswa aktif
+    summaryStats.siswaAktif = totalStudents > 0 ? Math.round((activeStudents / totalStudents) * 100) : 0;
+    
+    // Hitung persentase data lengkap
+    summaryStats.dataLengkap = totalStudents > 0 ? Math.round((completeDataStudents / totalStudents) * 100) : 0;
+    
+    // Hitung persentase nilai terinput
+    if (gradesSheet) {
+      const gradeData = gradesSheet.getDataRange().getValues();
+      if (gradeData.length > 1) {
+        const gradeHeaders = gradeData[0];
+        let studentsWithGrades = 0;
+        
+        for (let i = 1; i < gradeData.length; i++) {
+          const row = gradeData[i];
+          let hasGrades = false;
+          
+          // Cek apakah siswa memiliki nilai (minimal satu mata pelajaran)
+          for (let j = 0; j < row.length; j++) {
+            const value = row[j];
+            if (value && !isNaN(parseFloat(value)) && parseFloat(value) > 0) {
+              hasGrades = true;
+              break;
+            }
+          }
+          
+          if (hasGrades) {
+            studentsWithGrades++;
+          }
+        }
+        
+        const totalGradeStudents = gradeData.length - 1;
+        summaryStats.nilaiTerinput = totalGradeStudents > 0 ? Math.round((studentsWithGrades / totalGradeStudents) * 100) : 0;
+      }
+    }
+    
+    Logger.log(`Summary stats calculated: ${JSON.stringify(summaryStats)}`);
+    return summaryStats;
+    
+  } catch (error) {
+    Logger.log("Error in calculateSummaryStats: " + error.message);
+    return {
+      siswaAktif: 0,
+      dataLengkap: 0,
+      nilaiTerinput: 0
+    };
+  }
+}
+
+// Fungsi untuk menghitung rata-rata nilai keseluruhan siswa
+function calculateOverallAverageGrade() {
+  try {
+    Logger.log("Calculating overall average grade...");
+    
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
+    
+    if (!gradesSheet) {
+      Logger.log("Grades sheet not found");
+      return 0;
+    }
+    
+    const dataRange = gradesSheet.getDataRange();
+    const values = dataRange.getValues();
+    
+    if (values.length <= 1) {
+      Logger.log("No grade data found");
+      return 0;
+    }
+    
+    const headers = values[0];
+    const gradeColumnMap = initializeGradeColumnMap(headers);
+    
+    // Daftar mata pelajaran yang akan dihitung
+    const subjectFields = [
+      "pendidikanAgamaIslam",
+      "pendidikanPancasila", 
+      "bahasaIndonesia",
+      "matematika",
+      "ilmuPengetahuanAlam",
+      "ilmuPengetahuanSosial",
+      "bahasaInggris",
+      "pendidikanJasmani",
+      "informatika",
+      "seniBudaya",
+      "bimbinganKonseling",
+      "bahasaJawa"
+    ];
+    
+    let totalGrades = 0;
+    let validGradeCount = 0;
+    
+    // Iterasi melalui semua baris data nilai
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      
+      // Hitung nilai dari setiap mata pelajaran untuk siswa ini
+      subjectFields.forEach(subject => {
+        const columnIndex = gradeColumnMap[subject];
+        if (columnIndex !== -1) {
+          const nilai = parseFloat(row[columnIndex]);
+          if (!isNaN(nilai) && nilai > 0) {
+            totalGrades += nilai;
+            validGradeCount++;
+          }
+        }
+      });
+    }
+    
+    const averageGrade = validGradeCount > 0 ? totalGrades / validGradeCount : 0;
+    const roundedAverage = Math.round(averageGrade * 10) / 10; // Round to 1 decimal place
+    
+    Logger.log(`Calculated overall average: ${roundedAverage} from ${validGradeCount} valid grades`);
+    return roundedAverage;
+    
+  } catch (error) {
+    Logger.log("Error in calculateOverallAverageGrade: " + error.message);
+    return 0;
   }
 }
 

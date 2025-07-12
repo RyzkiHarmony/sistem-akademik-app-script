@@ -827,7 +827,7 @@
     tableBody.innerHTML = `
       <tr>
         <td colspan="8" style="text-align: center; padding: 40px;">
-          ⏳ Mencari data siswa...
+          <i class="fas fa-spinner fa-spin"></i> Mencari data siswa...
         </td>
       </tr>
     `;
@@ -846,7 +846,7 @@
     tableBody.innerHTML = `
       <tr>
         <td colspan="8" style="text-align: center; padding: 40px; color: #dc3545;">
-          ❌ ${message}
+          <i class="fas fa-times-circle"></i> ${message}
         </td>
       </tr>
     `;
@@ -858,7 +858,7 @@
   function showInfo(message) {
     const searchInfo = document.getElementById("search-info");
 
-    searchInfo.innerHTML = `<div style="color: #007bff; font-weight: bold;">ℹ️ ${message}</div>`;
+    searchInfo.innerHTML = `<div style="color: #007bff; font-weight: bold;"><i class="fas fa-info-circle"></i> ${message}</div>`;
     searchInfo.style.display = "block";
   }
 
@@ -977,7 +977,7 @@
                    data-kelas="${student.kelas}" 
                    data-semester="${student.semester}" 
                    title="Lihat Detail Nilai Siswa">
-                  📝 Detail Nilai
+                  <i class="fas fa-edit"></i> Detail Nilai
                 </a>
               </div>
             </td>

@@ -233,7 +233,7 @@
 
     // Tampilkan loading state
     document.getElementById("students-table-body").innerHTML =
-      "<tr><td colspan='8' style='text-align: center;'><div style='padding: 20px;'><span style='color: #1a5276; font-weight: 600;'>⏳ Memuat data siswa...</span></div></td></tr>";
+      "<tr><td colspan='8' style='text-align: center;'><div style='padding: 20px;'><span style='color: #1a5276; font-weight: 600;'><i class='fas fa-spinner fa-spin'></i> Memuat data siswa...</span></div></td></tr>";
 
     // Update pagination info dengan loading state
     document.getElementById("pagination-info").textContent = "Memuat data...";
@@ -290,7 +290,7 @@
       .withFailureHandler(function (error) {
         document.getElementById(
           "students-table-body"
-        ).innerHTML = `<tr><td colspan='8' style='text-align: center; color: #e74c3c; padding: 20px;'>❌ Error: ${error}</td></tr>`;
+        ).innerHTML = `<tr><td colspan='8' style='text-align: center; color: #e74c3c; padding: 20px;'><i class="fas fa-times-circle"></i> Error: ${error}</td></tr>`;
         document.getElementById("pagination-info").textContent =
           "Error memuat data";
         showNotification("Gagal memuat data siswa: " + error, "error");
@@ -454,7 +454,7 @@
 
     students.forEach((student, index) => {
       const genderIcon =
-        student.gender === "Laki-laki" || student.gender === "L" ? "👨" : "👩";
+        student.gender === "Laki-laki" || student.gender === "L" ? "<i class='fas fa-male'></i>" : "<i class='fas fa-female'></i>";
       const entryYear = student.tanggalDaftar
         ? new Date(student.tanggalDaftar).getFullYear()
         : "N/A";
@@ -474,11 +474,11 @@
               <div class="preview-student-id">${student.nis}</div>
               <div class="preview-student-meta">
                 <span class="preview-gender">${genderIcon} ${genderText}</span>
-                <span class="preview-status">📋 ${statusText}</span>
+                <span class="preview-status"><i class="fas fa-clipboard"></i> ${statusText}</span>
               </div>
             </div>
           </div>
-          <div class="preview-year">📅 ${entryYear}</div>
+          <div class="preview-year"><i class="fas fa-calendar"></i> ${entryYear}</div>
         </div>
       `;
     });
@@ -493,7 +493,7 @@
       <div id="progress-modal" class="modal-overlay" style="display: flex;">
         <div class="modal" style="max-width: 400px;">
           <div class="modal-header">
-            <h3 class="modal-title">🔄 Memproses Batch Update</h3>
+            <h3 class="modal-title"><i class="fas fa-sync-alt"></i> Memproses Batch Update</h3>
           </div>
           <div class="modal-body">
             <div style="margin-bottom: 15px;">
@@ -1104,7 +1104,7 @@
 
       // Show loading state
       const originalText = buttonElement.innerHTML;
-      buttonElement.innerHTML = '<span class="btn-icon">⏳</span>Memproses...';
+      buttonElement.innerHTML = '<span class="btn-icon"><i class="fas fa-spinner fa-spin"></i></span>Memproses...';
       buttonElement.disabled = true;
 
       // Call server-side function to get PDF URL
@@ -1505,7 +1505,7 @@
 
             if (students.length === 0) {
               studentsPreview.innerHTML =
-                '<p style="text-align: center; color: #666; padding: 20px;">📭 Tidak ada siswa yang sesuai dengan kriteria</p>';
+                '<p style="text-align: center; color: #666; padding: 20px;"><i class="fas fa-inbox"></i> Tidak ada siswa yang sesuai dengan kriteria</p>';
               previewSummary.innerHTML =
                 '<div class="text-warning">Total: 0 siswa</div>';
               document.getElementById("process-btn").disabled = true;
@@ -1522,14 +1522,14 @@
               const summaryHtml = `
                 <div class="preview-statistics">
                   <div class="stat-item text-success">
-                    <strong>📊 Total: ${students.length} siswa</strong>
+                    <strong><i class="fas fa-chart-bar"></i> Total: ${students.length} siswa</strong>
                   </div>
                   <div class="stat-details">
-                    <span class="stat-badge">👨 Laki-laki: ${stats.male}</span>
-                    <span class="stat-badge">👩 Perempuan: ${stats.female}</span>
+                    <span class="stat-badge"><i class="fas fa-male"></i> Laki-laki: ${stats.male}</span>
+                    <span class="stat-badge"><i class="fas fa-female"></i> Perempuan: ${stats.female}</span>
                   </div>
                   <div class="stat-details">
-                    <span class="stat-badge">📅 Rentang Tahun: ${stats.yearRange}</span>
+                    <span class="stat-badge"><i class="fas fa-calendar"></i> Rentang Tahun: ${stats.yearRange}</span>
                   </div>
                 </div>
               `;
@@ -1643,13 +1643,13 @@
 
                 if (result.success) {
                   showNotification(
-                    `🎉 Berhasil! ${result.count} siswa telah diperbarui statusnya menjadi "${updateData.newStatus}"`,
+                    `<i class="fas fa-check-circle"></i> Berhasil! ${result.count} siswa telah diperbarui statusnya menjadi "${updateData.newStatus}"`,
                     "success"
                   );
                   closeGraduationBatchModal();
                   loadStudents();
                 } else {
-                  showNotification("❌ Error: " + result.message, "error");
+                  showNotification("<i class='fas fa-times-circle'></i> Error: " + result.message, "error");
                 }
               }, 1000);
             }, 500);
@@ -1659,7 +1659,7 @@
 
             setTimeout(() => {
               closeProgressModal();
-              showNotification("❌ Error: " + error, "error");
+              showNotification("<i class='fas fa-times-circle'></i> Error: " + error, "error");
             }, 1500);
           })
           .batchUpdateStudentStatus(batchUpdateParams);

@@ -278,11 +278,11 @@
     const errorSection = document.getElementById("error-section");
     errorSection.innerHTML = `
       <div class="error-container">
-        <h3>❌ Error Memuat Data Nilai Siswa</h3>
+        <h3><i class="fas fa-times-circle"></i> Error Memuat Data Nilai Siswa</h3>
         <p><strong>Pesan:</strong> ${message}</p>
         <div style="margin-top: 15px;">
-          <button class="btn btn-primary" onclick="loadStudentData()">🔄 Coba Lagi</button>
-          <button class="btn btn-secondary" onclick="goBack()">📋 Kembali ke Daftar Nilai</button>
+          <button class="btn btn-primary" onclick="loadStudentData()"><i class="fas fa-sync-alt"></i> Coba Lagi</button>
+          <button class="btn btn-secondary" onclick="goBack()"><i class="fas fa-clipboard"></i> Kembali ke Daftar Nilai</button>
         </div>
       </div>
     `;
@@ -310,7 +310,7 @@
       : "?";
 
     // Generate summary info HTML
-    let summaryInfoHtml = '';
+    let summaryInfoHtml = "";
     if (gradeSummary) {
       summaryInfoHtml = `
         <div class="detail-item">
@@ -358,7 +358,9 @@
           <div class="student-name">${
             studentData.nama || "Nama tidak tersedia"
           }</div>
-          <div class="student-nis">NIS: ${studentData.nis || "-"} | NISN: ${studentData.nisn || "-"}</div>
+          <div class="student-nis">NIS: ${studentData.nis || "-"} | NISN: ${
+      studentData.nisn || "-"
+    }</div>
           <div class="student-status ${statusClass}">${
       studentData.status || "Aktif"
     }</div>
@@ -391,10 +393,10 @@
 
     // Show academic grades
     renderAcademicGrades(gradeRecord);
-    
+
     // Re-render student info with summary data now available
     renderStudentInfo();
-    
+
     document.getElementById("exam-grades-card").style.display = "none";
   }
 
