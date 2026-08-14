@@ -1,6 +1,14 @@
 # Node modules
 node_modules/
 npm-debug.log*
+
+# Testing
+__tests__/
+__mocks__/
+jest.config.js
+package.json
+package-lock.json
+coverage/
 yarn-debug.log*
 yarn-error.log*
 
@@ -54,3 +62,7 @@ README.md
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Tooling outputs
+graphify-out/
+.eslintrc.json

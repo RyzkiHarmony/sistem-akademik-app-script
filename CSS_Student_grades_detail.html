@@ -379,18 +379,31 @@
   }
 
   .grades-table th:first-child {
-    width: 70%;
+    width: 40%;
+  }
+
+  .grades-table th:nth-child(2) {
+    width: 20%;
+    text-align: center;
   }
 
   .grades-table th:last-child {
-    width: 30%;
-    text-align: center;
+    width: 40%;
+    text-align: left;
   }
 
   .grades-table td {
     padding: 12px 15px;
     border-bottom: 1px solid #e9ecef;
     font-size: 14px;
+    vertical-align: top;
+  }
+
+  .grades-table .achievement-text {
+    max-width: 300px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.4;
   }
 
   .grades-table tr:hover {
@@ -417,6 +430,22 @@
     min-width: 50px;
   }
 
+  .achievement-text {
+    font-size: 13px;
+    color: #495057;
+    line-height: 1.4;
+    font-weight: 500;
+    padding: 8px 0;
+    max-width: 300px;
+    word-wrap: break-word;
+  }
+
+  .achievement-text:empty::before {
+    content: "-";
+    color: #6c757d;
+    font-style: italic;
+  }
+
   .grade-pass {
     background: #28a745;
   }
@@ -427,7 +456,146 @@
 
   .grade-empty {
     background: #6c757d;
-    color: white;
+  }
+
+  /* Styling untuk tabel ekstrakurikuler, prestasi, P5, kehadiran, dan status kenaikan */
+  .grades-table th:first-child {
+    width: auto;
+  }
+
+  .grades-table th:nth-child(2) {
+    width: auto;
+  }
+
+  .grades-table th:nth-child(3) {
+    width: auto;
+  }
+
+  /* Styling khusus untuk tabel prestasi */
+  #achievement-grid .grades-table th {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  #achievement-grid .grades-table td {
+    font-size: 13px;
+    padding: 8px 6px;
+  }
+
+  /* Styling khusus untuk tabel P5 */
+  #p5-project-grid .grades-table th {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  #p5-project-grid .grades-table td {
+    font-size: 12px;
+    padding: 8px 6px;
+    vertical-align: top;
+  }
+
+  #p5-project-grid .grades-table td[rowspan] {
+    background: #f8f9fa;
+    font-weight: 600;
+    border-right: 2px solid #dee2e6;
+  }
+
+  /* Styling untuk tabel kehadiran */
+  #attendance-grid .grades-table th,
+  #attendance-grid .grades-table td {
+    text-align: center;
+  }
+
+  #attendance-grid .grades-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  /* Styling untuk tabel status kenaikan */
+  #promotion-status-grid .grades-table td:first-child {
+    background: #f8f9fa;
+    font-weight: 600;
+    width: 40%;
+  }
+
+  #promotion-status-grid .grades-table td:nth-child(2) {
+    width: 60%;
+  }
+
+  /* Responsive untuk tabel yang lebih lebar */
+  @media (max-width: 768px) {
+    #achievement-grid .grades-table,
+    #p5-project-grid .grades-table {
+      font-size: 11px;
+    }
+
+    #achievement-grid .grades-table th,
+    #achievement-grid .grades-table td,
+    #p5-project-grid .grades-table th,
+    #p5-project-grid .grades-table td {
+      padding: 6px 4px;
+    }
+  }
+
+  /* Styling untuk card spacing */
+  .grades-card {
+    margin-bottom: 20px;
+  }
+
+  .grades-card:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Accordion styles */
+  .accordion-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .accordion-header:hover {
+    background-color: rgba(26, 82, 118, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(26, 82, 118, 0.1);
+  }
+
+  .accordion-header:hover h3 {
+    color: #1a5276;
+  }
+
+  .accordion-header:hover .accordion-icon {
+    color: #1a5276;
+    transform: scale(1.1);
+  }
+
+  .accordion-icon {
+    transition: all 0.3s ease;
+    color: #6c757d;
+    font-size: 14px;
+  }
+
+  .accordion-body {
+    transition: all 0.3s ease;
+    overflow: hidden;
+  }
+
+  .accordion-card .grades-card-header {
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .accordion-card:hover {
+    box-shadow: 0 4px 20px rgba(26, 82, 118, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Styling untuk empty state */
+  .grades-table td[colspan] {
+    font-style: italic;
+    color: #6c757d;
+    padding: 20px;
   }
 
   .grade-excellent {
@@ -645,6 +813,84 @@
     transform: translateY(-2px);
   }
 
+  /* Add Data Button Styling */
+  .add-data-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+  }
+
+  .add-data-btn:hover {
+    background: linear-gradient(135deg, #218838, #1e7e34);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  }
+
+  .add-data-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(40, 167, 69, 0.2);
+  }
+
+  .add-data-btn i {
+    font-size: 12px;
+  }
+
+  /* Empty Data Row Styling */
+  .empty-data-row td {
+    padding: 30px 20px !important;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    font-style: italic;
+    color: #6c757d;
+  }
+
+  .empty-data-row:hover td {
+    background: #e9ecef;
+    border-color: #adb5bd;
+  }
+
+  /* Textarea styling for extracurricular description */
+  .text-input textarea {
+    min-height: 80px;
+    font-family: inherit;
+    line-height: 1.4;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+  }
+
+  .text-input textarea:focus {
+    outline: none;
+    border-color: #1a5276;
+    box-shadow: 0 0 0 2px rgba(26, 82, 118, 0.1);
+  }
+
+  .grades-table .text-input {
+    width: 100%;
+  }
+
+  .grades-table textarea.text-input {
+    resize: vertical;
+    min-height: 60px;
+    max-height: 150px;
+  }
+
   /* Mobile Responsive */
   @media (max-width: 768px) {
     .sidebar {
@@ -735,5 +981,231 @@
 
   .student-info-card {
     animation: fadeIn 0.3s ease-out;
+  }
+
+  /* Refresh Button Styles */
+  .refresh-btn {
+    background: #17a2b8;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .refresh-btn:hover {
+    background: #138496;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(23, 162, 184, 0.3);
+  }
+
+  .refresh-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(23, 162, 184, 0.2);
+  }
+
+  .refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Edit Toggle Button - Consistent with Student_edit.html */
+  .edit-toggle-btn {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+  }
+
+  .edit-toggle-btn:hover {
+    background: #27ae60;
+    transform: scale(1.05);
+  }
+
+  .edit-toggle-btn.save-mode {
+    background: #3498db;
+  }
+
+  .edit-toggle-btn.save-mode:hover {
+    background: #2980b9;
+  }
+
+  .edit-toggle-btn.cancel-mode {
+    background: #e74c3c;
+    margin-left: 8px;
+  }
+
+  .edit-toggle-btn.cancel-mode:hover {
+    background: #c0392b;
+  }
+
+  .edit-grades-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .grades-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .grades-card-header h3 {
+    margin: 0;
+    flex: 1;
+  }
+
+  .semester-info {
+    font-size: 14px;
+    color: white;
+    font-weight: 500;
+  }
+
+  /* Grade Input Styles */
+  .grade-input {
+    width: 60px;
+    padding: 4px 8px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .grade-input:focus {
+    outline: none;
+    border-color: #1a5276;
+    box-shadow: 0 0 0 3px rgba(26, 82, 118, 0.1);
+  }
+
+  .grade-input.invalid {
+    border-color: #dc3545;
+    background-color: #fff5f5;
+  }
+
+  .grade-input.invalid:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+  }
+
+  /* Achievement Input Styles */
+  .achievement-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.4;
+    resize: vertical;
+    transition: all 0.3s ease;
+    background-color: #fff;
+  }
+
+  .achievement-input:focus {
+    outline: none;
+    border-color: #1a5276;
+    box-shadow: 0 0 0 3px rgba(26, 82, 118, 0.1);
+  }
+
+  .achievement-input::placeholder {
+    color: #999;
+    font-style: italic;
+  }
+
+  /* Edit mode table styles */
+  .grades-table.edit-mode .grade-value {
+    padding: 0;
+  }
+
+  .grades-table.edit-mode .achievement-text {
+    padding: 0;
+  }
+
+  .grades-table.edit-mode .grade-value.grade-pass,
+  .grades-table.edit-mode .grade-value.grade-fail,
+  .grades-table.edit-mode .grade-value.grade-empty {
+    background: none;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  /* Alert styles for grade edit */
+  .grade-edit-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    color: white;
+    font-weight: 500;
+    z-index: 1050;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .grade-edit-alert.success {
+    background: #28a745;
+  }
+
+  .grade-edit-alert.error {
+    background: #dc3545;
+  }
+
+  .grade-edit-alert.info {
+    background: #17a2b8;
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  /* Mobile responsive for edit buttons */
+  @media (max-width: 768px) {
+    .grades-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .edit-grades-btn {
+      margin-left: 0;
+      margin-top: 8px;
+    }
+
+    .grade-input {
+      width: 50px;
+      font-size: 12px;
+    }
   }
 </style>

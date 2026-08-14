@@ -394,10 +394,18 @@
     // Show academic grades
     renderAcademicGrades(gradeRecord);
 
+    // Show additional data sections
+    renderExtracurricular();
+    renderAchievements();
+    renderP5Projects();
+    renderAttendance();
+    renderPromotionStatus();
+
     // Re-render student info with summary data now available
     renderStudentInfo();
 
-    document.getElementById("exam-grades-card").style.display = "none";
+    // Show exam grades if available
+    renderExamGrades();
   }
 
   // Fungsi untuk menampilkan nilai akademik
@@ -439,10 +447,27 @@
           <tr>
             <th>Mata Pelajaran</th>
             <th>Nilai</th>
+            <th>Capaian Pembelajaran</th>
           </tr>
         </thead>
         <tbody>
     `;
+
+    // Mapping untuk capaian pembelajaran
+    const capaianMapping = {
+      "pendidikanAgamaIslam": "Capaian Pembelajaran (Pendidikan Agama Islam)",
+      "pendidikanPancasila": "Capaian Pembelajaran (Pendidikan Pancasila)",
+      "bahasaIndonesia": "Capaian Pembelajaran (Bahasa Indonesia)",
+      "matematika": "Capaian Pembelajaran (Matematika)",
+      "ilmuPengetahuanAlam": "Capaian Pembelajaran (Ilmu Pengetahuan Alam)",
+      "ilmuPengetahuanSosial": "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)",
+      "bahasaInggris": "Capaian Pembelajaran (Bahasa Inggris)",
+      "pendidikanJasmani": "Capaian Pembelajaran (PJOK)",
+      "informatika": "Capaian Pembelajaran (Informatika)",
+      "seniBudaya": "Capaian Pembelajaran (Seni Budaya)",
+      "bimbinganKonseling": "Capaian Pembelajaran (BK)",
+      "bahasaJawa": "Capaian Pembelajaran (Bahasa Jawa)",
+    };
 
     subjectFields.forEach((subject) => {
       const nilai = gradeRecord[subject.key];
@@ -455,10 +480,16 @@
           ? "grade-fail"
           : "grade-empty";
 
+      // Ambil capaian pembelajaran dari studentData
+      const capaianKey = capaianMapping[subject.key];
+      const capaian = (studentData && studentData[capaianKey]) || "-";
+      const capaianDisplay = capaian && capaian !== "" ? capaian : "-";
+
       gradesHtml += `
         <tr>
           <td class="subject-name">${subject.name}</td>
           <td><span class="grade-value ${gradeClass}">${nilaiDisplay}</span></td>
+          <td class="achievement-text">${capaianDisplay}</td>
         </tr>
       `;
     });
@@ -474,6 +505,576 @@
     gradesSummary.style.display = "none";
 
     academicCard.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan data ekstrakurikuler
+  function renderExtracurricular() {
+    const extracurricularCard = document.getElementById("extracurricular-card");
+    const extracurricularGrid = document.getElementById("extracurricular-grid");
+
+    if (!studentData) {
+      extracurricularCard.style.display = "none";
+      return;
+    }
+
+    let extracurricularHtml = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama Ekstrakurikuler</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Data ekstrakurikuler dari kolom 66-72
+    const extracurricularData = [
+      {
+        name: studentData["Ekstrakurikuler 1"] || "-",
+        desc: studentData["Keterangan Ekstrakurikuler 1"] || "-",
+      },
+      {
+        name: studentData["Ekstrakurikuler 2"] || "-",
+        desc: studentData["Keterangan Ekstrakurikuler 2"] || "-",
+      },
+      {
+        name: studentData["Ekstrakurikuler 3"] || "-",
+        desc: studentData["Keterangan Ekstrakurikuler 3"] || "-",
+      },
+      {
+        name: studentData["Ekstrakurikuler 4"] || "-",
+        desc: studentData["Keterangan Ekstrakurikuler 4"] || "-",
+      },
+    ];
+
+    let hasData = false;
+    let dataCount = 0;
+    
+    extracurricularData.forEach((item, index) => {
+      if (item.name !== "-" || item.desc !== "-") {
+        hasData = true;
+        dataCount++;
+        extracurricularHtml += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.name}</td>
+            <td>${item.desc}</td>
+          </tr>
+        `;
+      }
+    });
+
+    if (!hasData) {
+      extracurricularHtml += `
+        <tr class="empty-data-row">
+          <td colspan="3" style="text-align: center; color: #666;">
+            Tidak ada data ekstrakurikuler
+            <br><br>
+            <button class="btn btn-primary btn-sm add-data-btn" onclick="addNewExtracurricularRow()">
+              <i class="fas fa-plus"></i> Tambah Data Ekstrakurikuler
+            </button>
+          </td>
+        </tr>
+      `;
+    } else if (dataCount < 4) {
+      extracurricularHtml += `
+        <tr>
+          <td colspan="3" style="text-align: center; padding: 15px;">
+            <button class="btn btn-success btn-sm add-data-btn" onclick="addNewExtracurricularRow()">
+              <i class="fas fa-plus"></i> Tambah Ekstrakurikuler Lagi
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    extracurricularHtml += `
+        </tbody>
+      </table>
+    `;
+
+    extracurricularGrid.innerHTML = extracurricularHtml;
+    extracurricularCard.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan data prestasi
+  function renderAchievements() {
+    const achievementCard = document.getElementById("achievement-card");
+    const achievementGrid = document.getElementById("achievement-grid");
+
+    if (!studentData) {
+      achievementCard.style.display = "none";
+      return;
+    }
+
+    let achievementHtml = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Jenis Prestasi</th>
+            <th>Tingkat</th>
+            <th>Nama Prestasi</th>
+            <th>Tahun</th>
+            <th>Penyelenggara</th>
+            <th>Peringkat</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Data prestasi dari kolom 73-78, 107-134
+    const achievementData = [
+      {
+        jenis: studentData["Jenis Prestasi"] || "-",
+        tingkat: studentData["Tingkat Prestasi"] || "-",
+        nama: studentData["Nama Prestasi"] || "-",
+        tahun: studentData["Tahun Prestasi"] || "-",
+        penyelenggara: studentData["Penyelenggara"] || "-",
+        peringkat: studentData["Peringkat"] || "-",
+      },
+      {
+        jenis: studentData["Jenis Prestasi (2)"] || "-",
+        tingkat: studentData["Tingkat Prestasi (2)"] || "-",
+        nama: studentData["Nama Prestasi (2)"] || "-",
+        tahun: studentData["Tahun Prestasi (2)"] || "-",
+        penyelenggara: studentData["Penyelenggara (2)"] || "-",
+        peringkat: studentData["Peringkat (2)"] || "-",
+      },
+      {
+        jenis: studentData["Jenis Prestasi (3)"] || "-",
+        tingkat: studentData["Tingkat Prestasi (3)"] || "-",
+        nama: studentData["Nama Prestasi (3)"] || "-",
+        tahun: studentData["Tahun Prestasi (3)"] || "-",
+        penyelenggara: studentData["Penyelenggara (3)"] || "-",
+        peringkat: studentData["Peringkat (3)"] || "-",
+      },
+      {
+        jenis: studentData["Jenis Prestasi (4)"] || "-",
+        tingkat: studentData["Tingkat Prestasi (4)"] || "-",
+        nama: studentData["Nama Prestasi (4)"] || "-",
+        tahun: studentData["Tahun Prestasi (4)"] || "-",
+        penyelenggara: studentData["Penyelenggara (4)"] || "-",
+        peringkat: studentData["Peringkat (4)"] || "-",
+      },
+      {
+        jenis: studentData["Jenis Prestasi (5)"] || "-",
+        tingkat: studentData["Tingkat Prestasi (5)"] || "-",
+        nama: studentData["Nama Prestasi (5)"] || "-",
+        tahun: studentData["Tahun Prestasi (5)"] || "-",
+        penyelenggara: studentData["Penyelenggara (5)"] || "-",
+        peringkat: studentData["Peringkat (5)"] || "-",
+      },
+    ];
+
+    let hasAchievement = false;
+    let achievementCount = 0;
+    
+    achievementData.forEach((item, index) => {
+      if (item.jenis !== "-" || item.nama !== "-") {
+        hasAchievement = true;
+        achievementCount++;
+        achievementHtml += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.jenis}</td>
+            <td>${item.tingkat}</td>
+            <td>${item.nama}</td>
+            <td>${item.tahun}</td>
+            <td>${item.penyelenggara}</td>
+            <td>${item.peringkat}</td>
+          </tr>
+        `;
+      }
+    });
+
+    if (!hasAchievement) {
+      achievementHtml += `
+        <tr class="empty-data-row">
+          <td colspan="7" style="text-align: center; color: #666;">
+            Tidak ada data prestasi
+            <br><br>
+            <button class="btn btn-primary btn-sm add-data-btn" onclick="addNewAchievementRow()">
+              <i class="fas fa-plus"></i> Tambah Data Prestasi
+            </button>
+          </td>
+        </tr>
+      `;
+    } else if (achievementCount < 5) {
+      achievementHtml += `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 15px;">
+            <button class="btn btn-success btn-sm add-data-btn" onclick="addNewAchievementRow()">
+              <i class="fas fa-plus"></i> Tambah Prestasi Lagi
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    achievementHtml += `
+        </tbody>
+      </table>
+    `;
+
+    achievementGrid.innerHTML = achievementHtml;
+    achievementCard.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan projek P5
+  function renderP5Projects() {
+    const p5Card = document.getElementById("p5-project-card");
+    const p5Grid = document.getElementById("p5-project-grid");
+
+    if (!studentData) {
+      p5Card.style.display = "none";
+      return;
+    }
+
+    let p5Html = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>Tema Projek</th>
+            <th>Dimensi</th>
+            <th>Elemen</th>
+            <th>Sub-Elemen</th>
+            <th>Target Pencapaian</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Data projek P5 dari kolom 45-65
+    const p5Themes = [
+      studentData["Tema Projek 1"] || "-",
+      studentData["Tema Projek 2"] || "-",
+      studentData["Tema Projek 3"] || "-",
+    ];
+
+    const p5Dimensions = [
+      {
+        name: "Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia",
+        elemen:
+          studentData[
+            "Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia"
+          ] || "-",
+        subElemen:
+          studentData[
+            "Sub-Elemen - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia"
+          ] || "-",
+        target:
+          studentData[
+            "Target Pencapaian - Beriman, Bertakwa kepada Tuhan Yang Maha Esa, dan Berakhlak Mulia"
+          ] || "-",
+      },
+      {
+        name: "Berkebhinekaan Global",
+        elemen: studentData["Elemen - Berkebhinekaan Global"] || "-",
+        subElemen: studentData["Sub-Elemen - Berkebhinekaan Global"] || "-",
+        target: studentData["Target Pencapaian - Berkebhinekaan Global"] || "-",
+      },
+      {
+        name: "Bergotong Royong",
+        elemen: studentData["Elemen - Bergotong Royong"] || "-",
+        subElemen: studentData["Sub-Elemen - Bergotong Royong"] || "-",
+        target: studentData["Target Pencapaian - Bergotong Royong"] || "-",
+      },
+      {
+        name: "Mandiri",
+        elemen: studentData["Elemen - Mandiri"] || "-",
+        subElemen: studentData["Sub-Elemen - Mandiri"] || "-",
+        target: studentData["Target Pencapaian - Mandiri"] || "-",
+      },
+      {
+        name: "Bernalar Kritis",
+        elemen: studentData["Elemen - Bernalar Kritis"] || "-",
+        subElemen: studentData["Sub-Elemen - Bernalar Kritis"] || "-",
+        target: studentData["Target Pencapaian - Bernalar Kritis"] || "-",
+      },
+      {
+        name: "Kreatif",
+        elemen: studentData["Elemen - Kreatif"] || "-",
+        subElemen: studentData["Sub-Elemen - Kreatif"] || "-",
+        target: studentData["Target Pencapaian - Kreatif"] || "-",
+      },
+    ];
+
+    // Tampilkan tema projek
+    p5Themes.forEach((theme, index) => {
+      if (theme !== "-") {
+        p5Html += `
+          <tr>
+            <td rowspan="6"><strong>Tema ${index + 1}:</strong><br>${theme}</td>
+            <td>${p5Dimensions[0].name}</td>
+            <td>${p5Dimensions[0].elemen}</td>
+            <td>${p5Dimensions[0].subElemen}</td>
+            <td>${p5Dimensions[0].target}</td>
+          </tr>
+        `;
+
+        for (let i = 1; i < p5Dimensions.length; i++) {
+          p5Html += `
+            <tr>
+              <td>${p5Dimensions[i].name}</td>
+              <td>${p5Dimensions[i].elemen}</td>
+              <td>${p5Dimensions[i].subElemen}</td>
+              <td>${p5Dimensions[i].target}</td>
+            </tr>
+          `;
+        }
+        return; // Hanya tampilkan satu tema untuk saat ini
+      }
+    });
+
+    if (p5Themes.every((theme) => theme === "-")) {
+      p5Html += `
+        <tr>
+          <td colspan="5" style="text-align: center; color: #666;">Tidak ada data projek P5</td>
+        </tr>
+      `;
+    }
+
+    p5Html += `
+        </tbody>
+      </table>
+    `;
+
+    p5Grid.innerHTML = p5Html;
+    p5Card.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan data kehadiran
+  function renderAttendance() {
+    const attendanceCard = document.getElementById("attendance-card");
+    const attendanceGrid = document.getElementById("attendance-grid");
+
+    if (!studentData) {
+      attendanceCard.style.display = "none";
+      return;
+    }
+
+    let attendanceHtml = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>Semester</th>
+            <th>Sakit</th>
+            <th>Izin</th>
+            <th>Tanpa Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Data kehadiran dari kolom 36-41
+    const attendanceData = [
+      {
+        semester: "Semester I",
+        sakit: studentData["Sakit - SMT I"] || "0",
+        izin: studentData["Izin - SMT I"] || "0",
+        tanpaKeterangan: studentData["Tanpa Keterangan - SMT I"] || "0",
+      },
+      {
+        semester: "Semester II",
+        sakit: studentData["Sakit - SMT II"] || "0",
+        izin: studentData["Izin - SMT II"] || "0",
+        tanpaKeterangan: studentData["Tanpa Keterangan - SMT II"] || "0",
+      },
+    ];
+
+    attendanceData.forEach((item) => {
+      attendanceHtml += `
+        <tr>
+          <td><strong>${item.semester}</strong></td>
+          <td>${item.sakit}</td>
+          <td>${item.izin}</td>
+          <td>${item.tanpaKeterangan}</td>
+        </tr>
+      `;
+    });
+
+    attendanceHtml += `
+        </tbody>
+      </table>
+    `;
+
+    attendanceGrid.innerHTML = attendanceHtml;
+    attendanceCard.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan status kenaikan kelas
+  function renderPromotionStatus() {
+    const promotionCard = document.getElementById("promotion-status-card");
+    const promotionGrid = document.getElementById("promotion-status-grid");
+
+    if (!studentData) {
+      promotionCard.style.display = "none";
+      return;
+    }
+
+    let promotionHtml = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>Keterangan</th>
+            <th>Status/Nilai</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Data status kenaikan dari kolom 42-44, 138-146
+    const promotionData = [
+      {
+        label: "Status Kenaikan",
+        value: studentData["Naik / Tidak Naik"] || "-",
+      },
+      { label: "Naik Ke Kelas", value: studentData["Naik Ke Kelas"] || "-" },
+      {
+        label: "Tanggal Ditetapkan Naik Kelas",
+        value: studentData["Tanggal ditetapkan Naik Kelas"] || "-",
+      },
+      {
+        label: "Status Kelulusan",
+        value: studentData["LULUS / TIDAK LULUS"] || "-",
+      },
+      {
+        label: "Tanggal Ditetapkan Lulus",
+        value: studentData["Tanggal Ditetapkan Lulus"] || "-",
+      },
+      { label: "No. Ijazah", value: studentData["No. Ijazah"] || "-" },
+      { label: "No. SKHUS", value: studentData["No. SKHUS"] || "-" },
+      {
+        label: "Jumlah Nilai per SMT",
+        value: studentData["Jumlah Nilai per SMT"] || "-",
+      },
+      {
+        label: "Rata-Rata Nilai per SMT",
+        value: studentData["Rata-Rata Nilai per SMT"] || "-",
+      },
+      {
+        label: "Jumlah Nilai US",
+        value: studentData["Jumlah Nilai US"] || "-",
+      },
+      {
+        label: "Rata-Rata Nilai US",
+        value: studentData["Rata-Rata Nilai US"] || "-",
+      },
+    ];
+
+    promotionData.forEach((item) => {
+      if (item.value !== "-") {
+        promotionHtml += `
+          <tr>
+            <td><strong>${item.label}</strong></td>
+            <td>${item.value}</td>
+          </tr>
+        `;
+      }
+    });
+
+    if (promotionData.every((item) => item.value === "-")) {
+      promotionHtml += `
+        <tr>
+          <td colspan="2" style="text-align: center; color: #666;">Tidak ada data status kenaikan</td>
+        </tr>
+      `;
+    }
+
+    promotionHtml += `
+        </tbody>
+      </table>
+    `;
+
+    promotionGrid.innerHTML = promotionHtml;
+    promotionCard.style.display = "block";
+  }
+
+  // Fungsi untuk menampilkan nilai ujian sekolah
+  function renderExamGrades() {
+    const examCard = document.getElementById("exam-grades-card");
+    const examGrid = document.getElementById("exam-grades-grid");
+
+    if (!studentData) {
+      examCard.style.display = "none";
+      return;
+    }
+
+    let examHtml = `
+      <table class="grades-table">
+        <thead>
+          <tr>
+            <th>Mata Pelajaran</th>
+            <th>Nilai Ujian Sekolah</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    // Data ujian sekolah dari kolom yang sesuai
+    const examSubjects = [
+      { key: "pendidikanAgamaIslam", name: "Pendidikan Agama Islam", field: "Pendidikan Agama Islam - Ujian Sekolah" },
+      { key: "pendidikanPancasila", name: "Pendidikan Pancasila", field: "Pendidikan Pancasila - Ujian Sekolah" },
+      { key: "bahasaIndonesia", name: "Bahasa Indonesia", field: "Bahasa Indonesia - Ujian Sekolah" },
+      { key: "matematika", name: "Matematika", field: "Matematika - Ujian Sekolah" },
+      { key: "ilmuPengetahuanAlam", name: "Ilmu Pengetahuan Alam", field: "Ilmu Pengetahuan Alam - Ujian Sekolah" },
+      { key: "ilmuPengetahuanSosial", name: "Ilmu Pengetahuan Sosial", field: "Ilmu Pengetahuan Sosial - Ujian Sekolah" },
+      { key: "bahasaInggris", name: "Bahasa Inggris", field: "Bahasa Inggris - Ujian Sekolah" },
+      { key: "pendidikanJasmani", name: "Pendidikan Jasmani, Olahraga, dan Kesehatan", field: "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah" },
+      { key: "informatika", name: "Informatika", field: "Informatika - Ujian Sekolah" },
+      { key: "seniBudaya", name: "Seni Budaya", field: "Seni Budaya - Ujian Sekolah" },
+      { key: "bimbinganKonseling", name: "Bimbingan dan Konseling", field: "Bimbingan dan Konseling - Ujian Sekolah" },
+      { key: "bahasaJawa", name: "Bahasa Jawa", field: "Bahasa Jawa - Ujian Sekolah" },
+    ];
+
+    let hasExamData = false;
+
+    examSubjects.forEach((subject) => {
+      const nilai = studentData[subject.field] || "";
+      const nilaiDisplay = nilai === "" ? "-" : parseFloat(nilai).toFixed(0);
+      const gradeClass =
+        nilai && parseFloat(nilai) >= 75
+          ? "grade-pass"
+          : nilai && parseFloat(nilai) > 0
+          ? "grade-fail"
+          : "grade-empty";
+
+      if (nilai !== "") {
+        hasExamData = true;
+      }
+
+      examHtml += `
+        <tr>
+          <td class="subject-name">${subject.name}</td>
+          <td><span class="grade-value ${gradeClass}">${nilaiDisplay}</span></td>
+        </tr>
+      `;
+    });
+
+    if (!hasExamData) {
+      examHtml += `
+        <tr class="empty-data-row">
+          <td colspan="2" style="text-align: center; color: #666;">
+            Tidak ada data ujian sekolah
+            <br><br>
+            <button class="btn btn-primary btn-sm add-data-btn" onclick="addNewExamRow()">
+              <i class="fas fa-plus"></i> Tambah Data Ujian
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    examHtml += `
+        </tbody>
+      </table>
+    `;
+
+    examGrid.innerHTML = examHtml;
+    examCard.style.display = "block";
   }
 
   // Refresh student detail data
@@ -566,4 +1167,1200 @@
 
   // Update time every minute
   setInterval(updateDateTime, 60000);
+
+  // Accordion functionality
+  function toggleAccordion(cardId) {
+    const allCards = [
+      "academic-grades",
+      "extracurricular",
+      "achievement",
+      "p5-project",
+      "attendance",
+      "promotion-status",
+    ];
+    const targetBody = document.getElementById(cardId + "-body");
+    const targetIcon = document.getElementById(cardId + "-icon");
+
+    // Close all other cards
+    allCards.forEach((id) => {
+      if (id !== cardId) {
+        const body = document.getElementById(id + "-body");
+        const icon = document.getElementById(id + "-icon");
+        if (body && icon) {
+          body.style.display = "none";
+          icon.classList.remove("fa-chevron-up");
+          icon.classList.add("fa-chevron-down");
+        }
+      }
+    });
+
+    // Toggle the clicked card
+    if (targetBody && targetIcon) {
+      if (
+        targetBody.style.display === "none" ||
+        targetBody.style.display === ""
+      ) {
+        targetBody.style.display = "block";
+        targetIcon.classList.remove("fa-chevron-down");
+        targetIcon.classList.add("fa-chevron-up");
+      } else {
+        targetBody.style.display = "none";
+        targetIcon.classList.remove("fa-chevron-up");
+        targetIcon.classList.add("fa-chevron-down");
+      }
+    }
+  }
+
+  // Edit mode variables - consistent with Student_edit.html
+  let editModeCards = {};
+  let originalGradeData = {};
+  let pendingGradeChanges = {};
+
+  // Toggle edit mode for a card - consistent with Student_edit.html
+  function toggleEditMode(cardId) {
+    const isEditing = editModeCards[cardId] || false;
+
+    if (isEditing) {
+      // Save changes for this card
+      saveCardChanges(cardId);
+    } else {
+      // Enter edit mode
+      enterEditMode(cardId);
+    }
+  }
+
+  // Enter edit mode for a card - consistent with Student_edit.html
+  function enterEditMode(cardId) {
+    editModeCards[cardId] = true;
+    const card = document.querySelector(`[data-card-id="${cardId}"]`);
+    const editBtn = card.querySelector(".edit-toggle-btn");
+
+    if (!editBtn) return;
+
+    // Handle different card types
+    switch (cardId) {
+      case 'academic-grades':
+        enterEditModeAcademic(card, editBtn);
+        break;
+      case 'extracurricular':
+        enterEditModeExtracurricular(card, editBtn);
+        break;
+      case 'achievement':
+        enterEditModeAchievement(card, editBtn);
+        break;
+      case 'p5-grades':
+        enterEditModeP5(card, editBtn);
+        break;
+      case 'attendance':
+        enterEditModeAttendance(card, editBtn);
+        break;
+      case 'promotion-status':
+        enterEditModePromotion(card, editBtn);
+        break;
+      case 'exam-grades':
+        enterEditModeExam(card, editBtn);
+        break;
+      default:
+        showGradeAlert(
+          "Fitur edit untuk card ini belum diimplementasikan. Silakan gunakan halaman edit terpisah.",
+          "warning"
+        );
+        return;
+    }
+  }
+
+  // Enter edit mode for academic grades card
+  function enterEditModeAcademic(card, editBtn) {
+    const gradesTable = card.querySelector(".grades-table");
+    if (!gradesTable) return;
+
+    // Update button
+    editBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+    editBtn.className = "edit-toggle-btn save-mode";
+
+    // Add cancel button
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Batal';
+    cancelBtn.className = "edit-toggle-btn cancel-mode";
+    cancelBtn.onclick = () => cancelEditMode('academic-grades');
+    editBtn.parentNode.appendChild(cancelBtn);
+
+    // Add edit-mode class to table
+    gradesTable.classList.add("edit-mode");
+
+    // Convert grade values to inputs
+    const gradeValueElements = gradesTable.querySelectorAll(".grade-value");
+    gradeValueElements.forEach((element) => {
+      const currentValue = element.textContent.trim();
+      const parentRow = element.closest("tr");
+      const subjectCell = parentRow.querySelector(".subject-name");
+
+      if (subjectCell) {
+        const subjectName = subjectCell.textContent.trim();
+        const fieldName = getGradeFieldName(subjectName);
+
+        if (fieldName) {
+          // Store original value
+          originalGradeData[fieldName] =
+            currentValue === "-" ? "" : currentValue;
+
+          // Create input
+          const input = document.createElement("input");
+          input.type = "number";
+          input.className = "grade-input";
+          input.min = "0";
+          input.max = "100";
+          input.step = "0.1";
+          input.value = currentValue === "-" ? "" : currentValue;
+          input.setAttribute("data-field", fieldName);
+          input.setAttribute("data-subject", subjectName);
+
+          // Add validation
+          input.addEventListener("input", validateGradeInput);
+          input.addEventListener("blur", validateGradeInput);
+
+          // Clear existing content and add input
+          element.innerHTML = "";
+          element.appendChild(input);
+        }
+      }
+    });
+
+    // Convert achievement text to inputs
+    const achievementElements =
+      gradesTable.querySelectorAll(".achievement-text");
+    achievementElements.forEach((element) => {
+      const currentValue = element.textContent.trim();
+      const parentRow = element.closest("tr");
+      const subjectCell = parentRow.querySelector(".subject-name");
+
+      if (subjectCell) {
+        const subjectName = subjectCell.textContent.trim();
+        const fieldName = getAchievementFieldName(subjectName);
+
+        if (fieldName) {
+          // Store original value
+          originalGradeData[fieldName] =
+            currentValue === "-" ? "" : currentValue;
+
+          // Create textarea for achievement
+          const textarea = document.createElement("textarea");
+          textarea.className = "achievement-input";
+          textarea.rows = "4"; // Increased from 2 to 4 for longer text
+          textarea.value = currentValue === "-" ? "" : currentValue;
+          textarea.setAttribute("data-field", fieldName);
+          textarea.setAttribute("data-subject", subjectName);
+          textarea.placeholder =
+            "Masukkan capaian pembelajaran siswa selama 1 semester...";
+
+          // Clear existing content and add textarea
+          element.innerHTML = "";
+          element.appendChild(textarea);
+        }
+      }
+    });
+
+    showGradeAlert(
+      "Mode edit nilai diaktifkan. Ubah nilai dan klik Simpan.",
+      "info"
+    );
+  }
+
+  // Enter edit mode for extracurricular card
+  function enterEditModeExtracurricular(card, editBtn) {
+    const gradesTable = card.querySelector(".grades-table");
+    if (!gradesTable) return;
+
+    // Update button
+    editBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+    editBtn.className = "edit-toggle-btn save-mode";
+
+    // Add cancel button
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Batal';
+    cancelBtn.className = "edit-toggle-btn cancel-mode";
+    cancelBtn.onclick = () => cancelEditMode('extracurricular');
+    editBtn.parentNode.appendChild(cancelBtn);
+
+    // Add edit-mode class to table
+    gradesTable.classList.add("edit-mode");
+
+    // Convert extracurricular data to inputs
+    const rows = gradesTable.querySelectorAll("tbody tr");
+    rows.forEach((row, index) => {
+      const cells = row.querySelectorAll("td");
+      if (cells.length >= 3) {
+        // Skip the number column (index 0), edit name and description
+        for (let i = 1; i < cells.length; i++) {
+          const cell = cells[i];
+          const currentValue = cell.textContent.trim();
+          
+          // Determine field name based on extracurricular number and column
+          const fieldName = i === 1 ? `Ekstrakurikuler ${index + 1}` : `Keterangan Ekstrakurikuler ${index + 1}`;
+          
+          // Store original value
+          originalGradeData[fieldName] = currentValue === "-" ? "" : currentValue;
+
+          // Create input or textarea based on field type
+          let inputElement;
+          if (i === 2) { // Keterangan column
+            inputElement = document.createElement("textarea");
+            inputElement.rows = 3;
+            inputElement.style.resize = "vertical";
+            inputElement.placeholder = "Jelaskan capaian siswa dalam ekstrakurikuler pada semester ini";
+          } else { // Name column
+            inputElement = document.createElement("input");
+            inputElement.type = "text";
+            inputElement.placeholder = "Nama ekstrakurikuler";
+          }
+          
+          inputElement.className = "text-input";
+          inputElement.value = currentValue === "-" ? "" : currentValue;
+          inputElement.setAttribute("data-field", fieldName);
+
+          // Clear existing content and add input
+          cell.innerHTML = "";
+          cell.appendChild(inputElement);
+        }
+      }
+    });
+
+    showGradeAlert(
+      "Mode edit ekstrakurikuler diaktifkan. Ubah data dan klik Simpan.",
+      "info"
+    );
+  }
+
+  // Enter edit mode for achievement card
+  function enterEditModeAchievement(card, editBtn) {
+    const gradesTable = card.querySelector(".grades-table");
+    if (!gradesTable) return;
+
+    // Update button
+    editBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+    editBtn.className = "edit-toggle-btn save-mode";
+
+    // Add cancel button
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Batal';
+    cancelBtn.className = "edit-toggle-btn cancel-mode";
+    cancelBtn.onclick = () => cancelEditMode('achievement');
+    editBtn.parentNode.appendChild(cancelBtn);
+
+    // Add edit-mode class to table
+    gradesTable.classList.add("edit-mode");
+
+    // Convert achievement data to inputs
+    const rows = gradesTable.querySelectorAll("tbody tr");
+    rows.forEach((row, index) => {
+      const cells = row.querySelectorAll("td");
+      if (cells.length >= 7) {
+        // Skip the number column (index 0), edit other columns
+        for (let i = 1; i < cells.length; i++) {
+          const cell = cells[i];
+          const currentValue = cell.textContent.trim();
+          
+          // Determine field names based on achievement number
+          let fieldNames;
+          if (index === 0) { // First achievement
+            fieldNames = [
+              "Jenis Prestasi",
+              "Tingkat Prestasi",
+              "Nama Prestasi",
+              "Tahun Prestasi",
+              "Penyelenggara",
+              "Peringkat"
+            ];
+          } else { // Second, third, fourth, fifth achievement
+            fieldNames = [
+              `Jenis Prestasi (${index + 1})`,
+              `Tingkat Prestasi (${index + 1})`,
+              `Nama Prestasi (${index + 1})`,
+              `Tahun Prestasi (${index + 1})`,
+              `Penyelenggara (${index + 1})`,
+              `Peringkat (${index + 1})`
+            ];
+          }
+          const fieldName = fieldNames[i - 1];
+          
+          // Store original value
+          originalGradeData[fieldName] = currentValue === "-" ? "" : currentValue;
+
+          // Create input
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "text-input";
+          input.value = currentValue === "-" ? "" : currentValue;
+          input.setAttribute("data-field", fieldName);
+          input.placeholder = fieldNames[i - 1].replace(/\s*\(\d+\)/, "");
+
+          // Clear existing content and add input
+          cell.innerHTML = "";
+          cell.appendChild(input);
+        }
+      }
+    });
+
+    showGradeAlert(
+      "Mode edit prestasi diaktifkan. Ubah data dan klik Simpan.",
+      "info"
+    );
+  }
+
+  // Enter edit mode for P5 card
+  function enterEditModeP5(card, editBtn) {
+    showGradeAlert(
+      "Edit P5 memerlukan implementasi khusus. Silakan gunakan halaman edit terpisah.",
+      "warning"
+    );
+  }
+
+  // Enter edit mode for attendance card
+  function enterEditModeAttendance(card, editBtn) {
+    const gradesTable = card.querySelector(".grades-table");
+    if (!gradesTable) return;
+
+    // Update button
+    editBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+    editBtn.className = "edit-toggle-btn save-mode";
+
+    // Add cancel button
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Batal';
+    cancelBtn.className = "edit-toggle-btn cancel-mode";
+    cancelBtn.onclick = () => cancelEditMode('attendance');
+    editBtn.parentNode.appendChild(cancelBtn);
+
+    // Add edit-mode class to table
+    gradesTable.classList.add("edit-mode");
+
+    // Convert attendance data to inputs
+    const rows = gradesTable.querySelectorAll("tbody tr");
+    rows.forEach((row, index) => {
+      const cells = row.querySelectorAll("td");
+      if (cells.length >= 4) {
+        // Skip the semester column (index 0), edit attendance numbers
+        for (let i = 1; i < cells.length; i++) {
+          const cell = cells[i];
+          const currentValue = cell.textContent.trim();
+          const semesterSuffix = index === 0 ? "SMT I" : "SMT II";
+          const fieldNames = [
+            `Sakit - ${semesterSuffix}`,
+            `Izin - ${semesterSuffix}`,
+            `Tanpa Keterangan - ${semesterSuffix}`
+          ];
+          const fieldName = fieldNames[i - 1];
+          
+          // Store original value
+          originalGradeData[fieldName] = currentValue === "-" ? "0" : currentValue;
+
+          // Create input
+          const input = document.createElement("input");
+          input.type = "number";
+          input.className = "number-input";
+          input.min = "0";
+          input.value = currentValue === "-" ? "0" : currentValue;
+          input.setAttribute("data-field", fieldName);
+
+          // Clear existing content and add input
+          cell.innerHTML = "";
+          cell.appendChild(input);
+        }
+      }
+    });
+
+    showGradeAlert(
+      "Mode edit kehadiran diaktifkan. Ubah data dan klik Simpan.",
+      "info"
+    );
+  }
+
+  // Enter edit mode for promotion status card
+  function enterEditModePromotion(card, editBtn) {
+    showGradeAlert(
+      "Edit status kenaikan memerlukan implementasi khusus. Silakan gunakan halaman edit terpisah.",
+      "warning"
+    );
+  }
+
+  // Enter edit mode for exam grades card
+  function enterEditModeExam(card, editBtn) {
+    const gradesTable = card.querySelector(".grades-table");
+    if (!gradesTable) return;
+
+    // Update button
+    editBtn.innerHTML = '<i class="fas fa-save"></i> Simpan';
+    editBtn.className = "edit-toggle-btn save-mode";
+
+    // Add cancel button
+    const cancelBtn = document.createElement("button");
+    cancelBtn.innerHTML = '<i class="fas fa-times"></i> Batal';
+    cancelBtn.className = "edit-toggle-btn cancel-mode";
+    cancelBtn.onclick = () => cancelEditMode('exam-grades');
+    editBtn.parentNode.appendChild(cancelBtn);
+
+    // Add edit-mode class to table
+    gradesTable.classList.add("edit-mode");
+
+    // Convert exam grade values to inputs
+    const gradeValueElements = gradesTable.querySelectorAll(".grade-value");
+    gradeValueElements.forEach((element) => {
+      const currentValue = element.textContent.trim();
+      const parentRow = element.closest("tr");
+      const subjectCell = parentRow.querySelector(".subject-name");
+
+      if (subjectCell) {
+        const subjectName = subjectCell.textContent.trim();
+        const fieldName = getExamGradeFieldName(subjectName);
+
+        if (fieldName) {
+          // Store original value
+          originalGradeData[fieldName] = currentValue === "-" ? "" : currentValue;
+
+          // Create input
+          const input = document.createElement("input");
+          input.type = "number";
+          input.className = "grade-input";
+          input.min = "0";
+          input.max = "100";
+          input.step = "0.1";
+          input.value = currentValue === "-" ? "" : currentValue;
+          input.setAttribute("data-field", fieldName);
+          input.setAttribute("data-subject", subjectName);
+
+          // Add validation
+          input.addEventListener("input", validateGradeInput);
+          input.addEventListener("blur", validateGradeInput);
+
+          // Clear existing content and add input
+          element.innerHTML = "";
+          element.appendChild(input);
+        }
+      }
+    });
+
+    showGradeAlert(
+      "Mode edit ujian sekolah diaktifkan. Ubah nilai dan klik Simpan.",
+      "info"
+    );
+  }
+
+  // Cancel edit mode for a card - consistent with Student_edit.html
+  function cancelEditMode(cardId) {
+    editModeCards[cardId] = false;
+    const card = document.querySelector(`[data-card-id="${cardId}"]`);
+    const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
+    const cancelBtn = card.querySelector(".edit-toggle-btn.cancel-mode");
+    const gradesTable = card.querySelector(".grades-table");
+
+    if (!editBtn) return;
+
+    // Update button text based on card type
+    const buttonTexts = {
+      'academic-grades': 'Edit Nilai',
+      'extracurricular': 'Edit',
+      'achievement': 'Edit',
+      'p5-grades': 'Edit',
+      'attendance': 'Edit',
+      'promotion-status': 'Edit',
+      'exam-grades': 'Edit'
+    };
+    
+    editBtn.innerHTML = `<i class="fas fa-edit"></i> ${buttonTexts[cardId] || 'Edit'}`;
+    editBtn.className = "edit-toggle-btn";
+
+    // Remove cancel button
+    if (cancelBtn) {
+      cancelBtn.remove();
+    }
+
+    if (!gradesTable) {
+      // Clear data and show message for cards without tables
+      originalGradeData = {};
+      pendingGradeChanges = {};
+      showGradeAlert("Edit dibatalkan.", "info");
+      return;
+    }
+
+    // Remove edit-mode class from table
+    gradesTable.classList.remove("edit-mode");
+
+    // Handle different input types based on card
+    switch (cardId) {
+      case 'academic-grades':
+      case 'exam-grades':
+        cancelEditModeGrades(gradesTable);
+        break;
+      case 'extracurricular':
+      case 'achievement':
+        cancelEditModeText(gradesTable);
+        break;
+      case 'attendance':
+        cancelEditModeNumbers(gradesTable);
+        break;
+      default:
+        // Generic cancel for other types
+        cancelEditModeGeneric(gradesTable);
+        break;
+    }
+
+    // Clear data
+    originalGradeData = {};
+    pendingGradeChanges = {};
+
+    showGradeAlert("Edit dibatalkan.", "info");
+  }
+
+  // Cancel edit mode for grade inputs
+  function cancelEditModeGrades(gradesTable) {
+    const gradeInputs = gradesTable.querySelectorAll(".grade-input");
+    gradeInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const originalValue = originalGradeData[fieldName] || "";
+      const parentElement = input.parentElement;
+
+      // Restore grade value display
+      const displayValue =
+        originalValue === "" ? "-" : parseFloat(originalValue).toFixed(0);
+      const gradeClass =
+        originalValue && parseFloat(originalValue) >= 75
+          ? "grade-pass"
+          : originalValue && parseFloat(originalValue) > 0
+          ? "grade-fail"
+          : "grade-empty";
+
+      // Remove input and create new span element
+      input.remove();
+      const gradeSpan = document.createElement("span");
+      gradeSpan.className = `grade-value ${gradeClass}`;
+      gradeSpan.textContent = displayValue;
+
+      // Ensure parent element is clean before adding span
+      parentElement.innerHTML = "";
+      parentElement.appendChild(gradeSpan);
+    });
+
+    // Restore achievement inputs if present
+    const achievementInputs = gradesTable.querySelectorAll(".achievement-input");
+    achievementInputs.forEach((textarea) => {
+      const fieldName = textarea.getAttribute("data-field");
+      const originalValue = originalGradeData[fieldName] || "";
+      const parentElement = textarea.parentElement;
+
+      // Restore achievement text display
+      const displayValue = originalValue === "" ? "-" : originalValue;
+
+      // Remove textarea and create new span element
+      textarea.remove();
+      const achievementSpan = document.createElement("span");
+      achievementSpan.className = "achievement-text";
+      achievementSpan.textContent = displayValue;
+
+      // Ensure parent element is clean before adding span
+      parentElement.innerHTML = "";
+      parentElement.appendChild(achievementSpan);
+    });
+  }
+
+  // Cancel edit mode for text inputs
+  function cancelEditModeText(gradesTable) {
+    const textInputs = gradesTable.querySelectorAll(".text-input");
+    textInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const originalValue = originalGradeData[fieldName] || "";
+      const parentElement = input.parentElement;
+
+      // Restore text display
+      const displayValue = originalValue === "" ? "-" : originalValue;
+
+      // Remove input and restore text
+      input.remove();
+      parentElement.textContent = displayValue;
+    });
+  }
+
+  // Cancel edit mode for number inputs
+  function cancelEditModeNumbers(gradesTable) {
+    const numberInputs = gradesTable.querySelectorAll(".number-input");
+    numberInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const originalValue = originalGradeData[fieldName] || "0";
+      const parentElement = input.parentElement;
+
+      // Restore number display
+      const displayValue = originalValue === "" ? "0" : originalValue;
+
+      // Remove input and restore text
+      input.remove();
+      parentElement.textContent = displayValue;
+    });
+  }
+
+  // Cancel edit mode for generic inputs
+  function cancelEditModeGeneric(gradesTable) {
+    const allInputs = gradesTable.querySelectorAll("input, textarea");
+    allInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const originalValue = originalGradeData[fieldName] || "";
+      const parentElement = input.parentElement;
+
+      // Restore display
+      const displayValue = originalValue === "" ? "-" : originalValue;
+
+      // Remove input and restore text
+      input.remove();
+      parentElement.textContent = displayValue;
+    });
+  }
+
+  // Save changes for a specific card - consistent with Student_edit.html
+  function saveCardChanges(cardId) {
+    const sessionId = getSessionId();
+    const studentId = getStudentId();
+    const kelas = getKelas();
+    const semester = getSemester();
+    const card = document.querySelector(`[data-card-id="${cardId}"]`);
+    const gradesTable = card.querySelector(".grades-table");
+
+    if (!sessionId || !studentId || !kelas || !semester || !gradesTable) {
+      showGradeAlert("Data tidak lengkap untuk menyimpan.", "error");
+      return;
+    }
+
+    // Collect changes based on card type
+    const changes = {};
+    let hasChanges = false;
+    let hasErrors = false;
+
+    // Handle different input types based on card
+    switch (cardId) {
+      case 'academic-grades':
+      case 'exam-grades':
+        collectGradeChanges(gradesTable, changes, originalGradeData);
+        break;
+      case 'extracurricular':
+      case 'achievement':
+        collectTextChanges(gradesTable, changes, originalGradeData);
+        break;
+      case 'attendance':
+        collectNumberChanges(gradesTable, changes, originalGradeData);
+        break;
+      default:
+        collectGenericChanges(gradesTable, changes, originalGradeData);
+        break;
+    }
+
+    // Check if there are changes
+    hasChanges = Object.keys(changes).length > 0;
+
+    // Check for validation errors
+    const invalidInputs = gradesTable.querySelectorAll(".invalid");
+    hasErrors = invalidInputs.length > 0;
+
+    if (hasErrors) {
+      showGradeAlert(
+        "Terdapat nilai yang tidak valid. Periksa kembali input Anda.",
+        "error"
+      );
+      return;
+    }
+
+    if (!hasChanges) {
+      showGradeAlert("Tidak ada perubahan untuk disimpan.", "info");
+      exitEditMode(cardId);
+      return;
+    }
+
+    // Show loading state
+    const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
+    const originalText = editBtn.innerHTML;
+    editBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    editBtn.disabled = true;
+
+    // Prepare data for server
+    const updateData = {
+      studentId: studentId,
+      kelas: kelas,
+      semester: semester,
+      changes: changes,
+    };
+
+    // Call server function
+    google.script.run
+      .withSuccessHandler(function (result) {
+        editBtn.innerHTML = originalText;
+        editBtn.disabled = false;
+
+        if (result.success) {
+          showGradeAlert("Nilai berhasil disimpan!", "success");
+
+          // Update original data
+          Object.keys(changes).forEach((key) => {
+            originalGradeData[key] = changes[key];
+          });
+
+          exitEditMode(cardId);
+
+          // Refresh data to show updated values
+          setTimeout(() => {
+            refreshStudentDetail();
+          }, 1000);
+        } else {
+          showGradeAlert(
+            "Gagal menyimpan nilai: " + (result.error || "Unknown error"),
+            "error"
+          );
+        }
+      })
+      .withFailureHandler(function (error) {
+        editBtn.innerHTML = originalText;
+        editBtn.disabled = false;
+        showGradeAlert("Terjadi kesalahan: " + error.message, "error");
+      })
+      .updateStudentGrades(updateData, sessionId);
+  }
+
+  // Exit edit mode (after successful save) - consistent with Student_edit.html
+  function exitEditMode(cardId) {
+    editModeCards[cardId] = false;
+    const card = document.querySelector(`[data-card-id="${cardId}"]`);
+    const editBtn = card.querySelector(".edit-toggle-btn.save-mode");
+    const cancelBtn = card.querySelector(".edit-toggle-btn.cancel-mode");
+    const gradesTable = card.querySelector(".grades-table");
+
+    if (!editBtn || !gradesTable) return;
+
+    // Update button text based on card type
+    let buttonText = '<i class="fas fa-edit"></i> Edit';
+    switch (cardId) {
+      case 'academic-grades':
+      case 'exam-grades':
+        buttonText = '<i class="fas fa-edit"></i> Edit Nilai';
+        break;
+      case 'extracurricular':
+        buttonText = '<i class="fas fa-edit"></i> Edit Ekstrakurikuler';
+        break;
+      case 'achievement':
+        buttonText = '<i class="fas fa-edit"></i> Edit Prestasi';
+        break;
+      case 'attendance':
+        buttonText = '<i class="fas fa-edit"></i> Edit Kehadiran';
+        break;
+      default:
+        buttonText = '<i class="fas fa-edit"></i> Edit Data';
+        break;
+    }
+    
+    editBtn.innerHTML = buttonText;
+    editBtn.className = "edit-toggle-btn";
+
+    // Remove cancel button
+    if (cancelBtn) {
+      cancelBtn.remove();
+    }
+
+    // Remove edit-mode class from table
+    gradesTable.classList.remove("edit-mode");
+
+    // Clear data
+    pendingGradeChanges = {};
+    originalGradeData = {};
+  }
+
+  // Collect grade changes for academic and exam cards
+  function collectGradeChanges(gradesTable, changes, originalData) {
+    const gradeInputs = gradesTable.querySelectorAll(".grade-input");
+    gradeInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const newValue = input.value.trim();
+      const originalValue = originalData[fieldName] || "";
+
+      if (newValue !== originalValue) {
+        changes[fieldName] = newValue;
+      }
+    });
+
+    const achievementInputs = gradesTable.querySelectorAll(".achievement-input");
+    achievementInputs.forEach((textarea) => {
+      const fieldName = textarea.getAttribute("data-field");
+      const newValue = textarea.value.trim();
+      const originalValue = originalData[fieldName] || "";
+
+      if (newValue !== originalValue) {
+        changes[fieldName] = newValue;
+      }
+    });
+  }
+
+  // Collect text changes for extracurricular and achievement cards
+  function collectTextChanges(gradesTable, changes, originalData) {
+    const textInputs = gradesTable.querySelectorAll("input[type='text'], textarea");
+    textInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const newValue = input.value.trim();
+      const originalValue = originalData[fieldName] || "";
+
+      if (newValue !== originalValue) {
+        changes[fieldName] = newValue;
+      }
+    });
+  }
+
+  // Collect number changes for attendance card
+  function collectNumberChanges(gradesTable, changes, originalData) {
+    const numberInputs = gradesTable.querySelectorAll("input[type='number']");
+    numberInputs.forEach((input) => {
+      const fieldName = input.getAttribute("data-field");
+      const newValue = input.value.trim();
+      const originalValue = originalData[fieldName] || "";
+
+      if (newValue !== originalValue) {
+        changes[fieldName] = newValue;
+      }
+    });
+  }
+
+  // Collect generic changes for other cards
+   function collectGenericChanges(gradesTable, changes, originalData) {
+     const allInputs = gradesTable.querySelectorAll("input, textarea, select");
+     allInputs.forEach((input) => {
+       const fieldName = input.getAttribute("data-field");
+       const newValue = input.value.trim();
+       const originalValue = originalData[fieldName] || "";
+
+       if (newValue !== originalValue) {
+         changes[fieldName] = newValue;
+       }
+     });
+   }
+
+   // Functions to add new data rows when table is empty
+   function addNewExtracurricularRow() {
+     const card = document.querySelector('[data-card-id="extracurricular"]');
+     const table = card.querySelector('.grades-table tbody');
+     const emptyRow = table.querySelector('.empty-data-row');
+     
+     // Find the next available number by checking existing data-field attributes
+     const existingInputs = table.querySelectorAll('input[data-field^="Ekstrakurikuler "]');
+     const usedNumbers = new Set();
+     
+     existingInputs.forEach(input => {
+       const fieldName = input.getAttribute('data-field');
+       const match = fieldName.match(/Ekstrakurikuler (\d+)/);
+       if (match) {
+         usedNumbers.add(parseInt(match[1]));
+       }
+     });
+     
+     // Find the first available number from 1 to 4
+     let nextNumber = 1;
+     while (nextNumber <= 4 && usedNumbers.has(nextNumber)) {
+       nextNumber++;
+     }
+     
+     // Maximum 4 extracurriculars
+     if (nextNumber > 4) {
+       showGradeAlert('Maksimal 4 ekstrakurikuler dapat ditambahkan.', 'warning');
+       return;
+     }
+     
+     if (emptyRow) {
+       emptyRow.remove();
+     }
+     
+     const newRow = document.createElement('tr');
+     newRow.innerHTML = `
+       <td>${nextNumber}</td>
+       <td><input type="text" class="form-control" data-field="Ekstrakurikuler ${nextNumber}" placeholder="Nama ekstrakurikuler"></td>
+       <td><textarea class="form-control" data-field="Keterangan Ekstrakurikuler ${nextNumber}" placeholder="Jelaskan capaian siswa dalam ekstrakurikuler pada semester ini" rows="3" style="resize: vertical;"></textarea></td>
+     `;
+     table.appendChild(newRow);
+     
+     // Update the add button row if needed
+     const addButtonRow = table.querySelector('tr:last-child');
+     if (addButtonRow && addButtonRow.querySelector('.add-data-btn')) {
+       if (nextNumber >= 4) {
+         addButtonRow.remove(); // Remove add button if we've reached the limit
+       } else {
+         // Update button text
+         const button = addButtonRow.querySelector('.add-data-btn');
+         if (button) {
+           button.innerHTML = '<i class="fas fa-plus"></i> Tambah Ekstrakurikuler Lagi';
+         }
+       }
+     }
+     
+     // Auto enter edit mode
+     enterEditMode('extracurricular');
+   }
+
+   function addNewAchievementRow() {
+     const card = document.querySelector('[data-card-id="achievement"]');
+     const table = card.querySelector('.grades-table tbody');
+     const emptyRow = table.querySelector('.empty-data-row');
+     
+     // Find the next available number by checking existing data-field attributes
+     const existingInputs = table.querySelectorAll('input[data-field*="Prestasi"]');
+     const usedNumbers = new Set();
+     
+     existingInputs.forEach(input => {
+       const fieldName = input.getAttribute('data-field');
+       // Check for numbered prestasi fields like "Jenis Prestasi (2)"
+       const match = fieldName.match(/Prestasi \((\d+)\)/);
+       if (match) {
+         usedNumbers.add(parseInt(match[1]));
+       } else if (fieldName.includes('Prestasi') && !fieldName.includes('(')) {
+         // This is the first prestasi (without number)
+         usedNumbers.add(1);
+       }
+     });
+     
+     // Find the first available number from 1 to 5
+     let nextNumber = 1;
+     while (nextNumber <= 5 && usedNumbers.has(nextNumber)) {
+       nextNumber++;
+     }
+     
+     // Maximum 5 achievements
+     if (nextNumber > 5) {
+       showGradeAlert('Maksimal 5 prestasi dapat ditambahkan.', 'warning');
+       return;
+     }
+     
+     if (emptyRow) {
+       emptyRow.remove();
+     }
+     
+     // Determine field names based on achievement number
+     let fieldNames;
+     if (nextNumber === 1) {
+       fieldNames = {
+         jenis: "Jenis Prestasi",
+         tingkat: "Tingkat Prestasi",
+         nama: "Nama Prestasi",
+         tahun: "Tahun Prestasi",
+         penyelenggara: "Penyelenggara",
+         peringkat: "Peringkat"
+       };
+     } else {
+       fieldNames = {
+         jenis: `Jenis Prestasi (${nextNumber})`,
+         tingkat: `Tingkat Prestasi (${nextNumber})`,
+         nama: `Nama Prestasi (${nextNumber})`,
+         tahun: `Tahun Prestasi (${nextNumber})`,
+         penyelenggara: `Penyelenggara (${nextNumber})`,
+         peringkat: `Peringkat (${nextNumber})`
+       };
+     }
+     
+     const newRow = document.createElement('tr');
+     newRow.innerHTML = `
+       <td>${nextNumber}</td>
+       <td><input type="text" class="form-control" data-field="${fieldNames.jenis}" placeholder="Jenis prestasi"></td>
+       <td><input type="text" class="form-control" data-field="${fieldNames.tingkat}" placeholder="Tingkat"></td>
+       <td><input type="text" class="form-control" data-field="${fieldNames.nama}" placeholder="Nama prestasi"></td>
+       <td><input type="text" class="form-control" data-field="${fieldNames.tahun}" placeholder="Tahun"></td>
+       <td><input type="text" class="form-control" data-field="${fieldNames.penyelenggara}" placeholder="Penyelenggara"></td>
+       <td><input type="text" class="form-control" data-field="${fieldNames.peringkat}" placeholder="Peringkat"></td>
+     `;
+     table.appendChild(newRow);
+     
+     // Update the add button row if needed
+     const addButtonRow = table.querySelector('tr:last-child');
+     if (addButtonRow && addButtonRow.querySelector('.add-data-btn')) {
+       if (nextNumber >= 5) {
+         addButtonRow.remove(); // Remove add button if we've reached the limit
+       } else {
+         // Update button text
+         const button = addButtonRow.querySelector('.add-data-btn');
+         if (button) {
+           button.innerHTML = '<i class="fas fa-plus"></i> Tambah Prestasi Lagi';
+         }
+       }
+     }
+     
+     // Auto enter edit mode
+     enterEditMode('achievement');
+   }
+
+   function addNewExamRow() {
+     const card = document.querySelector('[data-card-id="exam-grades"]');
+     const table = card.querySelector('.grades-table tbody');
+     const emptyRow = table.querySelector('.empty-data-row');
+     
+     if (emptyRow) {
+       emptyRow.remove();
+     }
+     
+     // Add all exam subjects with input fields
+     const examSubjects = [
+       { name: "Pendidikan Agama Islam", field: "Pendidikan Agama Islam - Ujian Sekolah" },
+       { name: "Bahasa Indonesia", field: "Bahasa Indonesia - Ujian Sekolah" },
+       { name: "Matematika", field: "Matematika - Ujian Sekolah" },
+       { name: "Ilmu Pengetahuan Alam", field: "Ilmu Pengetahuan Alam - Ujian Sekolah" },
+       { name: "Ilmu Pengetahuan Sosial", field: "Ilmu Pengetahuan Sosial - Ujian Sekolah" },
+       { name: "Bahasa Inggris", field: "Bahasa Inggris - Ujian Sekolah" }
+     ];
+     
+     examSubjects.forEach((subject) => {
+       const newRow = document.createElement('tr');
+       newRow.innerHTML = `
+         <td class="subject-name">${subject.name}</td>
+         <td><input type="number" class="form-control grade-input" data-field="${subject.field}" placeholder="Nilai" min="0" max="100"></td>
+       `;
+       table.appendChild(newRow);
+     });
+     
+     // Auto enter edit mode
+     enterEditMode('exam-grades');
+   }
+
+  // Validate grade input
+  function validateGradeInput(event) {
+    const input = event.target;
+    const value = input.value.trim();
+
+    // Remove invalid class first
+    input.classList.remove("invalid");
+
+    if (value !== "") {
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue) || numericValue < 0 || numericValue > 100) {
+        input.classList.add("invalid");
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Get grade field name from subject name
+  function getGradeFieldName(subjectName) {
+    // Mapping nama mata pelajaran ke nama kolom yang sebenarnya di sheet DATA NILAI
+    const fieldMap = {
+      "Pendidikan Agama Islam": "Pendidikan Agama Islam",
+      "Pendidikan Pancasila": "Pendidikan Pancasila",
+      "Bahasa Indonesia": "Bahasa Indonesia",
+      "Matematika": "Matematika",
+      "Ilmu Pengetahuan Alam": "Ilmu Pengetahuan Alam",
+      "Ilmu Pengetahuan Sosial": "Ilmu Pengetahuan Sosial",
+      "Bahasa Inggris": "Bahasa Inggris",
+      "Pendidikan Jasmani, Olahraga, dan Kesehatan":
+        "Pendidikan Jasmani, Olahraga, dan Kesehatan",
+      "Informatika": "Informatika",
+      "Seni Budaya": "Seni Budaya",
+      "Bimbingan dan Konseling": "Bimbingan dan Konseling",
+      "Bahasa Jawa": "Bahasa Jawa",
+    };
+
+    return fieldMap[subjectName] || null;
+  }
+
+  // Get achievement field name from subject name
+  function getAchievementFieldName(subjectName) {
+    // Mapping nama mata pelajaran ke nama kolom capaian pembelajaran di sheet DATA NILAI
+    const achievementFieldMap = {
+      "Pendidikan Agama Islam": "Capaian Pembelajaran (Pendidikan Agama Islam)",
+      "Pendidikan Pancasila": "Capaian Pembelajaran (Pendidikan Pancasila)",
+      "Bahasa Indonesia": "Capaian Pembelajaran (Bahasa Indonesia)",
+      "Matematika": "Capaian Pembelajaran (Matematika)",
+      "Ilmu Pengetahuan Alam": "Capaian Pembelajaran (Ilmu Pengetahuan Alam)",
+      "Ilmu Pengetahuan Sosial":
+        "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)",
+      "Bahasa Inggris": "Capaian Pembelajaran (Bahasa Inggris)",
+      "Pendidikan Jasmani, Olahraga, dan Kesehatan":
+        "Capaian Pembelajaran (PJOK)",
+      "Informatika": "Capaian Pembelajaran (Informatika)",
+      "Seni Budaya": "Capaian Pembelajaran (Seni Budaya)",
+      "Bimbingan dan Konseling": "Capaian Pembelajaran (BK)",
+      "Bahasa Jawa": "Capaian Pembelajaran (Bahasa Jawa)",
+    };
+
+    return achievementFieldMap[subjectName] || null;
+  }
+
+  // Get exam grade field name from subject name
+  function getExamGradeFieldName(subjectName) {
+    // Mapping nama mata pelajaran ke nama kolom ujian sekolah di sheet DATA NILAI
+    const examFieldMap = {
+      "Pendidikan Agama Islam": "Pendidikan Agama Islam - Ujian Sekolah",
+      "Pendidikan Pancasila": "Pendidikan Pancasila - Ujian Sekolah",
+      "Bahasa Indonesia": "Bahasa Indonesia - Ujian Sekolah",
+      "Matematika": "Matematika - Ujian Sekolah",
+      "Ilmu Pengetahuan Alam": "Ilmu Pengetahuan Alam - Ujian Sekolah",
+      "Ilmu Pengetahuan Sosial": "Ilmu Pengetahuan Sosial - Ujian Sekolah",
+      "Bahasa Inggris": "Bahasa Inggris - Ujian Sekolah",
+      "Pendidikan Jasmani, Olahraga, dan Kesehatan": "Pendidikan Jasmani, Olahraga, dan Kesehatan - Ujian Sekolah",
+      "Informatika": "Informatika - Ujian Sekolah",
+      "Seni Budaya": "Seni Budaya - Ujian Sekolah",
+      "Bimbingan dan Konseling": "Bimbingan dan Konseling - Ujian Sekolah",
+      "Bahasa Jawa": "Bahasa Jawa - Ujian Sekolah",
+    };
+
+    return examFieldMap[subjectName] || null;
+  }
+
+  // Show grade edit alert
+  function showGradeAlert(message, type = "info") {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll(".grade-edit-alert");
+    existingAlerts.forEach((alert) => alert.remove());
+
+    // Create new alert
+    const alert = document.createElement("div");
+    alert.className = `grade-edit-alert ${type}`;
+    alert.innerHTML = message;
+
+    document.body.appendChild(alert);
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+      if (alert.parentNode) {
+        alert.remove();
+      }
+    }, 4000);
+  }
+
+  // Get original value for a field - consistent with Student_edit.html
+  function getOriginalValue(fieldName) {
+    return originalGradeData[fieldName] || "";
+  }
+
+  // Function to handle grade section editing
+  function editGradeSection(sectionId) {
+    const sessionId = getSessionId();
+    const studentId = getStudentId();
+    const kelas = getKelas();
+    const semester = getSemester();
+
+    if (!sessionId) {
+      showGradeAlert("Session tidak valid. Silakan login kembali.", "error");
+      return;
+    }
+
+    if (!studentId) {
+      showGradeAlert("ID siswa tidak tersedia.", "error");
+      return;
+    }
+
+    // Create edit URL with section parameter
+    let editUrl = `<?= myURL() ?>?page=Students_grades&sessionId=${encodeURIComponent(
+      sessionId
+    )}&action=edit&nis=${encodeURIComponent(studentId)}`;
+
+    if (kelas) {
+      editUrl += `&kelas=${encodeURIComponent(kelas)}`;
+    }
+
+    if (semester) {
+      editUrl += `&semester=${encodeURIComponent(semester)}`;
+    }
+
+    if (sectionId) {
+      editUrl += `&section=${encodeURIComponent(sectionId)}`;
+    }
+
+    // Redirect to edit page
+    window.location.href = editUrl;
+  }
 </script>

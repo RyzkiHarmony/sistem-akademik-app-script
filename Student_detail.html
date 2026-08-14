@@ -6,7 +6,10 @@
     <title>Detail Siswa - Buku Induk</title>
     <base target="_top" />
     <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <?!= include('CSS_Students_manage') ?>
     <style>
       .detail-container {
@@ -500,6 +503,141 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
+      /* Accordion Styles */
+      .accordion-card {
+        transition: all 0.3s ease;
+      }
+
+      .accordion-header {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        background: #1a5276;
+        border-radius: 12px;
+        margin-bottom: 0;
+      }
+
+      .accordion-header:hover {
+        background: #154360;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(26, 82, 118, 0.3);
+      }
+
+      .accordion-header h3 {
+        margin: 0;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1em;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .accordion-icon {
+        color: white;
+        font-size: 16px;
+        transition: transform 0.3s ease;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .accordion-body {
+        background: white;
+        border-radius: 0 0 12px 12px;
+        border: 1px solid rgba(26, 82, 118, 0.1);
+        border-top: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .accordion-body .detail-table {
+        margin: 0;
+        border-radius: 0;
+      }
+
+      .accordion-body .detail-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* Animation for accordion content */
+      .accordion-body {
+        animation: slideDown 0.3s ease-out;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          max-height: 0;
+          padding-top: 0;
+          padding-bottom: 0;
+        }
+        to {
+          opacity: 1;
+          max-height: 1000px;
+          padding-top: inherit;
+          padding-bottom: inherit;
+        }
+      }
+
+      /* Edit Section Button Styles */
+      .edit-section-btn {
+        background: #f4d03f;
+        color: #212529;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 32px;
+      }
+
+      .edit-section-btn:hover {
+        background: #f1c40f;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(244, 208, 63, 0.3);
+      }
+
+      .edit-section-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(244, 208, 63, 0.3);
+      }
+
+      .edit-section-btn i {
+        font-size: 12px;
+      }
+
+      /* Responsive accordion */
+      @media (max-width: 768px) {
+        .accordion-header {
+          padding: 15px 20px;
+        }
+
+        .accordion-header h3 {
+          font-size: 1em;
+        }
+
+        .accordion-icon {
+          font-size: 14px;
+        }
+
+        .edit-section-btn {
+          padding: 6px 10px;
+          font-size: 11px;
+          min-width: 32px;
+          height: 28px;
+        }
+
+        .edit-section-btn i {
+          font-size: 11px;
+        }
+      }
+
       /* Loading animation for icons */
       @keyframes spin {
         0% {
@@ -605,7 +743,9 @@
     </style>
   </head>
   <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
 
     <?!= includeNavbar() ?>
 
@@ -747,7 +887,8 @@
           // Show loading state
           const pdfButton = document.querySelector(".btn-info");
           const originalText = pdfButton.innerHTML;
-          pdfButton.innerHTML = '<span class="btn-icon"><i class="fas fa-spinner fa-spin"></i></span>Memproses...';
+          pdfButton.innerHTML =
+            '<span class="btn-icon"><i class="fas fa-spinner fa-spin"></i></span>Memproses...';
           pdfButton.disabled = true;
 
           // Call server-side function to get PDF URL
@@ -929,12 +1070,18 @@
           const detailContent = document.getElementById("detail-content");
           detailContent.innerHTML = `
             <div class="detail-sections">
-              <!-- Data Identitas -->
-              <div class="detail-section">
-                <div class="section-header">
+              <!-- Data Identitas -->  
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('identitas')">
                   <h3 class="section-title" data-section="identitas">Data Identitas</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('identitas')" title="Edit data identitas">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="identitas-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="identitas-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>NIS</td>
@@ -1042,11 +1189,12 @@
               </div>
               
               <!-- Data Alamat -->
-              <div class="detail-section">
-                <div class="section-header">
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('alamat')">
                   <h3 class="section-title" data-section="alamat">Alamat</h3>
+                  <i class="fas fa-chevron-down accordion-icon" id="alamat-icon"></i>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="alamat-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Alamat Lengkap</td>
@@ -1110,11 +1258,17 @@
               </div>
               
               <!-- Data Kesehatan -->
-              <div class="detail-section">
-                <div class="section-header">
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('kesehatan')">
                   <h3 class="section-title" data-section="kesehatan">Kesehatan</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('kesehatan')" title="Edit data kesehatan">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="kesehatan-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="kesehatan-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Golongan Darah</td>
@@ -1162,11 +1316,17 @@
               </div>
               
               <!-- Data Pendidikan -->
-              <div class="detail-section">
-                <div class="section-header">
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('pendidikan')">
                   <h3 class="section-title" data-section="pendidikan">Pendidikan Sebelumnya</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('pendidikan')" title="Edit data pendidikan">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="pendidikan-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="pendidikan-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Mulai Kelas Berapa Diterima di SMPN 03 Pekalongan</td>
@@ -1234,11 +1394,17 @@
               </div>
               
               <!-- Data Orang Tua -->
-              <div class="detail-section">
-                <div class="section-header">
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('ayah')">
                   <h3 class="section-title" data-section="ayah">Data Ayah</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('ayah')" title="Edit data ayah">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="ayah-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="ayah-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Nama Ayah</td>
@@ -1326,11 +1492,17 @@
               </div>
               
               <!-- Data Ibu -->
-              <div class="detail-section">
-                <div class="section-header">
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('ibu')">
                   <h3 class="section-title" data-section="ibu">Data Ibu</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('ibu')" title="Edit data ibu">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="ibu-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="ibu-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Nama Ibu</td>
@@ -1415,12 +1587,18 @@
                 </div>
               </div>
               
-              <!-- Data Wali (jika ada) -->
-              <div class="detail-section">
-                <div class="section-header">
+              <!-- Data Wali -->
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('wali')">
                   <h3 class="section-title" data-section="wali">Data Wali</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('wali')" title="Edit data wali">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="wali-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="wali-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Nama Wali</td>
@@ -1509,11 +1687,17 @@
               </div>
               
               <!-- Hobi dan Prestasi -->
-              <div class="detail-section">
-                <div class="section-header">
-                  <h3 class="section-title" data-section="hobi">Hobi dan Prestasi</h3>
+              <div class="detail-section accordion-card">
+                <div class="section-header accordion-header" onclick="toggleDetailAccordion('prestasi')">
+                  <h3 class="section-title" data-section="prestasi">Hobi dan Prestasi</h3>
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="edit-section-btn" onclick="event.stopPropagation(); editSection('prestasi')" title="Edit hobi dan prestasi">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <i class="fas fa-chevron-down accordion-icon" id="prestasi-icon"></i>
+                  </div>
                 </div>
-                <div class="section-content">
+                <div class="section-content accordion-body" id="prestasi-body" style="display: none;">
                   <table class="detail-table">
                     <tr>
                       <td>Hobi Seni</td>
@@ -1687,7 +1871,58 @@
         } else {
           showError("ID siswa tidak ditemukan dalam URL");
         }
+
+        // Open first accordion card by default
+        setTimeout(() => {
+          toggleDetailAccordion("identitas");
+        }, 500);
       });
+
+      // Accordion functionality for student detail cards
+      function toggleDetailAccordion(cardId) {
+        const targetBody = document.getElementById(cardId + "-body");
+        const targetIcon = document.getElementById(cardId + "-icon");
+
+        // Toggle target card only (allow multiple cards to be open)
+        if (targetBody && targetIcon) {
+          if (
+            targetBody.style.display === "none" ||
+            targetBody.style.display === ""
+          ) {
+            targetBody.style.display = "block";
+            targetIcon.classList.remove("fa-chevron-down");
+            targetIcon.classList.add("fa-chevron-up");
+          } else {
+            targetBody.style.display = "none";
+            targetIcon.classList.remove("fa-chevron-up");
+            targetIcon.classList.add("fa-chevron-down");
+          }
+        }
+      }
+
+      // Function to handle section editing
+      function editSection(sectionId) {
+        const sessionId = getSessionId();
+        const studentId = getStudentIdFromUrl();
+
+        if (!sessionId) {
+          alert("Session tidak valid. Silakan login kembali.");
+          return;
+        }
+
+        if (!studentId) {
+          alert("ID siswa tidak tersedia.");
+          return;
+        }
+
+        // Redirect to edit page with section parameter
+        const editUrl = `<?= myURL() ?>?page=Student_edit&sessionId=${encodeURIComponent(
+          sessionId
+        )}&id=${encodeURIComponent(studentId)}&section=${encodeURIComponent(
+          sectionId
+        )}`;
+        window.location.href = editUrl;
+      }
     </script>
   </body>
 </html>

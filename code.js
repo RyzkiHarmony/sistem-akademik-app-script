@@ -1,330 +1,135 @@
-// ID Spreadsheet Acc
+// ID Spreadsheet Acc (dibaca dari PropertiesService bila tersedia)
 const SPREADSHEET_ACCOUNT_ID = "1XghbW1Ltp8DuqIBxlLEZQWtefwZSjX1Dn34nvpuo_vY";
 const USERS_SHEET_NAME = "Users";
 const SESSION_SHEET_NAME = "Sessions";
 
-// Konstanta untuk Buku induk spreadsheet
+// Konstanta untuk Buku induk spreadsheet (dibaca dari PropertiesService bila tersedia)
 const BUKU_INDUK_SPREADSHEET_ID =
   "1Xv8VGni724ljfMe1RW_0Io5bivzCOxgsZF-khqtoABc";
 const STUDENTS_SHEET_NAME = "DATA SISWA";
 const STUDENTS_GRADE_NAME = "DATA NILAI";
 
-// Konstanta untuk folder Drive tempat menyimpan PDF siswa
+// Konstanta untuk folder Drive tempat menyimpan PDF siswa (dibaca dari PropertiesService bila tersedia)
 const STUDENT_PDF_FOLDER_ID = "1wUht7lREV6ycI2WNP2FtJahvcFDUdZH1";
 
-// Update the doGet function to check for session on protected pages
-function doGet(e) {
-  let page = e.parameter.page;
-  let sessionId = e.parameter.sessionId;
-  let studentId = e.parameter.id; // Add student ID parameter
-  let editId = e.parameter.edit; // Add edit ID parameter
-  let nis = e.parameter.nis; // Add NIS parameter for grades detail
-  let kelas = e.parameter.kelas; // Add kelas parameter for grades detail
-  let semester = e.parameter.semester; // Add semester parameter for grades detail
-
-  if (page == null) page = "Login"; //Default page
-
-  // List of pages that require authentication
-  const protectedPages = [
-    "Dashboard",
-    "Students_manage",
-    "Student_detail",
-    "Student_edit",
-    "Student_form",
-    "Student_grades_detail", // Add Student_grades_detail to protected pages
-    "Students_grades",
-    "KIP_Analysis", // Add KIP Analysis to protected pages
-  ];
-
-  // Check if the requested page requires authentication
-  if (protectedPages.includes(page)) {
-    // Validate session
-    const username = validateSession(sessionId);
-
-    if (!username) {
-      // Redirect to login page if session is invalid
-      return HtmlService.createTemplateFromFile("Login")
-        .evaluate()
-        .setTitle("Buku Induk Siswa - Login")
-        .addMetaTag("viewport", "width=device-width, initial-scale=1")
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-    }
+// Helper konfigurasi: baca Script Properties, fallback ke default di atas
+function getConfigValue(key, fallback) {
+  try {
+    const sp = PropertiesService.getScriptProperties();
+    const v = sp.getProperty(key);
+    return v && v.trim() !== "" ? v : fallback;
+  } catch (e) {
+    return fallback;
   }
-
-  // If not protected or session is valid, proceed to the requested page
-  var output = HtmlService.createTemplateFromFile(page);
-
-  // Add session ID to the template if available
-  if (sessionId) {
-    output.sessionId = sessionId;
-  }
-
-  // Add student ID to the template if available
-  if (studentId) {
-    output.studentId = studentId;
-  }
-
-  // Add edit ID to the template if available
-  if (editId) {
-    output.editId = editId;
-  }
-
-  // Add NIS to the template if available (for Student_grades_detail)
-  if (nis) {
-    output.nis = nis;
-  }
-
-  // Add kelas to the template if available (for Student_grades_detail)
-  if (kelas) {
-    output.kelas = kelas;
-  }
-
-  // Add semester to the template if available (for Student_grades_detail)
-  if (semester) {
-    output.semester = semester;
-  }
-
-  return output
-    .evaluate()
-    .setTitle("Buku Induk Siswa")
-    .addMetaTag("viewport", "width=device-width, initial-scale=1")
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
+
+function getSpreadsheetAccountId() {
+  return getConfigValue("SPREADSHEET_ACCOUNT_ID", SPREADSHEET_ACCOUNT_ID);
+}
+
+function getBukuIndukSpreadsheetId() {
+  return getConfigValue("BUKU_INDUK_SPREADSHEET_ID", BUKU_INDUK_SPREADSHEET_ID);
+}
+
+function getStudentPdfFolderId() {
+  return getConfigValue("STUDENT_PDF_FOLDER_ID", STUDENT_PDF_FOLDER_ID);
+}
+
+// Update the doGet function to check for session on protected pages
+
+
+
+
+
 
 // Session Management Constants
 const SESSION_EXPIRY_HOURS = 2; // Sessions expire after 2 hours
 
 // Create a new session for a user
-function createSession(username) {
-  try {
-    // Generate random session ID
-    const sessionId = Utilities.getUuid();
 
-    // Get the current time
-    const now = new Date();
-
-    // Calculate expiry time (current time + SESSION_EXPIRY_HOURS)
-    const expiryTime = new Date(
-      now.getTime() + SESSION_EXPIRY_HOURS * 60 * 60 * 1000
-    );
-
-    // Create session data
-    const sessionData = {
-      username: username,
-      created: now.toString(),
-      expires: expiryTime.toString(),
-    };
-
-    // Store session in Script Properties
-    const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperty(sessionId, JSON.stringify(sessionData));
-
-    Logger.log(
-      "Session created for user: " + username + " with ID: " + sessionId
-    );
-
-    return sessionId;
-  } catch (error) {
-    Logger.log("Error creating session: " + error.message);
-    throw new Error("Failed to create session: " + error.message);
-  }
-}
 
 // Validate a session and return the username if valid
-function validateSession(sessionId) {
-  try {
-    if (!sessionId) {
-      return null;
-    }
 
-    // Get session data from Script Properties
-    const scriptProperties = PropertiesService.getScriptProperties();
-    const sessionDataJson = scriptProperties.getProperty(sessionId);
-
-    if (!sessionDataJson) {
-      Logger.log("Session not found: " + sessionId);
-      return null;
-    }
-
-    // Parse session data
-    const sessionData = JSON.parse(sessionDataJson);
-
-    // Check if session is expired
-    const expiryTime = new Date(sessionData.expires);
-    const now = new Date();
-
-    if (now > expiryTime) {
-      Logger.log("Session expired for user: " + sessionData.username);
-      // Delete expired session
-      scriptProperties.deleteProperty(sessionId);
-      return null;
-    }
-
-    // Extend session if needed (optional)
-    extendSession(sessionId, sessionData);
-
-    return sessionData.username;
-  } catch (error) {
-    Logger.log("Error validating session: " + error.message);
-    return null;
-  }
-}
 
 // Extend a session's expiry time
-function extendSession(sessionId, sessionData) {
-  try {
-    // Update expiry time
-    const now = new Date();
-    const newExpiryTime = new Date(
-      now.getTime() + SESSION_EXPIRY_HOURS * 60 * 60 * 1000
-    );
 
-    sessionData.expires = newExpiryTime.toString();
-
-    // Update session in Script Properties
-    const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperty(sessionId, JSON.stringify(sessionData));
-  } catch (error) {
-    Logger.log("Error extending session: " + error.message);
-  }
-}
 
 // Destroy a session
-function destroySession(sessionId) {
-  try {
-    if (!sessionId) {
-      return;
-    }
 
-    // Delete session from Script Properties
-    const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.deleteProperty(sessionId);
-
-    Logger.log("Session destroyed: " + sessionId);
-  } catch (error) {
-    Logger.log("Error destroying session: " + error.message);
-  }
-}
 
 // Function to set a session and return dashboard URL
-function setSessionAndGetDashboardUrl(username) {
-  try {
-    // Create session
-    const sessionId = createSession(username);
 
-    // Return dashboard URL with session ID
-    const dashboardUrl =
-      myURL() + "?page=Dashboard&sessionId=" + encodeURIComponent(sessionId);
 
-    return dashboardUrl;
-  } catch (error) {
-    Logger.log("Error in setSessionAndGetDashboardUrl: " + error.message);
-    throw new Error("Failed to set session: " + error.message);
-  }
-}
 
-function include(filename) {
-  return HtmlService.createTemplateFromFile(filename).evaluate().getContent();
-}
 
-function includeNavbar() {
-  return HtmlService.createTemplateFromFile("Sidebar.html")
-    .evaluate()
-    .getContent();
-}
 
-function myURL() {
-  return ScriptApp.getService().getUrl();
-}
+
+
 
 // Update logout function to destroy session
-function logout() {
-  try {
-    // Get the current session ID from the client
-    // This will be handled by the client-side script
-    return myURL() + "?page=Login";
-  } catch (error) {
-    Logger.log("Error in logout: " + error.message);
-    return myURL() + "?page=Login";
-  }
-}
+
 
 // Function to actually destroy the session from client-side
-function logoutAndDestroySession(sessionId) {
-  try {
-    if (sessionId) {
-      destroySession(sessionId);
-    }
-    return myURL() + "?page=Login";
-  } catch (error) {
-    Logger.log("Error in logoutAndDestroySession: " + error.message);
-    return myURL() + "?page=Login";
-  }
-}
+
 
 // Update getCurrentUserUsername to use sessions
-function getCurrentUserUsername(sessionId) {
-  try {
-    // If sessionId is provided, get username from session
-    if (sessionId) {
-      const username = validateSession(sessionId);
-      return username || "Admin";
-    }
 
-    // If no sessionId, return default
-    return "Admin";
-  } catch (error) {
-    Logger.log("Error getting current user: " + error.message);
-    return "Admin";
+
+// Fungsi untuk memverifikasi Login (hash + salt + pepper)
+
+
+// Util: pastikan kolom keamanan Users tersedia
+function ensureUserColumns(sheet, headerRow) {
+  const required = [
+    "username",
+    "password",
+    "password_hash",
+    "salt",
+    "iterations",
+    "role",
+  ];
+  const headers = headerRow.slice();
+  let changed = false;
+  required.forEach(function (h) {
+    if (headers.indexOf(h) === -1) {
+      headers.push(h);
+      changed = true;
+    }
+  });
+  if (changed) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
 }
 
-// Fungsi untuk memverifikasi Login
-function verifyLogin(username, password) {
-  try {
-    // Buka spreadsheet dan dapatkan sheet Users
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ACCOUNT_ID);
-    const sheet = ss.getSheetByName(USERS_SHEET_NAME);
-
-    // Dapatkan semua data pengguna
-    const data = sheet.getDataRange().getValues();
-
-    // Periksa baris header
-    const headerRow = data[0];
-    const usernameCol = headerRow.indexOf("username");
-    const passwordCol = headerRow.indexOf("password");
-
-    // Cari username dan verifikasi password
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][usernameCol] === username) {
-        // Username ditemukan, verifikasi password
-        if (data[i][passwordCol] === password) {
-          // Login berhasil, buat URL Dashboard
-          const dashboardUrl =
-            myURL() + "?page=Dashboard&user=" + encodeURIComponent(username);
-          return {
-            success: true,
-            message: "Login berhasil",
-            dashboardUrl: dashboardUrl,
-            username: username,
-          };
-        } else {
-          return { success: false, message: "Password salah" };
-        }
-      }
-    }
-
-    // Username tidak ditemukan
-    return { success: false, message: "Username tidak ditemukan" };
-  } catch (error) {
-    return { success: false, message: "Error: " + error.message };
-  }
+// Util: konversi bytes ke hex string
+function bytesToHex(bytes) {
+  return bytes
+    .map(function (b) {
+      const v = b < 0 ? b + 256 : b;
+      const s = v.toString(16);
+      return s.length === 1 ? "0" + s : s;
+    })
+    .join("");
 }
+
+// Util: constant-time compare
+function safeCompare(a, b) {
+  if (!a || !b || a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) {
+    r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return r === 0;
+}
+
+// Ambil pepper dari Script Properties (generate jika belum ada)
+
+
+// Hash HMAC-SHA256 berulang dengan pepper + salt
+
 
 // Mendapatkan URL halaman utama
-function getHomeUrl() {
-  return myURL() + "?page=Login";
-}
+
 
 //-----------------------------------------------------------------------------------------------------------------------
 
@@ -332,7 +137,7 @@ function getHomeUrl() {
 function getDashboardData() {
   try {
     // Buka spreadsheet buku induk (terpisah dari spreadsheet Login)
-    const bukuIndukSS = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const bukuIndukSS = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
 
     // Data yang akan dikembalikan
     const dashboardData = {
@@ -417,7 +222,7 @@ function getDashboardData() {
       dashboardData.summaryStats = {
         siswaAktif: 0,
         dataLengkap: 0,
-        nilaiTerinput: 0
+        nilaiTerinput: 0,
       };
     }
 
@@ -432,39 +237,43 @@ function getDashboardData() {
 function calculateSummaryStats() {
   try {
     Logger.log("Calculating summary statistics...");
-    
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+
+    const ss = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
     const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
     const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
-    
+
     const summaryStats = {
       siswaAktif: 0,
       dataLengkap: 0,
-      nilaiTerinput: 0
+      nilaiTerinput: 0,
     };
-    
+
     if (!studentsSheet) {
       Logger.log("Students sheet not found");
       return summaryStats;
     }
-    
+
     const studentData = studentsSheet.getDataRange().getValues();
     if (studentData.length <= 1) {
       Logger.log("No student data found");
       return summaryStats;
     }
-    
+
     const headers = studentData[0];
-    const statusIndex = findColumnIndex(headers, ["Status Akademik", "Status", "status"]);
-    
+    const statusIndex = findColumnIndex(headers, [
+      "Status Akademik",
+      "Status",
+      "status",
+    ]);
+
     let totalStudents = studentData.length - 1; // Exclude header
     let activeStudents = 0;
     let completeDataStudents = 0;
-    
+
     // Hitung siswa aktif dan data lengkap
     for (let i = 1; i < studentData.length; i++) {
       const row = studentData[i];
-      
+
       // Hitung siswa aktif
       if (statusIndex !== -1) {
         const status = row[statusIndex];
@@ -472,7 +281,7 @@ function calculateSummaryStats() {
           activeStudents++;
         }
       }
-      
+
       // Hitung data lengkap (minimal 80% kolom terisi)
       let filledColumns = 0;
       for (let j = 0; j < row.length; j++) {
@@ -480,30 +289,36 @@ function calculateSummaryStats() {
           filledColumns++;
         }
       }
-      
+
       const completenessPercentage = (filledColumns / headers.length) * 100;
       if (completenessPercentage >= 80) {
         completeDataStudents++;
       }
     }
-    
+
     // Hitung persentase siswa aktif
-    summaryStats.siswaAktif = totalStudents > 0 ? Math.round((activeStudents / totalStudents) * 100) : 0;
-    
+    summaryStats.siswaAktif =
+      totalStudents > 0
+        ? Math.round((activeStudents / totalStudents) * 100)
+        : 0;
+
     // Hitung persentase data lengkap
-    summaryStats.dataLengkap = totalStudents > 0 ? Math.round((completeDataStudents / totalStudents) * 100) : 0;
-    
+    summaryStats.dataLengkap =
+      totalStudents > 0
+        ? Math.round((completeDataStudents / totalStudents) * 100)
+        : 0;
+
     // Hitung persentase nilai terinput
     if (gradesSheet) {
       const gradeData = gradesSheet.getDataRange().getValues();
       if (gradeData.length > 1) {
         const gradeHeaders = gradeData[0];
         let studentsWithGrades = 0;
-        
+
         for (let i = 1; i < gradeData.length; i++) {
           const row = gradeData[i];
           let hasGrades = false;
-          
+
           // Cek apakah siswa memiliki nilai (minimal satu mata pelajaran)
           for (let j = 0; j < row.length; j++) {
             const value = row[j];
@@ -512,26 +327,28 @@ function calculateSummaryStats() {
               break;
             }
           }
-          
+
           if (hasGrades) {
             studentsWithGrades++;
           }
         }
-        
+
         const totalGradeStudents = gradeData.length - 1;
-        summaryStats.nilaiTerinput = totalGradeStudents > 0 ? Math.round((studentsWithGrades / totalGradeStudents) * 100) : 0;
+        summaryStats.nilaiTerinput =
+          totalGradeStudents > 0
+            ? Math.round((studentsWithGrades / totalGradeStudents) * 100)
+            : 0;
       }
     }
-    
+
     Logger.log(`Summary stats calculated: ${JSON.stringify(summaryStats)}`);
     return summaryStats;
-    
   } catch (error) {
     Logger.log("Error in calculateSummaryStats: " + error.message);
     return {
       siswaAktif: 0,
       dataLengkap: 0,
-      nilaiTerinput: 0
+      nilaiTerinput: 0,
     };
   }
 }
@@ -540,30 +357,30 @@ function calculateSummaryStats() {
 function calculateOverallAverageGrade() {
   try {
     Logger.log("Calculating overall average grade...");
-    
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+
+    const ss = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
     const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
-    
+
     if (!gradesSheet) {
       Logger.log("Grades sheet not found");
       return 0;
     }
-    
+
     const dataRange = gradesSheet.getDataRange();
     const values = dataRange.getValues();
-    
+
     if (values.length <= 1) {
       Logger.log("No grade data found");
       return 0;
     }
-    
+
     const headers = values[0];
     const gradeColumnMap = initializeGradeColumnMap(headers);
-    
+
     // Daftar mata pelajaran yang akan dihitung
     const subjectFields = [
       "pendidikanAgamaIslam",
-      "pendidikanPancasila", 
+      "pendidikanPancasila",
       "bahasaIndonesia",
       "matematika",
       "ilmuPengetahuanAlam",
@@ -573,18 +390,18 @@ function calculateOverallAverageGrade() {
       "informatika",
       "seniBudaya",
       "bimbinganKonseling",
-      "bahasaJawa"
+      "bahasaJawa",
     ];
-    
+
     let totalGrades = 0;
     let validGradeCount = 0;
-    
+
     // Iterasi melalui semua baris data nilai
     for (let i = 1; i < values.length; i++) {
       const row = values[i];
-      
+
       // Hitung nilai dari setiap mata pelajaran untuk siswa ini
-      subjectFields.forEach(subject => {
+      subjectFields.forEach((subject) => {
         const columnIndex = gradeColumnMap[subject];
         if (columnIndex !== -1) {
           const nilai = parseFloat(row[columnIndex]);
@@ -595,13 +412,15 @@ function calculateOverallAverageGrade() {
         }
       });
     }
-    
-    const averageGrade = validGradeCount > 0 ? totalGrades / validGradeCount : 0;
+
+    const averageGrade =
+      validGradeCount > 0 ? totalGrades / validGradeCount : 0;
     const roundedAverage = Math.round(averageGrade * 10) / 10; // Round to 1 decimal place
-    
-    Logger.log(`Calculated overall average: ${roundedAverage} from ${validGradeCount} valid grades`);
+
+    Logger.log(
+      `Calculated overall average: ${roundedAverage} from ${validGradeCount} valid grades`
+    );
     return roundedAverage;
-    
   } catch (error) {
     Logger.log("Error in calculateOverallAverageGrade: " + error.message);
     return 0;
@@ -1488,10 +1307,14 @@ function updateStudentData(updateData, sessionId) {
     Logger.log("- updateData: " + JSON.stringify(updateData));
     Logger.log('- sessionId: "' + sessionId + '"');
 
-    // Validate session
+    // Validate session & role
     const username = validateSession(sessionId);
     if (!username) {
       throw new Error("Session tidak valid. Silakan login kembali.");
+    }
+    const role = getUserRoleByUsername(username) || "viewer";
+    if (!roleMeets(role, "staff")) {
+      throw new Error("Akses ditolak: peran tidak memiliki izin mengedit.");
     }
 
     // Validate parameters
@@ -1510,7 +1333,7 @@ function updateStudentData(updateData, sessionId) {
     Logger.log("Changes: " + JSON.stringify(changes));
 
     // Open spreadsheet
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const ss = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
     const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
 
     if (!studentsSheet) {
@@ -1548,6 +1371,10 @@ function updateStudentData(updateData, sessionId) {
     Logger.log("Student found at row: " + (studentRowIndex + 1));
 
     // Update the data
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+    } catch (e) {}
     let updatedFields = [];
     for (const fieldName in changes) {
       const columnIndex = headers.indexOf(fieldName);
@@ -1695,19 +1522,36 @@ function updateStudentData(updateData, sessionId) {
       success: false,
       error: error.message || "Terjadi kesalahan saat mengupdate data siswa",
     };
+  } finally {
+    try {
+      LockService.getScriptLock().releaseLock();
+    } catch (e) {}
   }
 }
 
 // Menghapus siswa dan data terkaitnya
-function deleteStudent(nisId) {
+function deleteStudent(nisId, sessionId) {
   try {
+    // RBAC: hanya admin
+    const username = validateSession(sessionId);
+    if (!username) {
+      throw new Error("Session tidak valid. Silakan login kembali.");
+    }
+    const role = getUserRoleByUsername(username) || "viewer";
+    if (!roleMeets(role, "admin")) {
+      throw new Error("Akses ditolak: peran tidak memiliki izin menghapus.");
+    }
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+    } catch (e) {}
     // Validasi NIS
     if (!nisId) {
       throw new Error("NIS tidak valid");
     }
 
     // Buka spreadsheet
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const ss = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
 
     // Dapatkan sheet siswa
     const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
@@ -1830,6 +1674,10 @@ function deleteStudent(nisId) {
   } catch (error) {
     Logger.log("Error deleting student: " + error.message);
     return { success: false, message: error.message };
+  } finally {
+    try {
+      LockService.getScriptLock().releaseLock();
+    } catch (e) {}
   }
 }
 
@@ -1856,7 +1704,7 @@ function getStudentPDFUrl(nisId) {
     const pdfFileName = `Buku Induk - ${nisId} - ${studentData.nama}.pdf`;
 
     // Cari file di folder Google Drive
-    const folder = DriveApp.getFolderById(STUDENT_PDF_FOLDER_ID);
+    const folder = DriveApp.getFolderById(getStudentPdfFolderId());
 
     // Cari dengan nama Siswa terlebih dahulu
     let files = folder.getFilesByName(pdfFileName);
@@ -1875,7 +1723,7 @@ function getStudentPDFUrl(nisId) {
 
     // Jika tidak ditemukan, coba mencari file dengan pola yang mirip
     // Menggunakan DriveApp.searchFiles untuk pencarian yang lebih fleksibel
-    const query = `title contains 'Buku Induk - ${nisId}' and mimeType='application/pdf' and '${STUDENT_PDF_FOLDER_ID}' in parents`;
+    const query = `title contains 'Buku Induk - ${nisId}' and mimeType='application/pdf' and '${getStudentPdfFolderId()}' in parents`;
     files = DriveApp.searchFiles(query);
 
     if (files.hasNext()) {
@@ -2415,30 +2263,7 @@ function findColumnIndex(headers, possibleNames) {
 }
 
 // Tambahkan fungsi ini untuk mendapatkan username pengguna saat ini dari client-side
-function getCurrentUserFromSession() {
-  try {
-    // Dapatkan parameter dari URL sebagai konteks permintaan
-    const url = HtmlService.createHtmlOutputFromFile("dummy").getContent();
-    const urlParams = url.split("?")[1];
-    if (!urlParams) return "Admin";
 
-    const params = urlParams.split("&");
-    let sessionId = "";
-
-    for (let i = 0; i < params.length; i++) {
-      const param = params[i].split("=");
-      if (param[0] === "sessionId") {
-        sessionId = param[1];
-        break;
-      }
-    }
-
-    return getCurrentUserUsername(sessionId);
-  } catch (error) {
-    Logger.log("Error in getCurrentUserFromSession: " + error.message);
-    return "Admin";
-  }
-}
 
 // Fungsi untuk membersihkan cache
 function clearCache() {
@@ -2450,7 +2275,7 @@ function clearCache() {
 function getStudentColumnMap() {
   if (studentColumnMap) return studentColumnMap;
 
-  const spreadsheet = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+  const spreadsheet = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
   const sheet = spreadsheet.getSheetByName(STUDENTS_SHEET_NAME);
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   const columnMap = {};
@@ -2468,7 +2293,7 @@ function getStudentColumnMap() {
 }
 
 function getStudentData() {
-  const spreadsheet = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+  const spreadsheet = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
   const sheet = spreadsheet.getSheetByName(STUDENTS_SHEET_NAME);
   const data = sheet.getDataRange().getValues();
 
@@ -2498,7 +2323,7 @@ function addStudent(studentData) {
     }
 
     // Access the spreadsheet
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const ss = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
     const studentsSheet = ss.getSheetByName(STUDENTS_SHEET_NAME);
 
     if (!studentsSheet) {
@@ -2658,7 +2483,11 @@ function addStudent(studentData) {
       setDateValue("Tanggal Diterima", today);
     }
 
-    // Append the new row to the sheet
+    // Append the new row to the sheet (gunakan LockService)
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(30000);
+    } catch (e) {}
     studentsSheet.appendRow(newRow);
 
     return { success: true, message: "Data siswa berhasil ditambahkan" };
@@ -3057,8 +2886,8 @@ function getAllStudentGrades(options = {}) {
     Logger.log("Final options: " + JSON.stringify(options));
 
     // Akses spreadsheet DATA NILAI
-    Logger.log("Accessing spreadsheet with ID: " + BUKU_INDUK_SPREADSHEET_ID);
-    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    Logger.log("Accessing spreadsheet with ID: " + getBukuIndukSpreadsheetId());
+    const ss = SpreadsheetApp.openById(getBukuIndukSpreadsheetId());
     Logger.log("Spreadsheet accessed successfully");
 
     Logger.log("Looking for sheet: " + STUDENTS_GRADE_NAME);
@@ -3484,6 +3313,27 @@ function initializeGradeColumnMap(headers) {
       seniBudaya: ["Seni Budaya"],
       bimbinganKonseling: ["Bimbingan dan Konseling"],
       bahasaJawa: ["Bahasa Jawa"],
+      // Capaian Pembelajaran
+      capaianPendidikanAgamaIslam: [
+        "Capaian Pembelajaran (Pendidikan Agama Islam)",
+      ],
+      capaianPendidikanPancasila: [
+        "Capaian Pembelajaran (Pendidikan Pancasila)",
+      ],
+      capaianBahasaIndonesia: ["Capaian Pembelajaran (Bahasa Indonesia)"],
+      capaianMatematika: ["Capaian Pembelajaran (Matematika)"],
+      capaianIlmuPengetahuanAlam: [
+        "Capaian Pembelajaran (Ilmu Pengetahuan Alam)",
+      ],
+      capaianIlmuPengetahuanSosial: [
+        "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)",
+      ],
+      capaianBahasaInggris: ["Capaian Pembelajaran (Bahasa Inggris)"],
+      capaianPendidikanJasmani: ["Capaian Pembelajaran (PJOK)"],
+      capaianInformatika: ["Capaian Pembelajaran (Informatika)"],
+      capaianSeniBudaya: ["Capaian Pembelajaran (Seni Budaya)"],
+      capaianBimbinganKonseling: ["Capaian Pembelajaran (BK)"],
+      capaianBahasaJawa: ["Capaian Pembelajaran (Bahasa Jawa)"],
       // Field tambahan
       rataRataNilaiPerSMT: ["Rata-Rata Nilai per SMT"],
     };
@@ -3611,6 +3461,7 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
     const headers = values[0];
     const nisIndex = headers.indexOf("NIS");
     const kelasIndex = headers.indexOf("Kelas");
+    const semesterIndex = headers.indexOf("Semester");
 
     if (nisIndex === -1) {
       throw new Error("Kolom NIS tidak ditemukan");
@@ -3619,16 +3470,21 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
     Logger.log("Searching in " + (values.length - 1) + " student records...");
     Logger.log("NIS column index: " + nisIndex);
     Logger.log("Kelas column index: " + kelasIndex);
+    Logger.log("Semester column index: " + semesterIndex);
 
     // Normalisasi NIS yang dicari
     const searchNIS = String(nisId).trim();
     Logger.log('Normalized search NIS: "' + searchNIS + '"');
 
-    // Cari siswa dengan berbagai format NIS dan pertimbangkan kelas jika tersedia
+    // Cari siswa dengan berbagai format NIS dan pertimbangkan kelas dan semester
     for (let i = 1; i < values.length; i++) {
       const rowNIS = String(values[i][nisIndex] || "").trim();
       const rowKelas =
         kelasIndex !== -1 ? String(values[i][kelasIndex] || "").trim() : "";
+      const rowSemester =
+        semesterIndex !== -1
+          ? String(values[i][semesterIndex] || "").trim()
+          : "";
 
       Logger.log(
         "Row " +
@@ -3641,6 +3497,10 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
           rowKelas +
           '" with "' +
           (kelas || "any") +
+          '", Semester "' +
+          rowSemester +
+          '" with "' +
+          (semester || "any") +
           '"'
       );
 
@@ -3664,7 +3524,33 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
           kelas.includes(rowKelas);
       }
 
-      if (nisMatch && kelasMatch) {
+      // Cek apakah semester cocok (jika parameter semester diberikan)
+      let semesterMatch = true; // Default true jika tidak ada filter semester
+      if (semester && semesterIndex !== -1) {
+        // Normalisasi semester untuk perbandingan yang lebih fleksibel
+        const normalizedRowSemester = rowSemester
+          .toLowerCase()
+          .replace(/\s+/g, "");
+        const normalizedSearchSemester = String(semester)
+          .toLowerCase()
+          .replace(/\s+/g, "");
+
+        semesterMatch =
+          normalizedRowSemester === normalizedSearchSemester ||
+          normalizedRowSemester.includes(normalizedSearchSemester) ||
+          normalizedSearchSemester.includes(normalizedRowSemester) ||
+          // Cek juga format angka semester (1 vs I, 2 vs II)
+          (semester === "1" &&
+            (rowSemester.includes("I") || rowSemester.includes("Ganjil"))) ||
+          (semester === "2" &&
+            (rowSemester.includes("II") || rowSemester.includes("Genap"))) ||
+          (semester === "I" &&
+            (rowSemester.includes("1") || rowSemester.includes("Ganjil"))) ||
+          (semester === "II" &&
+            (rowSemester.includes("2") || rowSemester.includes("Genap")));
+      }
+
+      if (nisMatch && kelasMatch && semesterMatch) {
         Logger.log("✓ Student found at row " + i);
 
         // Buat object siswa dengan semua data
@@ -3700,6 +3586,7 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
               nis: student.nis,
               nama: student.nama,
               kelas: student.kelas,
+              semester: student.Semester,
               searchedKelas: kelas,
               searchedSemester: semester,
             })
@@ -3717,6 +3604,8 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
     for (let i = 1; i < Math.min(6, values.length); i++) {
       const rowNis = values[i][nisIndex];
       const rowKelas = kelasIndex !== -1 ? values[i][kelasIndex] : "N/A";
+      const rowSemester =
+        semesterIndex !== -1 ? values[i][semesterIndex] : "N/A";
       Logger.log(
         "Row " +
           i +
@@ -3725,7 +3614,9 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
           '" (type: ' +
           typeof rowNis +
           "), Kelas: " +
-          rowKelas
+          rowKelas +
+          ", Semester: " +
+          rowSemester
       );
     }
 
@@ -3733,6 +3624,7 @@ function getStudentDetailForGrades(nisId, kelas, semester) {
       "Siswa dengan NIS " +
       nisId +
       (kelas ? " di kelas " + kelas : "") +
+      (semester ? " semester " + semester : "") +
       " tidak ditemukan";
     throw new Error(errorMsg);
   } catch (error) {
@@ -3810,6 +3702,44 @@ function getAllStudentGradesForDetail(nisId, kelas, semester) {
       (h) => h === "Bimbingan dan Konseling"
     );
     const bahasaJawaIndex = headers.findIndex((h) => h === "Bahasa Jawa");
+
+    // Index untuk capaian pembelajaran
+    const capaianPendidikanAgamaIslamIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Pendidikan Agama Islam)"
+    );
+    const capaianPendidikanPancasilaIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Pendidikan Pancasila)"
+    );
+    const capaianBahasaIndonesiaIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Bahasa Indonesia)"
+    );
+    const capaianMatematikaIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Matematika)"
+    );
+    const capaianIlmuPengetahuanAlamIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Ilmu Pengetahuan Alam)"
+    );
+    const capaianIlmuPengetahuanSosialIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)"
+    );
+    const capaianBahasaInggrisIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Bahasa Inggris)"
+    );
+    const capaianPendidikanJasmaniIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (PJOK)"
+    );
+    const capaianInformatikaIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Informatika)"
+    );
+    const capaianSeniBudayaIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Seni Budaya)"
+    );
+    const capaianBimbinganKonselingIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (BK)"
+    );
+    const capaianBahasaJawaIndex = headers.findIndex(
+      (h) => h === "Capaian Pembelajaran (Bahasa Jawa)"
+    );
 
     Logger.log("Kelas column index: " + kelasIndex);
     Logger.log("Semester column index: " + semesterIndex);
@@ -3900,6 +3830,32 @@ function getAllStudentGradesForDetail(nisId, kelas, semester) {
           seniBudaya: row[seniBudayaIndex] || "",
           bimbinganKonseling: row[bimbinganKonselingIndex] || "",
           bahasaJawa: row[bahasaJawaIndex] || "",
+
+          // Capaian pembelajaran
+          "Capaian Pembelajaran (Pendidikan Agama Islam)":
+            row[capaianPendidikanAgamaIslamIndex] || "",
+          "Capaian Pembelajaran (Pendidikan Pancasila)":
+            row[capaianPendidikanPancasilaIndex] || "",
+          "Capaian Pembelajaran (Bahasa Indonesia)":
+            row[capaianBahasaIndonesiaIndex] || "",
+          "Capaian Pembelajaran (Matematika)":
+            row[capaianMatematikaIndex] || "",
+          "Capaian Pembelajaran (Ilmu Pengetahuan Alam)":
+            row[capaianIlmuPengetahuanAlamIndex] || "",
+          "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)":
+            row[capaianIlmuPengetahuanSosialIndex] || "",
+          "Capaian Pembelajaran (Bahasa Inggris)":
+            row[capaianBahasaInggrisIndex] || "",
+          "Capaian Pembelajaran (PJOK)":
+            row[capaianPendidikanJasmaniIndex] || "",
+          "Capaian Pembelajaran (Informatika)":
+            row[capaianInformatikaIndex] || "",
+          "Capaian Pembelajaran (Seni Budaya)":
+            row[capaianSeniBudayaIndex] || "",
+          "Capaian Pembelajaran (BK)":
+            row[capaianBimbinganKonselingIndex] || "",
+          "Capaian Pembelajaran (Bahasa Jawa)":
+            row[capaianBahasaJawaIndex] || "",
         };
 
         matchingGrades.push(gradeData);
@@ -3949,10 +3905,47 @@ function getStudentGradeDetail(nisId, kelas, semester) {
     // Generate summary untuk data yang sudah difilter
     const summary = generateGradeSummary(filteredGrades);
 
+    // Gabungkan data capaian pembelajaran dari gradeData ke studentData
+    let enhancedStudentData = studentData.student;
+    if (filteredGrades.length > 0) {
+      const gradeRecord = filteredGrades[0]; // Ambil record pertama yang cocok
+      // Tambahkan data capaian pembelajaran ke student data
+      enhancedStudentData = {
+        ...studentData.student,
+        "Capaian Pembelajaran (Pendidikan Agama Islam)":
+          gradeRecord["Capaian Pembelajaran (Pendidikan Agama Islam)"] || "",
+        "Capaian Pembelajaran (Pendidikan Pancasila)":
+          gradeRecord["Capaian Pembelajaran (Pendidikan Pancasila)"] || "",
+        "Capaian Pembelajaran (Bahasa Indonesia)":
+          gradeRecord["Capaian Pembelajaran (Bahasa Indonesia)"] || "",
+        "Capaian Pembelajaran (Matematika)":
+          gradeRecord["Capaian Pembelajaran (Matematika)"] || "",
+        "Capaian Pembelajaran (Ilmu Pengetahuan Alam)":
+          gradeRecord["Capaian Pembelajaran (Ilmu Pengetahuan Alam)"] || "",
+        "Capaian Pembelajaran (Ilmu Pengetahuan Sosial)":
+          gradeRecord["Capaian Pembelajaran (Ilmu Pengetahuan Sosial)"] || "",
+        "Capaian Pembelajaran (Bahasa Inggris)":
+          gradeRecord["Capaian Pembelajaran (Bahasa Inggris)"] || "",
+        "Capaian Pembelajaran (PJOK)":
+          gradeRecord["Capaian Pembelajaran (PJOK)"] || "",
+        "Capaian Pembelajaran (Informatika)":
+          gradeRecord["Capaian Pembelajaran (Informatika)"] || "",
+        "Capaian Pembelajaran (Seni Budaya)":
+          gradeRecord["Capaian Pembelajaran (Seni Budaya)"] || "",
+        "Capaian Pembelajaran (BK)":
+          gradeRecord["Capaian Pembelajaran (BK)"] || "",
+        "Capaian Pembelajaran (Bahasa Jawa)":
+          gradeRecord["Capaian Pembelajaran (Bahasa Jawa)"] || "",
+      };
+      Logger.log(
+        "Enhanced student data with capaian pembelajaran from grade record"
+      );
+    }
+
     // Gabungkan data siswa dan nilai
     const result = {
       success: true,
-      student: studentData.student,
+      student: enhancedStudentData,
       grades: filteredGrades,
       summary: summary,
     };
@@ -4811,6 +4804,202 @@ function exportKIPAnalysis(filteredData) {
     return {
       success: false,
       message: error.message,
+    };
+  }
+}
+
+// Function to update student grades
+function updateStudentGrades(updateData, sessionId) {
+  try {
+    Logger.log("=== updateStudentGrades called ===");
+    Logger.log("- updateData: " + JSON.stringify(updateData));
+    Logger.log('- sessionId: "' + sessionId + '"');
+
+    // Validate session
+    const username = validateSession(sessionId);
+    if (!username) {
+      throw new Error("Session tidak valid. Silakan login kembali.");
+    }
+
+    // Validate parameters
+    if (
+      !updateData ||
+      !updateData.studentId ||
+      !updateData.kelas ||
+      !updateData.semester ||
+      !updateData.changes
+    ) {
+      throw new Error("Data update tidak valid");
+    }
+
+    const studentId = String(updateData.studentId).trim();
+    const kelas = String(updateData.kelas).trim();
+    const semester = String(updateData.semester).trim();
+    const changes = updateData.changes;
+
+    if (Object.keys(changes).length === 0) {
+      return { success: true, message: "Tidak ada perubahan untuk disimpan" };
+    }
+
+    Logger.log(
+      'Updating grades for student NIS: "' +
+        studentId +
+        '", Kelas: "' +
+        kelas +
+        '", Semester: "' +
+        semester +
+        '"'
+    );
+    Logger.log("Changes: " + JSON.stringify(changes));
+
+    // Open spreadsheet
+    const ss = SpreadsheetApp.openById(BUKU_INDUK_SPREADSHEET_ID);
+    const gradesSheet = ss.getSheetByName(STUDENTS_GRADE_NAME);
+
+    if (!gradesSheet) {
+      throw new Error('Sheet "' + STUDENTS_GRADE_NAME + '" tidak ditemukan');
+    }
+
+    const dataRange = gradesSheet.getDataRange();
+    const values = dataRange.getValues();
+
+    if (values.length === 0) {
+      throw new Error("Sheet kosong");
+    }
+
+    const headers = values[0];
+    const nisIndex = headers.indexOf("NIS");
+    const kelasIndex = headers.indexOf("Kelas");
+    const semesterIndex = headers.indexOf("Semester");
+
+    if (nisIndex === -1) {
+      throw new Error("Kolom NIS tidak ditemukan");
+    }
+    if (kelasIndex === -1) {
+      throw new Error("Kolom kelas tidak ditemukan");
+    }
+    if (semesterIndex === -1) {
+      throw new Error("Kolom semester tidak ditemukan");
+    }
+
+    // Find student grade row
+    let gradeRowIndex = -1;
+    for (let i = 1; i < values.length; i++) {
+      const rowNIS = String(values[i][nisIndex]).trim();
+      const rowKelas = String(values[i][kelasIndex]).trim();
+      const rowSemester = String(values[i][semesterIndex]).trim();
+
+      if (
+        rowNIS === studentId &&
+        rowKelas === kelas &&
+        rowSemester === semester
+      ) {
+        gradeRowIndex = i;
+        break;
+      }
+    }
+
+    if (gradeRowIndex === -1) {
+      throw new Error(
+        'Data nilai untuk siswa NIS "' +
+          studentId +
+          '", Kelas "' +
+          kelas +
+          '", Semester "' +
+          semester +
+          '" tidak ditemukan'
+      );
+    }
+
+    Logger.log("Grade record found at row: " + (gradeRowIndex + 1));
+
+    // Update the grades
+    let updatedFields = [];
+    for (const fieldName in changes) {
+      const columnIndex = headers.indexOf(fieldName);
+      if (columnIndex !== -1) {
+        const oldValue = values[gradeRowIndex][columnIndex];
+        const newValue = changes[fieldName];
+
+        // Validate grade value (should be between 0-100) - only for numeric grade fields, not text fields
+        const isTextualField =
+          fieldName.includes("Capaian Pembelajaran") ||
+          fieldName.includes("Ekstrakurikuler") ||
+          fieldName.includes("Keterangan Ekstrakurikuler") ||
+          fieldName.includes("Jenis Prestasi") ||
+          fieldName.includes("Tingkat Prestasi") ||
+          fieldName.includes("Nama Prestasi") ||
+          fieldName.includes("Penyelenggara") ||
+          fieldName.includes("Peringkat") ||
+          fieldName.includes("Tahun Prestasi");
+
+        if (newValue !== "" && newValue !== "-" && !isTextualField) {
+          const numericValue = parseFloat(newValue);
+          if (isNaN(numericValue) || numericValue < 0 || numericValue > 100) {
+            throw new Error(
+              'Nilai "' + fieldName + '" harus berupa angka antara 0-100'
+            );
+          }
+        }
+
+        // Update the cell
+        gradesSheet
+          .getRange(gradeRowIndex + 1, columnIndex + 1)
+          .setValue(newValue === "" || newValue === "-" ? "" : newValue);
+
+        updatedFields.push({
+          field: fieldName,
+          oldValue: oldValue,
+          newValue: newValue,
+        });
+
+        Logger.log(
+          'Updated field "' +
+            fieldName +
+            '": "' +
+            oldValue +
+            '" -> "' +
+            newValue +
+            '"'
+        );
+      } else {
+        Logger.log('Warning: Field "' + fieldName + '" not found in headers');
+      }
+    }
+
+    if (updatedFields.length === 0) {
+      return {
+        success: false,
+        error: "Tidak ada field yang valid untuk diupdate",
+      };
+    }
+
+    // Log the update activity
+    Logger.log(
+      "Successfully updated " +
+        updatedFields.length +
+        " grade fields for student NIS: " +
+        studentId +
+        ", Kelas: " +
+        kelas +
+        ", Semester: " +
+        semester
+    );
+    Logger.log("Updated by user: " + username);
+
+    return {
+      success: true,
+      message: "Nilai siswa berhasil diperbarui",
+      updatedFields: updatedFields,
+      updatedBy: username,
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    Logger.log("ERROR in updateStudentGrades: " + error.toString());
+    Logger.log("Error stack: " + error.stack);
+    return {
+      success: false,
+      error: error.message || "Terjadi kesalahan saat mengupdate nilai siswa",
     };
   }
 }

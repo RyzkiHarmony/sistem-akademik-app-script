@@ -1,0 +1,31 @@
+{
+  "env": {
+    "es2020": true,
+    "browser": true,
+    "node": true,
+    "jest": true
+  },
+  "plugins": ["googleappsscript", "html"],
+  "extends": ["eslint:recommended"],
+  "parserOptions": {
+    "sourceType": "script"
+  },
+  "globals": {
+    "SpreadsheetApp": "readonly",
+    "HtmlService": "readonly",
+    "DriveApp": "readonly",
+    "PropertiesService": "readonly",
+    "ScriptApp": "readonly",
+    "Utilities": "readonly",
+    "Logger": "readonly",
+    "google": "readonly",
+    "vis": "readonly",
+    "network": "readonly"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "no-undef": "warn",
+    "no-console": "off",
+    "no-prototype-builtins": "off"
+  }
+}

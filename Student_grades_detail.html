@@ -84,27 +84,252 @@
       <div class="grades-section" id="grades-section" style="display: none">
         <!-- Academic Grades -->
         <div
-          class="grades-card"
+          class="grades-card accordion-card"
           id="academic-grades-card"
+          data-card-id="academic-grades"
           style="display: none"
         >
-          <div class="grades-card-header">
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('academic-grades')"
+          >
             <h3><i class="fas fa-book"></i> Nilai Akademik</h3>
-            <div class="semester-info" id="academic-semester-info"></div>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div class="semester-info" id="academic-semester-info"></div>
+              <button
+                class="edit-toggle-btn"
+                id="edit-grades-btn"
+                onclick="event.stopPropagation(); toggleEditMode('academic-grades')"
+                title="Edit nilai siswa"
+              >
+                <i class="fas fa-edit"></i> Edit Nilai
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="academic-grades-icon"
+              ></i>
+            </div>
           </div>
-          <div class="grades-card-body">
+          <div
+            class="grades-card-body accordion-body"
+            id="academic-grades-body"
+            style="display: none"
+          >
             <div class="grades-grid" id="academic-grades-grid"></div>
             <div class="grades-summary" id="academic-grades-summary"></div>
           </div>
         </div>
 
-        <!-- Exam Grades -->
-        <div class="grades-card" id="exam-grades-card" style="display: none">
-          <div class="grades-card-header">
-            <h3><i class="fas fa-clipboard-check"></i> Nilai Ujian Sekolah</h3>
-            <div class="semester-info" id="exam-semester-info"></div>
+        <!-- Ekstrakurikuler Card -->
+        <div
+          class="grades-card accordion-card"
+          id="extracurricular-card"
+          data-card-id="extracurricular"
+          style="display: none"
+        >
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('extracurricular')"
+          >
+            <h3><i class="fas fa-users"></i> Ekstrakurikuler</h3>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <button
+                class="edit-toggle-btn"
+                onclick="event.stopPropagation(); toggleEditMode('extracurricular')"
+                title="Edit data ekstrakurikuler"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="extracurricular-icon"
+              ></i>
+            </div>
           </div>
-          <div class="grades-card-body">
+          <div
+            class="grades-card-body accordion-body"
+            id="extracurricular-body"
+            style="display: none"
+          >
+            <div class="grades-grid" id="extracurricular-grid"></div>
+          </div>
+        </div>
+
+        <!-- Prestasi Card -->
+        <div
+          class="grades-card accordion-card"
+          id="achievement-card"
+          data-card-id="achievement"
+          style="display: none"
+        >
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('achievement')"
+          >
+            <h3><i class="fas fa-trophy"></i> Prestasi Siswa</h3>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <button
+                class="edit-toggle-btn"
+                onclick="event.stopPropagation(); toggleEditMode('achievement')"
+                title="Edit data prestasi"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="achievement-icon"
+              ></i>
+            </div>
+          </div>
+          <div
+            class="grades-card-body accordion-body"
+            id="achievement-body"
+            style="display: none"
+          >
+            <div class="grades-grid" id="achievement-grid"></div>
+          </div>
+        </div>
+
+        <!-- Projek Penguatan Profil Pelajar Pancasila Card -->
+        <div
+          class="grades-card accordion-card"
+          id="p5-card"
+          data-card-id="p5-grades"
+          style="display: none"
+        >
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('p5')"
+          >
+            <h3>
+              <i class="fas fa-project-diagram"></i> Projek Penguatan Profil
+              Pelajar Pancasila
+            </h3>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <button
+                class="edit-toggle-btn"
+                onclick="event.stopPropagation(); toggleEditMode('p5-grades')"
+                title="Edit data projek P5"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="p5-project-icon"
+              ></i>
+            </div>
+          </div>
+          <div
+            class="grades-card-body accordion-body"
+            id="p5-project-body"
+            style="display: none"
+          >
+            <div class="grades-grid" id="p5-project-grid"></div>
+          </div>
+        </div>
+
+        <!-- Kehadiran Card -->
+        <div
+          class="grades-card accordion-card"
+          id="attendance-card"
+          data-card-id="attendance"
+          style="display: none"
+        >
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('attendance')"
+          >
+            <h3><i class="fas fa-calendar-check"></i> Data Kehadiran</h3>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <button
+                class="edit-toggle-btn"
+                onclick="event.stopPropagation(); toggleEditMode('attendance')"
+                title="Edit data kehadiran"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="attendance-icon"
+              ></i>
+            </div>
+          </div>
+          <div
+            class="grades-card-body accordion-body"
+            id="attendance-body"
+            style="display: none"
+          >
+            <div class="grades-grid" id="attendance-grid"></div>
+          </div>
+        </div>
+
+        <!-- Status Kenaikan Card -->
+        <div
+          class="grades-card accordion-card"
+          id="promotion-status-card"
+          data-card-id="promotion-status"
+          style="display: none"
+        >
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('promotion-status')"
+          >
+            <h3><i class="fas fa-graduation-cap"></i> Status Kenaikan Kelas</h3>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <button
+                class="edit-toggle-btn"
+                onclick="event.stopPropagation(); toggleEditMode('promotion-status')"
+                title="Edit status kenaikan kelas"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="promotion-status-icon"
+              ></i>
+            </div>
+          </div>
+          <div
+            class="grades-card-body accordion-body"
+            id="promotion-status-body"
+            style="display: none"
+          >
+            <div class="grades-grid" id="promotion-status-grid"></div>
+          </div>
+        </div>
+
+        <!-- Exam Grades -->
+        <div
+          class="grades-card accordion-card"
+          id="exam-grades-card"
+          data-card-id="exam-grades"
+          style="display: none"
+        >
+          <div
+            class="grades-card-header accordion-header"
+            onclick="toggleAccordion('exam-grades')"
+          >
+            <h3><i class="fas fa-clipboard-check"></i> Nilai Ujian Sekolah</h3>
+            <div style="display: flex; align-items: center; gap: 10px">
+              <div class="semester-info" id="exam-semester-info"></div>
+              <button
+                class="edit-toggle-btn"
+                onclick="event.stopPropagation(); toggleEditMode('exam-grades')"
+                title="Edit nilai ujian sekolah"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <i
+                class="fas fa-chevron-down accordion-icon"
+                id="exam-grades-icon"
+              ></i>
+            </div>
+          </div>
+          <div
+            class="grades-card-body accordion-body"
+            id="exam-grades-body"
+            style="display: none"
+          >
             <div class="grades-grid" id="exam-grades-grid"></div>
             <div class="grades-summary" id="exam-grades-summary"></div>
           </div>
