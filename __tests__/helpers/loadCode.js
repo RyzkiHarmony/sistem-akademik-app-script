@@ -66,7 +66,7 @@ function loadCode(overrides = {}) {
     instrumenter = createInstrumenter({ preserveComments: true, produceSourceMap: true, compact: false });
   }
 
-  const files = ['Auth.js', 'SessionManager.js', 'Router.js', 'Code.js'];
+  const files = ['Auth.js', 'SessionManager.js', 'Router.js', 'Config.js', 'Utils.js', 'DashboardService.js', 'StudentService.js', 'GradesService.js', 'KipService.js', 'Code.js'];
   for (const file of files) {
     const filePath = path.resolve(__dirname, '../../' + file);
     if (fs.existsSync(filePath)) {

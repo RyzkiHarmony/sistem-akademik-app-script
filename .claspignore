@@ -1,21 +1,22 @@
 # Node modules
-node_modules/
+**/node_modules/**
+node_modules/**
 npm-debug.log*
 
 # Testing
-__tests__/
-__mocks__/
+**/__tests__/**
+**/__mocks__/**
 jest.config.js
 package.json
 package-lock.json
-coverage/
+**/coverage/**
 yarn-debug.log*
 yarn-error.log*
 
 # IDE files
-.vscode/
-.idea/
-.attachment/
+.vscode/**
+.idea/**
+.attachment/**
 *.swp
 *.swo
 *~
@@ -32,7 +33,7 @@ Thumbs.db
 # Python files
 *.py
 *.pyc
-__pycache__/
+__pycache__/**
 *.pyo
 *.pyd
 .Python
@@ -49,7 +50,7 @@ __pycache__/
 *.log
 
 # Git files
-.git/
+.git/**
 .gitignore
 
 # Documentation
@@ -64,5 +65,5 @@ README.md
 .env.production.local
 
 # Tooling outputs
-graphify-out/
-.eslintrc.json
+graphify-out/**
+.eslintrc.json 

@@ -26,6 +26,8 @@
     "no-unused-vars": "off",
     "no-undef": "warn",
     "no-console": "off",
-    "no-prototype-builtins": "off"
+    "no-prototype-builtins": "off",
+    "no-inner-declarations": "off",
+    "no-empty": "off"
   }
 }
